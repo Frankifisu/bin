@@ -1,0 +1,142 @@
+#!/bin/bash
+#
+  function usage {
+    echo " Usage: fresul -sep & -a 'RamAct Fr= 2--'  ouput1.log output2.log"
+  }
+  if [ ${#} -eq 0 ]; then
+    usage
+    return 1
+  fi
+  declare -i idx=0 # index used in loops
+  declare -i njb=0 # number of gaussian jobs
+  declare -i nvb=0 # number of normal modes
+  declare -i nfr=0 # number of frequencies found in output
+  declare -i log=0 # only treat .log files
+  declare -a words
+  unset add ; declare -a add
+  declare -a resul
+  sep='   ' # separator that can be useful to change for LaTeX
+# Handle options
+  while [ -n "`echo ${1} | grep '^-'`" ]; do
+    case ${1} in
+      -l | --log  ) log=1;;
+      -s | --sep  ) sep="${2}"; shift;;
+      -a | --add  ) add[${#add[@]}]="$( echo "${2}" )"; shift;;
+      -h | --help ) eval ${usage}; return 1;;
+    esac
+    shift
+  done
+  resul[0]="   Mode   Sym   E/cm-1     IR       RamAct   ${add[@]} "
+  hline='--------------------------------------------------------' 
+  for file in ${@}; do # loop over all output files
+#    if [[ "${file}" = *".log" ]] || [ "${log}" -eq 1 ]; then
+#   Check consistency
+    njb=`grep -c "SCF Done" ${file}`
+    if [ ${njb} -eq 0 ]; then
+      echo " No SCF energy in file ${file}"
+    fi
+#   Find the number of normal modes
+    if [ `grep -a -c 'NAtoms' ${file}` -ne 0 ]; then
+      line=`grep -a -m 1 'NAtoms' ${file}`
+      words=(${line})
+      nvb=$[3*${words[1]}-6]
+    else
+      echo ' How many normal modes are there?'
+      read nvb
+    fi
+#   Look how many frequencies are actually found in output
+    njb=`grep -a -c 'Harmonic frequencies ' ${file}`
+    nfr=`grep -a -c 'Frequencies --' ${file}`
+    nfr=$[3*${nfr}]
+    if [ ${nfr} -ne 0 ]; then
+#     Read symmetries
+      grep -a -B 1 'Frequencies --' ${file} | grep -v -e '--' > ~/bin/tempfr.tmp
+      idx=0
+      while read line; do
+        read -a words <<< "${line}"
+        idx=$[${idx}+1]
+        if [ $[1+(${idx}-1)%(${nfr}/${njb})] -le 9 ]; then # this makes a prettier output
+          off=${sep}" "
+        else
+          off=${sep}
+        fi
+        resul[${idx}]=${off}$[1+(${idx}-1)%(${nfr}/${njb})]${sep}"  "${words[0]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${off}$[1+(${idx}-1)%(${nfr}/${njb})]${sep}"  "${words[1]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${off}$[1+(${idx}-1)%(${nfr}/${njb})]${sep}"  "${words[2]}
+      done < ~/bin/tempfr.tmp
+#     Read frequencies
+      grep -a 'Frequencies --' ${file} > ~/bin/tempfr.tmp
+      idx=0
+      while read line; do
+        read -a words <<< "${line}"
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[2]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[3]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
+      done < ~/bin/tempfr.tmp
+#     Read IR intensities
+      grep -a 'IR Inten    --' ${file} > ~/bin/tempfr.tmp
+      idx=0
+      while read line; do
+        read -a words <<< "${line}"
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[3]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
+      done < ~/bin/tempfr.tmp
+#     Read Raman activities
+      grep -a 'Raman Activ --' ${file} > ~/bin/tempfr.tmp
+      idx=0
+      while read line; do
+        read -a words <<< "${line}"
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[3]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
+        idx=$[${idx}+1]
+        resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
+      done < ~/bin/tempfr.tmp
+#     Read additional info
+      iadd=0
+      while [ -n "${add[$iadd]}" ]; do
+        grep -a "${add[${iadd}]}" ${file} > ~/bin/tempfr.tmp
+        iadd=$[${iadd}+1]
+        idx=0
+        while read line; do
+          read -a words <<< "${line}"
+          idx=$[${idx}+1]
+          resul[${idx}]=${resul[${idx}]}${sep}${words[3]}
+          idx=$[${idx}+1]
+          resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
+          idx=$[${idx}+1]
+          resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
+        done < ~/bin/tempfr.tmp
+      done
+#     Print the results
+      idx=0
+      echo " Freq results from file: ${file}"
+      echo ${hline}
+      echo "${resul[0]}"
+      for n in $(seq 1 ${njb}); do
+        if [ ${idx} -lt ${nfr} ]; then
+          for i in $(seq 1 ${nvb}); do
+            idx=$[${idx}+1]
+            echo "${resul[${idx}]}"
+          done
+        echo ${hline}
+        fi
+      done
+      rm ~/bin/tempfr.tmp
+    else
+      echo " No frequencies found in file ${file}"
+    fi
+#    else
+#      echo " Will ignore ${file} because it is not a .log, use -l to force it"
+#    fi
+  done

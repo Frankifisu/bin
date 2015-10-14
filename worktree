@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# You need to provide the desired link
+  if [ "${#}" -ne 1 ]; then
+    echo 'Usage: worktree l502'
+    echo '       worktree nutil'
+    exit 0
+  fi
+# Gaussian must be correctly set up
+  if [ -z "${gdvroot}" ]; then
+    if [ -z "${g09root}" ]; then
+      echo 'ERROR: Gaussian environment not set'; exit 1
+    else
+      gau='g09'; gauroot="${g09root}"
+    fi
+  else
+    gau='gdv'; gauroot="${gdvroot}"
+  fi
+# Handle the nutil
+  if [ ! -d "nutil" ]; then
+    mkdir "nutil"
+    cp -- "${gauroot}/${gau}/bsd/nutil.make" "nutil/"
+    getx "a2nucf" "utilam"
+    sed -i "/^OBJAM\ =/s/=/=\ a2nucf.o/" "nutil/nutil.make"
+  fi
+# Define the link you want in your working
+  link="${1}"
+  if [ "${link}" = "nutil" ]; then exit 0; fi
+  if [ ! -f "${gauroot}/${gau}/${link}.F" ]; then
+    echo "ERROR: Link ${link}.F does not exist"; exit 1
+  elif [ -d "${link}" ]; then
+    echo "ERROR: You already have a ${link} directory"; exit 1
+  fi
+  if [ ! -d "${link}" ]; then
+    ink="$( echo "${link}" | sed s/l// )"
+    mkdir "${link}"
+    line="$( grep -m 1 -- "Deck" "${gauroot}/${gau}/${link}.F" | tr '[:upper:]' '[:lower:]' )"
+    deck=(${line})
+    rout="${deck[1]}"
+    getx "${rout}" "${link}"
+    cp -- "${gauroot}/${gau}/bsd/link.make" "${link}/${link}.make"
+    sed -i "s/502/${ink}/g" "${link}/${link}.make"
+    sed -i "/^OBJ${ink}\ =/s/=/=\ ${rout}.o/" "${link}/${link}.make"
+  fi
+# Take care of the Makefile
+  if [ ! -f "Makefile" ]; then
+    cp -- "${gauroot}/${gau}/bsd/tree.make" "Makefile"
+    sed -i "/^all:/s/all:.*/all:\ nutilx\ ${link}x\ edir/" "Makefile"
+    sed -i "/^lall:/s/lall:.*/lall:\ nutilxl\ nutillx\ ${link}xl\ ldir/" "Makefile"
+  fi
+  if [ -z "$( grep -- "^all:.*${link}x" "Makefile" )" ]; then
+    sed -i "/^all:/s/nutilx/nutilx\ ${link}x/" "Makefile"
+  fi
+  if [ -z "$( grep -- "^lall:.*${link}xl" "Makefile" )" ]; then
+    sed -i "/^lall:/s/nutillx/nutillx\ ${link}xl/" "Makefile"
+  fi
+  exit 0

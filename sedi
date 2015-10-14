@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# Note: To delete all lines starting with pattern and 2 lines after them
+# sed -i '/^pattern/,3d' file
+  function usage {
+    echo 'Usage: sedi [-l 10] [-v] [-1] foo bar file(s)'
+    echo ' -l  : sed a certain line number'
+    echo ' -v  : verbose mode'
+    echo ' -b  : sed a line beginning with a certain string'
+    echo ' -s  : sed only once per line (/g is default)'
+    echo ' -h  : print this help and exit'
+    exit 0
+  }
+  if [ "${#}" -lt 3 ]; then echo "ERROR: Wrong number of arguments" ; usage ; fi
+# Defaults
+  unset beg ; unset vrb
+  subs='s'
+  glob='g'
+# Handle options
+  while [ -n "$( echo "${1}" | grep '^-' )" ]; do
+    case ${1} in
+      -l | --line ) subs="${2}s"; shift;;
+      -v | --vrb  ) vrb='-v';;
+      -b | --beg  ) beg="${2}"; shift;;
+      -s | --nogl ) glob='';;
+      -h | --help ) usage ;;
+       *          ) echo "ERROR: unrecognized option ${1}"; exit 1;;
+    esac
+    shift
+  done
+# Define separator depending on special characters
+  if [[ "${beg}" = *'/'* ]]; then echo "ERROR: cannot sed lines starting with /"; exit 1; fi
+  if [[ "${1}" = *'/'* ]] || [[ "${2}" = *'/'* ]]; then
+    if [[ "${1}" = *':'* ]] || [[ "${2}" = *':'* ]]; then
+      if [[ "${1}" = *'_'* ]] || [[ "${2}" = *'_'* ]]; then
+        echo "ERROR: cannot sed / and : and _ at the same time"
+        exit 1
+      else
+        op='_'
+      fi
+    else
+      op=':'
+    fi
+  else
+    op='/'
+  fi
+# Escape slashes
+  foo="$( echo "${1}"   | sed 's/\//\\\//g' )"
+  bar="$( echo "${2}"   | sed 's/\//\\\//g' )"
+# Escape spaces
+  foo="$( echo "${foo}" | sed 's/\ /\\\ /g' )"
+  bar="$( echo "${bar}" | sed 's/\ /\\\ /g' )"
+  beg="$( echo "${beg}" | sed 's/\ /\\\ /g' )"
+# Assemble and execute command
+  if [[ "$( uname )" = "Linux" ]]; then
+    sedtyp="sed -i"
+  elif  [[ "$( uname )" = "Darwin" ]]; then
+    sedtyp="sed -i ''"
+  else
+    echo "ERROR: Unsupported operating system $( uname )" ; exit 1
+  fi
+  if [ -z "${beg}" ]; then
+    comando="$( echo "${sedtyp}" \'${subs}${op}"${foo}"${op}"${bar}"${op}${glob}\' "${@:3}" )"
+  else
+    comando="$( echo "${sedtyp}" \'/"^"${beg}/${subs}${op}"${foo}"${op}"${bar}"${op}${glob}\' "${@:3}" )"
+  fi
+  if [ "${vrb}" = '-v' ]; then echo "${comando}"; fi
+  eval "${comando}"
+  exit 0

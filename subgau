@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+# ------------------------------
+# GAUSSIAN JOB SUBMISSION SCRIPT
+# ------------------------------
+  unset outnam ; unset wrkdir ; unset gauroot ; unset comando
+  unset inp ; unset opt ; unset add ; unset vrb
+  declare -a inp ; declare -a opt
+  declare -i nsec=0 ; declare -i maxsec=3
+  function usage {
+    echo "USAGE: subgau [-sleep 1m] [-h] input1.com input2.com"
+    echo "  If there is no subgau.py by JBL then defaults to interactive submission"
+    echo "  with the following optional arguments"
+    echo "    -o nam  : sets the output filename to nam"
+    echo "    -w wrk  : use the working directory in wrk"
+    echo "    -g gau  : use the Gaussian version in path gau (experimental)"
+    echo "    -a key  : add keyword key to the route section on-the-fly"
+    echo "    -nonice : bully other processes to run faster"
+    echo "    -k      : do not overwrite the log file (append output)"
+    echo "    -v      : verbose submission"
+    echo "    -h      : print this message and exit"
+    exit 0
+  }
+# Delayed submission
+  if [ "${1}" = "-sleep" ]; then
+    if [ "${#}" -lt 2 ]; then usage; fi
+    sleep "${2}"
+    shift; shift
+  fi
+  if [ "${#}" -eq 0 ]; then usage; fi
+# --------------
+# PBS SUBMISSION
+# --------------
+  if [ -x "/home/j.bloino/bin/subgau.py" ]; then
+#   Sort options from job files
+    for input in "${@}"; do
+      if [[ ${input} = *".com" ]]; then
+        inp=( "${inp[@]}" "${input}" )
+      else
+        opt=( "${opt[@]}" "${input}" )
+      fi
+    done
+    if [ "${#inp[@]}" -eq 0 ]; then echo "ERROR: no valid input file"; exit 1; fi
+#   Submit all jobs
+    for input in "${inp[*]}"; do
+      comando="$( echo "/home/j.bloino/bin/subgau.py" "${opt[*]}" "${input}" )"
+      eval "${comando}"
+#     Submission journal
+      if [ "${USER}" = 'f.egidi' ]; then
+        echo "$( date )" " ; " "$( pwd )" >> /home/f.egidi/.mysubs
+        echo "  "${comando} >> /home/f.egidi/.mysubs
+      fi
+    done
+# ----------------------
+# INTERACTIVE SUBMISSION
+# ----------------------
+  else
+#   Parse options
+    log=">"
+    niceness="nice"
+    unset add
+    while [ -n "${1}" ]; do
+      case "${1}" in
+        *.com | *.gjf ) inp=( "${inp[@]}" "${1}" );;
+        -o | --output ) outnam="${2}"; shift;;
+        -w | --wrkdir ) wrkdir="${2}"; shift;;
+        -g | --gau    ) gauroot="${2}"; shift;;
+        -a | --add    ) add="${add} ${2}"; shift;;
+        -k | --keep   ) log='>>';;
+        -v | --verbos ) vrb='-v';;
+        -nonice       ) niceness='';;
+        -h | --help   ) usage;;
+        *             ) echo "ERROR: unrecognized option ${1}"; exit 1;;
+      esac; shift
+    done
+    if [ "${#inp[@]}" -eq 0 ]; then echo "ERROR: no valid input file"; exit 1; fi
+#   Recover Gaussian executable if explicitly specified via -g
+    if [ -n "${gauroot}" -a -d "${gauroot}" ]; then
+      if [ -x "${HOME}/bin/setgaussian" ]; then
+        . ${HOME}/bin/setgaussian ${vrb} -g "${gauroot}"
+      else
+        echo "ERROR: script setgaussian not found in ${HOME}/bin"; exit 1
+      fi
+      if [ "$?" -ne 0 ]; then
+        echo "ERROR: Encountered problems with Gaussian path ${gauroot}"; exit 1
+      fi
+    fi
+#   If not explicitly specified by -g check whether Gaussian is defined
+    if [ -x "${gdvroot}/gdv/gdv" ]; then
+      gau="gdv"
+    elif [ -x "${g09root}/g09/g09" ]; then
+      gau="g09"
+    else
+      echo "ERROR: Gaussian environment not properly set"; exit 1
+    fi
+#   Check for a working directory
+    if [ -n "${wrkdir}" ]; then
+      if [ -d "${wrkdir}/exe-dir" ]; then
+        gau="${gau} -exedir=${wrkdir}/exe-dir:${GAUSS_EXEDIR}"
+      elif [ -d "${wrkdir}" ]; then
+        gau="${gau} -exedir=${wrkdir}:${GAUSS_EXEDIR}"
+      else
+        echo "ERROR: working directory ${wrkdir} not found"; exit 1
+      fi
+#     Wait in case the working is still compiling
+#      while [ -n "$( pgrep -n -u "${USER}" -x -- make )" ]; do wait -- "$( pgrep -n -u "${USER}" -x -- make )"; done
+      while [ -d "/proc/$( pgrep -n -u "${USER}" -x -- make )" -a "$?" -eq "0" ]; do sleep 1s; done
+#      wait -- "$( pidof -x -s -- make )" ; sleep 1s
+#      for exe in "${wrkdir}"/*.exe "${wrkdir}"/l*/*.exe ; do
+#        if [ ! -x "${exe}" ]; then continue; fi
+#        stats="$( stat -c %A "${exe}" )"
+#        while [ "${stats:7:3}" != "---" ] && [ ${nsec} -lt ${maxsec} ]; do
+#          sleep 1s ; nsec=$[${nsec}+1]
+#        done
+#        nsec=0
+#      done
+    fi
+#   Assemble and run command
+    if [ -n "${outnam}" -a -f "${outnam}" -a "${log}" = ">" ]; then rm -- "${outnam}"; fi
+    for file in "${inp[@]}"; do
+      if [ ! -f "${file}" ]; then echo "ERROR: input file ${file} not found"; continue; fi
+#     Add keywords to the input on the fly
+      if [ -n "${add}" ]; then
+        if [ ! -x "$( which sedi )" ]; then echo "ERROR: you need the sedi utility to do this"; exit 1; fi
+        input="${file%.*}.tmp"
+        cp -- "${file}" "${input}"
+        for x in {"p","","t"}; do sedi ${vrb} -s -b "#${x} " "#${x}" "#${x} ${add}" "${input}"; done
+      else
+        input="${file}"
+      fi
+#     Select output file and run
+      if [ -z "${outnam}" ]; then
+        comando="${niceness} ${gau} < ${input} ${log} ${file%.*}.log"
+      elif [ "${#inp[@]}" -eq 1 ]; then
+        comando="${niceness} ${gau} < ${input} ${log} ${outnam}"
+      else
+        comando="${niceness} ${gau} < ${input} >> ${outnam}"
+      fi
+      if [ "${vrb}" = '-v' ]; then echo "${comando}"; fi
+      eval "${comando}"
+#     Remove temporary and/or annoying files
+      punch="$( grep -sqi "punch" "${input}" ; echo $? )"
+      if [[ -f "fort.7" && "${punch}" -ne "0" ]] ; then rm -- "fort.7"; fi
+      if [[ "${file}" != "${input}" ]]; then rm -- "${input}"; fi
+    done
+  fi

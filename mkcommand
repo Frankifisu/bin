@@ -1,0 +1,34 @@
+#!/bin/tcsh
+
+# Check the existence of the Gaussian directory
+  if ( ! -d "${1}" ) then
+    echo "ERROR: Invalid Gaussian directory ${1}"
+    exit 1
+  endif
+
+# Check whether gdv or g09
+#  if ( "${1}" =~ *'gdv'* ) then
+  if ( -d "${1}/gdv" ) then
+    set gau = "gdv"
+    setenv gdvroot "${1}"
+    set gauroot = "${gdvroot}"
+  else if ( -d "${1}/g09" ) then
+    set gau = "g09"
+    setenv g09root "${1}"
+    set gauroot = "${g09root}"
+  else
+    echo "ERROR: invalid path ${1} in mkcommand"
+    exit 1
+  endif
+  
+# Source the login file
+  if ( ! -f "${gauroot}/${gau}/bsd/${gau}.login" ) then
+    echo "ERROR: Gaussian ${gau}.login file not found"
+    exit 1
+  endif
+  source "${gauroot}/${gau}/bsd/${gau}.login"
+
+# Extract the mk command
+  alias mk > "mkgau.tmp"
+
+  exit 0

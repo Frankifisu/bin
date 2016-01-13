@@ -144,3 +144,4 @@
       if [[ "${file}" != "${input}" ]]; then rm -- "${input}"; fi
     done
   fi
+  exit 0

@@ -119,7 +119,7 @@
   cp "${gauroot}/${gau}/bsd/${gau}.profile" ./"${gau}.profile.tmp"
   if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
   elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
-  else; echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
+  else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
   source "${gau}.profile.tmp"
   rm -- "${gau}.profile.tmp"
 # this works on medusa

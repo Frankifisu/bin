@@ -41,18 +41,37 @@
       sed )
 	echo "Delete all lines starting with patterns and 2 lines after them:"
 	echo "  $ sed  -i '/pattern/,3d'"
+	echo "Delete last line"
+	echo "  $ sed  -i '\$d'"
       ;;
       ln )
 	echo "ln original link"
       ;;
       gau )
-        echo "(with setgau) makec l502"
-        echo "ulimit -c unlimited"
-        echo "gdb path/l502.exe core.12345 ; then type where"
+        echo "DEBUG COMPILATION:"
+        echo "  (with setgau) makec l502"
+        echo "FIND WHERE CALCULATION DIES:"
+        echo "  ulimit -c unlimited"
+        echo "  [run calculation normally to get the core]"
+        echo "  gdb path/l502.exe core.12345 ; then type where"
+        echo "COMPILE GDV:"
+        echo "  tcsh"
+        echo '  setenv gdvroot `pwd`'
+        echo '  source $gdvroot/gdv/gdv.login'
+        echo '  source ~/.tcshrc (FOR PGI, DEPENDS ON MACHINE)'
+        echo '  rehash'
+        echo '  ./gdv/bldgdv all > & build.log &'
       ;;
       pgi )
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'
+      ;;
+      regex )
+        echo ".    = Any single character"
+        echo "*    = Preceding pattern zero or more times"
+        echo "+    = Preceding pattern one or more times"
+        echo "?    = Preceding pattern zero or one times"
+        echo "^,$  = Start and End of line, respectively"
       ;;
       -h )
 	usage

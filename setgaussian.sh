@@ -33,7 +33,7 @@
     PATH=$( echo "${PATH}" | sed s${op}${TOREMOVE}${op}${op} )
     LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${TOREMOVE}${op}${op}" )"
     unset TOREMOVE ; unset op
-    unset GAUSS_EXEDIR ; unset gdvroot ; unset g09root ; unset jblroot
+    unset GAUSS_EXEDIR ; unset gdvroot ; unset g09root ; unset jblroot ; unset GAUSS_SCRDIR
   fi
 #
 # -------------
@@ -57,7 +57,6 @@
 # -------------------------
 # DEFINE GAUSSIAN DIRECTORY
 # -------------------------
-  if [[ -z "${ver}" ]]; then echo "ERROR: Gaussian version not specified"; return 1; fi
 # check whether a specific gdv or g09 has been requested
   if [[ -n "${gauroot}" ]]; then
     if [[ ! -d ${gauroot} ]]; then echo "ERROR: ${gauroot} directory not found"; return 1; fi
@@ -70,6 +69,7 @@
     fi
   else
 #   crawl through the system searching for the desired Gaussian directory
+    if [[ -z "${ver}" ]]; then echo "ERROR: Gaussian version not specified"; return 1; fi
     findgau="" ; declare -i depth=0 ; declare -i mxdpt=5
     while [[ -z "${findgau}" && "${depth}" -le "${mxdpt}" ]]; do
 #     Start from / and work your way down by increasing depth
@@ -81,7 +81,7 @@
       elif  [[ "$( uname )" = "Darwin" ]]; then
         findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -perm -g+rx                \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "${ver}" \) -print -quit )"
       else
-        echo "ERROR: Unsopported operating system $( uname )" ; return 1
+        echo "ERROR: Unsupported operating system $( uname )" ; return 1
       fi
       depth=$[${depth}+1]
     done
@@ -114,11 +114,16 @@
 # export the relevant environment variables
   if   [[ "${gau}" = "gdv" ]]; then export gdvroot="${gauroot}"
   elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"; fi
-  export GAUSS_EXEDIR="${gauroot}/${gau}/bsd:${gauroot}/${gau}/local:${gauroot}/${gau}/extras:${gauroot}/${gau}"
+# load Gaussian bash environment but change the ulimit so we can debug
+  if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
+  cp "${gauroot}/${gau}/bsd/${gau}.profile" ./"${gau}.profile.tmp"
+  if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
+  elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
+  else; echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
+  source "${gau}.profile.tmp"
+  rm -- "${gau}.profile.tmp"
 # this works on medusa
   if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
-  export PATH="${GAUSS_EXEDIR}:${PATH}"
-  export LD_LIBRARY_PATH="${GAUSS_EXEDIR}:${LD_LIBRARY_PATH}"
 #
 # -----------------------------
 # BUILD THE COMPILATION COMMAND
@@ -131,17 +136,12 @@
   fi
 # Build the mk command
   if [ -x "$( which mkcommand )" ]; then
-    mkcommand "${gauroot}"
+    mkcommand # "${gauroot}"
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 
 #   to fix errors like "multiple definition of `ftn_allocated'" because the Internet told me to
-    if [[ "$( uname )" = "Linux" ]]; then
-      sed -i    's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp
-    elif  [[ "$( uname )" = "Darwin" ]]; then
-      sed -i '' 's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp
-    else
-      echo "ERROR: Unsupported operating system $( uname )" ; return 1
-    fi
+    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp
+    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp; fi
     alias mk="$( cat mkgau.tmp ); chmod o-rwx */*.o */*.exe"
     alias makec="$( cat mkgau.tmp )"
     rm -- mkgau.tmp

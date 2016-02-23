@@ -104,6 +104,8 @@
 	echo "  git pull . [source_head]                                               (pull the changes from the source_head into the current head)" 
 	echo "COLLABORATING:"
 	echo "  git clone [repository_address] (get and thus join a repository)"
+	echo "WEB:"
+	echo "  git push -u origin master"
 	echo "NOTES:"
 	echo "  Maintain a stable master commit and create a new branch before developing new features"
 	echo "  Always commit any changes before changing branch with git checkout"

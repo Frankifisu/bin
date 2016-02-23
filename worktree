@@ -2,7 +2,7 @@
 #
 # You need to provide the desired link
   if [ "${#}" -ne 1 ]; then
-    echo 'Usage: worktree l502'
+    echo 'USAGE: worktree l502'
     echo '       worktree nutil'
     exit 0
   fi

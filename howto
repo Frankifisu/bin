@@ -77,6 +77,7 @@
 	echo "      -z to compress files"
 	echo "      --delete to delete files that no longer exist"
 	echo "      --exclude-from reads patterns to exclude from a specified file"
+      ;;
       regex )
         echo ".    = Any single character"
         echo "*    = Preceding pattern zero or more times"

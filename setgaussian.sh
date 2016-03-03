@@ -33,7 +33,7 @@
     PATH=$( echo "${PATH}" | sed s${op}${TOREMOVE}${op}${op} )
     LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${TOREMOVE}${op}${op}" )"
     unset TOREMOVE ; unset op
-    unset GAUSS_EXEDIR ; unset gdvroot ; unset g09root ; unset jblroot ; unset GAUSS_SCRDIR
+    unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset jblroot
   fi
 #
 # -------------

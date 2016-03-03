@@ -29,9 +29,11 @@
       op='#'
     fi
 #   epurate environment variables from the previous Gaussian settings
-    TOREMOVE="${GAUSS_EXEDIR}:"
-    PATH=$( echo "${PATH}" | sed s${op}${TOREMOVE}${op}${op} )
-    LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${TOREMOVE}${op}${op}" )"
+    if [[ -n "${GAUSS_EXEDIR}" ]]; then
+      TOREMOVE="${GAUSS_EXEDIR}:"
+      PATH=$( echo "${PATH}" | sed s${op}${TOREMOVE}${op}${op} )
+      LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${TOREMOVE}${op}${op}" )"
+    fi
     unset TOREMOVE ; unset op
     unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset jblroot
   fi

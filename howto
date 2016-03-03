@@ -6,11 +6,13 @@
   function usage {
     echo 'Usage: howto [what]'
     echo '  Examples for [what]:'
-    echo '  tar : how to tar stuff!'
-    echo '  ssh : everything ssh'
-    echo '  sed : this is the hardest one'
-    echo '  gau : Gaussian related commands'
-#    echo '  all : print extended list of inputs'
+    echo '  tar   : how to tar stuff!'
+    echo '  ssh   : everything ssh'
+    echo '  ln    : link files'
+    echo '  rsync : synchronising filesystems'
+    echo '  sed   : this is the hardest one'
+    echo '  gau   : Gaussian related commands'
+    echo '  pgi   : Portland compiler info'
   }
 #
 # Help!
@@ -49,7 +51,7 @@
       ;;
       gau )
         echo "DEBUG COMPILATION:"
-        echo "  (with setgau) makec l502"
+        echo "  (with setgau) makec l502c"
         echo "FIND WHERE CALCULATION DIES:"
         echo "  ulimit -c unlimited"
         echo "  [run calculation normally to get the core]"
@@ -66,6 +68,15 @@
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'
       ;;
+      rsync )
+	echo "rsync -avn --exclude-from=[exclude-file] source destination"
+	echo "      -a syncs all"
+	echo "      -v verbose"
+	echo "      -n dry run to test before doing anything"
+	echo "      -P to visualize progress and allow restart"
+	echo "      -z to compress files"
+	echo "      --delete to delete files that no longer exist"
+	echo "      --exclude-from reads patterns to exclude from a specified file"
       regex )
         echo ".    = Any single character"
         echo "*    = Preceding pattern zero or more times"

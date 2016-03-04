@@ -1,15 +1,9 @@
 #!/bin/bash
 #
 # Usage
-  if [ $# -ne 2 ]; then
-    echo 'Usage: compgau td cis'
-    exit 1
-  fi
+  if [ $# -ne 2 ]; then echo 'Usage: compgau td cis'; exit 1; fi
 # Must have the testrt utility
-  if [ ! -x "$( which testrt )" ]; then
-     echo 'ERROR: testrt utility not found, is Gaussian defined?'
-     exit 1
-  fi
+  if [ ! -x "$( which testrt )" ]; then echo 'ERROR: testrt utility not found, is Gaussian defined?'; exit 1; fi
 # Check current directory ownership and permission
   userd="$( stat -c %U . )"
   stats="$( stat -c %A . )"
@@ -22,7 +16,5 @@
   testrt "${1}" > "${dir}/route1.tmp"
   testrt "${2}" > "${dir}/route2.tmp"
   vimdiff "${dir}/route1.tmp" "${dir}/route2.tmp"
-# Delete files if saved in the Home directory
-  if [ "${dir}" = "${HOME}" ]; then
-    rm -- "${dir}/route1.tmp" "${dir}/route2.tmp"
-  fi
+# Delete temporary files
+  rm -- "${dir}/route1.tmp" "${dir}/route2.tmp"

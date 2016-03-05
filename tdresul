@@ -2,7 +2,7 @@
 #
   if [ ${#} -eq 0 ]; then
     echo 'Usage: tdresul output.log'
-    return 1
+    exit 1
   fi
   declare -i idx=0
   declare -i njb=0
@@ -13,7 +13,7 @@
   while [ -n "`echo ${1} | grep '^-'`" ]; do
     case ${1} in
       -s | --sep  ) sep="${2}"; shift;;
-      -h | --help ) echo " Usage: tdresul -s ' & ' output.log"; return 1;;
+      -h | --help ) echo " Usage: tdresul -s ' & ' output.log"; exit 1;;
     esac
     shift
   done

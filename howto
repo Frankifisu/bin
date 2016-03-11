@@ -59,10 +59,10 @@
         echo "COMPILE GDV:"
         echo "  tcsh"
         echo '  setenv gdvroot `pwd`'
-        echo '  source $gdvroot/gdv/gdv.login'
+        echo '  source $gdvroot/gdv/bsd/gdv.login'
         echo '  source ~/.tcshrc (FOR PGI, DEPENDS ON MACHINE)'
-        echo '  rehash'
-        echo '  ./gdv/bldgdv all > & build.log &'
+        echo '  rehash; cd $gdvroot/gdv'
+        echo '  nohup ./bsd/bldgdv all > & build.log &'
       ;;
       pgi )
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"

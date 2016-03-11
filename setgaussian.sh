@@ -42,7 +42,7 @@
 # PARSE OPTIONS
 # -------------
   unset gauroot ; unset ver ; unset vrb
-  pgv='14.1' ; mac='intel64-nehalem'
+  pgv='16.1' ; mac='intel64-nehalem'
   while [[ -n "${1}" ]]; do
     case "${1}" in
       -g | --gau ) gauroot="${2}"; shift;;

@@ -61,6 +61,7 @@
 # -------------------------
 # check whether a specific gdv or g09 has been requested
   if [[ -n "${gauroot}" ]]; then
+    if [[ "$( uname )" = "Linux" ]]; then gauroot="$( realpath "${gauroot}" )"; fi
     if [[ ! -d ${gauroot} ]]; then echo "ERROR: ${gauroot} directory not found"; return 1; fi
     if [ -x "${gauroot}/gdv" ]; then
       gau='gdv'
@@ -118,12 +119,18 @@
   elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
-  cp "${gauroot}/${gau}/bsd/${gau}.profile" ./"${gau}.profile.tmp"
-  if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
-  elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
-  else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
-  source "${gau}.profile.tmp"
-  rm -- "${gau}.profile.tmp"
+  userd="$( stat -c %U . )"
+  stats="$( stat -c %A . )"
+  if [[ "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
+    cp "${gauroot}/${gau}/bsd/${gau}.profile" ./"${gau}.profile.tmp"
+    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
+    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
+    else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
+    source "${gau}.profile.tmp"
+    rm -- "${gau}.profile.tmp"
+  else
+    source "${gauroot}/${gau}/bsd/${gau}.profile"
+  fi
 # this works on medusa
   if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
 #
@@ -137,7 +144,7 @@
 #    module add pgi/14.7
   fi
 # Build the mk command
-  if [ -x "$( which mkcommand )" ]; then
+  if [[ -x "$( which mkcommand )" && "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
     mkcommand # "${gauroot}"
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 
@@ -153,5 +160,5 @@
   fi
 #
 # unset all intermediate variables
-  unset gau ; unset gauroot ; unset ver ; unset mac ; unset vrb ; unset pgv
+  unset gau ; unset gauroot ; unset ver ; unset mac ; unset vrb ; unset pgv; unset userd; unset stats
   return 0

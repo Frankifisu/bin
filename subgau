@@ -77,12 +77,11 @@
 #   Recover Gaussian executable if explicitly specified via -g
     if [ -n "${gauroot}" -a -d "${gauroot}" ]; then
       if [ -x "${HOME}/bin/setgaussian" ]; then
-        . ${HOME}/bin/setgaussian ${vrb} -g "${gauroot}"
+        . ${HOME}/bin/setgaussian ${vrb} -g "${gauroot}" || echo "ERROR: Encountered problems with Gaussian path ${gauroot}"; exit 1
+      elif [ -x "$( which setgaussian )" ]; then
+        . setgaussian ${vrb} -g "${gauroot}" || echo "ERROR: Encountered problems with Gaussian path ${gauroot}"; exit 1
       else
-        echo "ERROR: script setgaussian not found in ${HOME}/bin"; exit 1
-      fi
-      if [ "$?" -ne 0 ]; then
-        echo "ERROR: Encountered problems with Gaussian path ${gauroot}"; exit 1
+        echo "ERROR: script setgaussian not found"; exit 1
       fi
     fi
 #   If not explicitly specified by -g check whether Gaussian is defined

@@ -24,6 +24,9 @@
 # Now do the work
   for input in ${@}; do
     case ${input} in
+      du )
+        echo "find . -type f -exec du -ha {} + | sort -n -r | less > deleteme.tmp (non-ideal file find/sort)"
+      ;;
       tar )
         echo "tar -xvf goofy.tar             (opens the uncompressed archive goofy.tar and puts it in the folder)"
 	echo "tar -cvf goofy.tar file1 file2 (creates the uncompressed archive goofy.tar with file1 and file2)"

@@ -2,8 +2,9 @@
 #
 # * SET GAUSSIAN ENVIRONMENT *
 #
-# Note: This script must be sourced to export environment variables
-#       so we must return instead of exit
+# This script must be sourced to export environment variables
+# so we must return instead of exit
+  if [[ $_ = $0 ]]; then echo "ERROR: script setgaussian.sh must be sourced" ; exit 1; fi
 #
   function usage {
     echo 'Usage: . setgaussian.sh [version, e.g. d01]'
@@ -16,7 +17,7 @@
     return 0
   }
 #
-  if [ "${#}" -eq 0 ]; then usage ; fi
+  if [ "${#}" -eq 0 ]; then usage; return 0; fi
 #
 # --------------------------
 # CLEAN PREVIOUS ENVIRONMENT
@@ -30,19 +31,17 @@
     fi
 #   epurate environment variables from the previous Gaussian settings
     if [[ -n "${GAUSS_EXEDIR}" ]]; then
-      TOREMOVE="${GAUSS_EXEDIR}:"
-      PATH=$( echo "${PATH}" | sed s${op}${TOREMOVE}${op}${op} )
-      LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${TOREMOVE}${op}${op}" )"
+      PATH="$( echo "${PATH}" | sed s${op}:${GAUSS_EXEDIR}${op}${op}g )"
+      LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${GAUSS_EXEDIR}:${op}${op}" )"
     fi
-    unset TOREMOVE ; unset op
-    unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset jblroot
+    unset op; unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset jblroot
   fi
 #
 # -------------
 # PARSE OPTIONS
 # -------------
   unset gauroot ; unset ver ; unset vrb
-  pgv='16.1' ; mac='intel64-nehalem'
+  mac='intel64-nehalem'
   while [[ -n "${1}" ]]; do
     case "${1}" in
       -g | --gau ) gauroot="${2}"; shift;;
@@ -138,13 +137,16 @@
 # BUILD THE COMPILATION COMMAND
 # -----------------------------
 # Define the compiler
-  if [ -z "${PGI}" ]; then
-    if [ "${vrb}" = '-v' ]; then echo "Loading PGI version ${pgv}"; fi
-    setpgi "${pgv}"
-#    module add pgi/14.7
+  if [[ ! -x $( which setpgi ) ]]; then
+    echo "WARNING: script setpgi.sh not found, might not be able to compile"
+  else
+   . setpgi.sh ${vrb} -p "${pgv}"
   fi
+#  module add pgi/14.7
 # Build the mk command
-  if [[ -x "$( which mkcommand )" && "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
+  if [[ -z "${PGI}" ]] then
+    echo "WARNING: PGI compiler not defined"
+  elif [[ -x "$( which mkcommand )" && "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
     mkcommand # "${gauroot}"
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 
@@ -156,7 +158,7 @@
     rm -- mkgau.tmp
     if [ "${vrb}" = '-v' ]; then alias "mk"; fi
   else
-    echo "WARNING: mkcommand utility not found, could not build mk command"
+    echo "WARNING: could not build mk command"
   fi
 #
 # unset all intermediate variables

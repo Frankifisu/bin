@@ -144,7 +144,7 @@
   fi
 #  module add pgi/14.7
 # Build the mk command
-  if [[ -z "${PGI}" ]] then
+  if [[ -z "${PGI}" ]]; then
     echo "WARNING: PGI compiler not defined"
   elif [[ -x "$( which mkcommand )" && "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
     mkcommand # "${gauroot}"

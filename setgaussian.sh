@@ -137,7 +137,7 @@
 # BUILD THE COMPILATION COMMAND
 # -----------------------------
 # Define the compiler
-  if [[ ! -x $( which setpgi ) ]]; then
+  if [[ ! -x $( which setpgi.sh ) ]]; then
     echo "WARNING: script setpgi.sh not found, might not be able to compile"
   else
    . setpgi.sh ${vrb} -p "${pgv}"

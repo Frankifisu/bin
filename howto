@@ -13,6 +13,7 @@
     echo '  sed   : this is the hardest one'
     echo '  gau   : Gaussian related commands'
     echo '  pgi   : Portland compiler info'
+    echo '  tags  : ctags for following code'
   }
 #
 # Help!
@@ -70,6 +71,23 @@
       pgi )
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'
+      ;;
+      tags | ctags )
+        echo 'SETUP TAGS FILE:'
+        echo '  ctags -R $gdvroot'
+        echo '  mv tags $HOME/.tags'
+        echo 'SETUP VIM OPTIONS IN .vimrc:'
+        echo '  if filereadable("/home/fegidi/.tags")'
+        echo '    "look for the .tags file"'
+        echo '    set tags=~/.tags'
+        echo '    "make ctags open routines as new vertical splits with Ctrl+\"'
+        echo '    map <C-\> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>'
+        echo '  endif'
+        echo 'EXPECTED USE:'
+        echo '  Hover the cursor on the routine name, then:'
+        echo '  Ctrl+\ should open a new vertical split on the right'
+        echo '  Ctrl+] should replace current window with tagged file'
+        echo '  :pop   should close the tagged window'
       ;;
       rsync )
 	echo "rsync -avn --exclude-from=[exclude-file] source destination"

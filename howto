@@ -13,7 +13,7 @@
     echo '  sed   : this is the hardest one'
     echo '  gau   : Gaussian related commands'
     echo '  pgi   : Portland compiler info'
-    echo '  tags  : ctags for following code'
+    echo '  tags  : ctags to follow code'
   }
 #
 # Help!
@@ -45,10 +45,12 @@
 	echo "ssh-copy-id user@where"
       ;;
       sed )
-	echo "Delete all lines starting with patterns and 2 lines after them:"
-	echo "  $ sed  -i '/pattern/,3d'"
-	echo "Delete last line"
-	echo "  $ sed  -i '\$d'"
+	echo "Delete all lines starting with pattern and 2 lines after them:"
+	echo "  $ sed  -i '/pattern/,3d' file"
+	echo "Delete last line:"
+	echo "  $ sed  -i '\$d' file"
+	echo "Change all lines starting with pattern:"
+	echo "  $ sed  -i 's/^pattern.*$/replacement/g' file"
       ;;
       ln )
 	echo "ln original link"

@@ -1,19 +1,13 @@
 #!/bin/bash
 #
-  if [ ${#} -eq 0 ]; then
-    echo 'Usage: tdresul output.log'
-    exit 1
-  fi
-  declare -i idx=0
-  declare -i njb=0
-  declare -a words
-  declare -a resul
-  sep='   ' # separator that can be useful to change for LaTeX
+  if [ ${#} -eq 0 ]; then echo 'Usage: tdresul output.log'; exit 1; fi
+  declare -i idx=0; declare -i njb=0; declare -a words; declare -a resul
 # Handle options
+  sep='   ' # separator that can be useful to change for LaTeX
   while [ -n "`echo ${1} | grep '^-'`" ]; do
     case ${1} in
       -s | --sep  ) sep="${2}"; shift;;
-      -h | --help ) echo " Usage: tdresul -s ' & ' output.log"; exit 1;;
+      -h | --help ) echo " Usage: tdresul -s ' & ' output.log"; exit 0;;
     esac
     shift
   done
@@ -22,9 +16,7 @@
   for file in ${@}; do
 #   Check consistency
     njb=`grep -a -c "Excitation energies and oscillator strengths:" ${file}`
-    if [ ${njb} -eq 0 ]; then
-      echo " No excitation energies in file ${file}"
-    fi
+    if [ ${njb} -eq 0 ]; then echo " No excitation energies in file ${file}"; exit 1; fi
     echo " TD results from file: ${file}"
     echo ${hline}
     echo "${resul[0]}"

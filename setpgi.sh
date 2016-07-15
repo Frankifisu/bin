@@ -92,7 +92,7 @@
   export MANPATH="$PGIDIR/man/":${MANPATH}
 # Set PGI license
   if [[ -f "${PGI}/license.dat" ]]; then
-    export LM_LICENSE_FILE="/opt/pgi/license.dat"
+    export LM_LICENSE_FILE="${PGI}/license.dat"
   else
     echo "ERROR: PGI licence not found"; return 1
   fi

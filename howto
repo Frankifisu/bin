@@ -10,10 +10,12 @@
     echo '  ssh   : everything ssh'
     echo '  ln    : link files'
     echo '  rsync : synchronising filesystems'
+    echo '  regex : regular expressions'
     echo '  sed   : this is the hardest one'
     echo '  gau   : Gaussian related commands'
     echo '  pgi   : Portland compiler info'
     echo '  tags  : ctags to follow code'
+    echo '  misc  : miscellanea commands'
   }
 #
 # Help!
@@ -25,9 +27,6 @@
 # Now do the work
   for input in ${@}; do
     case ${input} in
-      du )
-        echo "find . -type f -exec du -ha {} + | sort -n -r | less > deleteme.tmp (non-ideal file find/sort)"
-      ;;
       tar )
         echo "tar -xvf goofy.tar             (opens the uncompressed archive goofy.tar and puts it in the folder)"
 	echo "tar -cvf goofy.tar file1 file2 (creates the uncompressed archive goofy.tar with file1 and file2)"
@@ -103,6 +102,7 @@
       ;;
       regex )
         echo ".    = Any single character"
+        echo "a|b  = matches either a or b"
         echo "*    = Preceding pattern zero or more times"
         echo "+    = Preceding pattern one or more times"
         echo "?    = Preceding pattern zero or one times"
@@ -113,6 +113,25 @@
       ;;
       howto )
 	usage
+      ;;
+      python )
+	echo 'PRINTING'
+	echo '  format = "Hello %s you have %.2f dollars"'
+        echo '  mytuple = ("Franco",7.00)'
+	echo '  print format % mytuple'
+        echo '  %s ; %d ; %.3f  # Format types for string (also numbers), integer, float with 3 mantissa digits'
+	echo 'TYPES: No typing necessary, everything is an object, numbers are integers or floats'
+	echo '  myint = 7 ; myfloat = 7.0 ; mystring = "seven"'
+	echo 'OPERATIONS'
+	echo '  + - * / ** % # Plus, Minus, Times, Divided, Elevated, Modulo'
+	echo '  mystring + mystring ; mystring * 2 # Both give sevenseven'
+	echo '  mystring + mystring # Gives sevenseven'
+	echo 'TUPLE: immutable lists, defined with parenthesis'
+	echo 'LISTS: they can contain anything, defined with square brakets, indexing starts with 0'
+	echo '  mylist = []  # Declares an empty list'
+        echo '  mylist.append("seven") ; mylist.append(7.0)  # Defines mylist[0] as seven and mylist[1] as 7.0'
+        echo '  len(mylist)  # Gives the length of the list'
+        echo '  mylist.count(x)  # Counts how many of object x are in the list'
       ;;
       git )
 	echo "INTRO:"
@@ -148,6 +167,11 @@
 	echo "  Maintain a stable master commit and create a new branch before developing new features"
 	echo "  Always commit any changes before changing branch with git checkout"
 	echo "  Use merge to draw new features into the master branch, or more rarely to pull a bugfixed master into the development version"
+      ;;
+      misc )
+        echo 'COMPARE FILES : cmp $1 $2 || vimdiff $1 $2'
+        echo 'ABSOLUTE PATH : realpath $1'
+        echo "FILE FIND/SORT: find . -type f -exec du -ha {} + | sort -n -r | less > deleteme.tmp (non-ideal file find/sort)"
       ;;
       * )
 	echo "we do not have ${input} in the list, sorry"

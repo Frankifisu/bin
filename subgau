@@ -14,7 +14,7 @@
     echo "    -o nam  : sets the output filename to nam"
     echo "    -w wrk  : use the working directory in wrk"
     echo "    -g gau  : use the Gaussian version in path gau (experimental)"
-    echo "    -a key  : add keyword key to the route section on-the-fly"
+    echo "    -a kwr  : add keyword kwr to the route section on-the-fly"
     echo "    -nonice : bully other processes to run faster"
     echo "    -k      : do not overwrite the log file (append output)"
     echo "    -v      : verbose submission"
@@ -104,15 +104,6 @@
 #     Wait in case the working is still compiling
 #      while [ -n "$( pgrep -n -u "${USER}" -x -- make )" ]; do wait -- "$( pgrep -n -u "${USER}" -x -- make )"; done
       while [ -d "/proc/$( pgrep -n -u "${USER}" -x -- make )" -a "$?" -eq "0" ]; do sleep 1s; done
-#      wait -- "$( pidof -x -s -- make )" ; sleep 1s
-#      for exe in "${wrkdir}"/*.exe "${wrkdir}"/l*/*.exe ; do
-#        if [ ! -x "${exe}" ]; then continue; fi
-#        stats="$( stat -c %A "${exe}" )"
-#        while [ "${stats:7:3}" != "---" ] && [ ${nsec} -lt ${maxsec} ]; do
-#          sleep 1s ; nsec=$[${nsec}+1]
-#        done
-#        nsec=0
-#      done
     fi
 #   Assemble and run command
     if [ -n "${outnam}" -a -f "${outnam}" -a "${log}" = ">" ]; then rm -- "${outnam}"; fi
@@ -138,8 +129,7 @@
       if [ "${vrb}" = '-v' ]; then echo "${comando}"; fi
       eval "${comando}"
 #     Remove temporary and/or annoying files
-      punch="$( grep -sqi "punch" "${input}" ; echo $? )"
-      if [[ -f "fort.7" && "${punch}" -ne "0" ]] ; then rm -- "fort.7"; fi
+      grep -sqi "punch" "${input}" || if [[ -f "fort.7" ]] ; then rm -- "fort.7"; fi
       if [[ "${file}" != "${input}" ]]; then rm -- "${input}"; fi
     done
   fi

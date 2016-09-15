@@ -41,7 +41,13 @@
 # PARSE OPTIONS
 # -------------
   unset gauroot ; unset ver ; unset vrb
-  mac='intel64-nehalem'
+# check for architecture type via hostname
+  case "${HOSTNAME:0:3}" in
+    Pop             ) mac='amd64-bulldozer';;
+    Cur | Hof | Lee ) mac='intel64-sandybridge';;
+    Koh | Nat | Zew ) mac='intel64-nehalem';;
+    *               ) mac='intel64-nehalem';;
+  esac
   while [[ -n "${1}" ]]; do
     case "${1}" in
       -g | --gau ) gauroot="${2}"; shift;;
@@ -60,7 +66,7 @@
 # -------------------------
 # check whether a specific gdv or g09 has been requested
   if [[ -n "${gauroot}" ]]; then
-    if [[ "$( uname )" = "Linux" ]]; then gauroot="$( realpath "${gauroot}" )"; fi
+    if [[ "$( uname )" = "Linux" ]]; then gauroot="$( readlink -f "${gauroot}" )"; fi
     if [[ ! -d ${gauroot} ]]; then echo "ERROR: ${gauroot} directory not found"; return 1; fi
     if [ -x "${gauroot}/gdv" ]; then
       gau='gdv'

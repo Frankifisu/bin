@@ -14,10 +14,10 @@
 #   5) check with "which pgf77"
 #
 # From .tcshrc by Ciro
-# setenv PGI_VERSION 13.10
+# setenv PGI_VER 13.10
 # setenv PGI /opt/pgi
 # setenv LM_LICENSE_FILE 27000@argozero.dcci.unipi.it
-# set path=($PGI/linux86-64/$PGI_VERSION/bin $path)
+# set path=($PGI/linux86-64/$PGI_VER/bin $path)
 #
 # This script must be sourced to export environment variables
 # so we must return instead of exit
@@ -26,14 +26,14 @@
 # --------------------------
 # CLEAN PREVIOUS ENVIRONMENT
 # --------------------------
-# check whether Gaussian is already set
+# check whether PGI is already set
   if [[ -n "${PGIDIR}" ]]; then
     if [[ "${PATH}" = *'#'* ]] || [[ "${LD_LIBRARY_PATH}" = *'#'* ]]; then
       echo 'ERROR: Unable to remove previous PGI setup'; return 1
     else
       op='#'
     fi
-#   epurate environment variables from the previous settings
+#   purge environment variables from the previous settings
     if [[ -n "${PGIDIR}" ]]; then
       PATH="$( echo "${PATH}" | sed s${op}${PGIDIR}/bin/:${op}${op}g )"
       LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${PGIDIR}/lib/:${op}${op}" )"
@@ -45,7 +45,7 @@
 # -------
 # SET PGI
 # -------
-  unset PGI ; unset PGIDIR; unset PGI_VERSION; unset PGI_ARCH
+  unset PGI; unset PGIDIR; unset PGI_VER; unset PGI_ARCH
   unset pgv; unset vrb
 # Parse options
   while [[ -n "${1}" ]]; do
@@ -57,29 +57,30 @@
     shift
   done
 # Set PGI directory
-  if [[ -d "/opt/pgi" ]]; then
-    export PGI="/opt/pgi"
-  elif [[ -d "/usr/pgi" ]]; then
-    export PGI="/usr/pgi"
-  else
-    echo "ERROR: PGI directory not found"; return 1
-  fi
+  for trypgi in "/opt" "/usr" "/cm/shared/apps"; do
+    if [[ -d "${trypgi}/pgi" ]]; then export PGI="${trypgi}/pgi"; break; fi
+  done
+  if [[ -z "${PGI}" ]]; then echo "ERROR: PGI directory not found"; return 1; fi
 # Set PGI directory
   for arc in "linux86-64" "linux86"; do
+#   case where a specific version was requested
     if [[ -n "${pgv}" ]]; then
       if [[ -d "${PGI}/${arc}/${pgv}" ]]; then
         export PGIDIR="${PGI}/${arc}/${pgv}"
         export PGI_ARCH="${arc}"
-        export PGI_VERSION="${pgv}"
+        export PGI_VER="${pgv}"
         break
+      else
+        echo "WARNING: PGI version ${pgv} not found, will try other ones"
       fi
       continue
     fi
-    for pgv in 2016 2015 16.1 15.4 14.10 13.6 12.10 12.8 12.5 12.4 11.10 11.8 11.6 11.5 11.4 10.8 10.5; do
+#   try a bunch of possible versions
+    for pgv in 2016 2015 16.1 15.5 15.4 15.3 14.10 13.6 12.10 12.8 12.5 12.4 11.10 11.8 11.6 11.5 11.4 10.8 10.5; do
       if [[ -d "${PGI}/${arc}/${pgv}" ]]; then
         export PGIDIR="${PGI}/${arc}/${pgv}"
         export PGI_ARCH="${arc}"
-        export PGI_VERSION="${pgv}"
+        export PGI_VER="${pgv}"
         break 2
       fi
     done
@@ -87,9 +88,9 @@
   if [[ -z "${PGIDIR}" ]]; then echo "ERROR: Could not find valid PGI"; return 1; fi
   if [[ "${vrb}" = '-v' ]]; then echo "Using PGI directory ${PGIDIR}"; fi
 # Set PGI environment
-  export PATH="$PGIDIR/bin/":${PATH}
-  export LD_LIBRARY_PATH="$PGIDIR/lib/":${LD_LIBRARY_PATH}
-  export MANPATH="$PGIDIR/man/":${MANPATH}
+  export PATH="$PGIDIR/bin/:${PATH}"
+  export LD_LIBRARY_PATH="$PGIDIR/lib/:${LD_LIBRARY_PATH}"
+  export MANPATH="$PGIDIR/man/:${MANPATH}"
 # Set PGI license
   if [[ -f "${PGI}/license.dat" ]]; then
     export LM_LICENSE_FILE="${PGI}/license.dat"

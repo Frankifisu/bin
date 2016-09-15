@@ -66,7 +66,7 @@
 # -------------------------
 # check whether a specific gdv or g09 has been requested
   if [[ -n "${gauroot}" ]]; then
-    if [[ "$( uname )" = "Linux" ]]; then gauroot="$( readlink -f "${gauroot}" )"; fi
+    if [[ "$( uname )" = "Linux" ]]; then gauroot="$( readlink "${vrb}" -e "${gauroot}" )"; fi
     if [[ ! -d ${gauroot} ]]; then echo "ERROR: ${gauroot} directory not found"; return 1; fi
     if [ -x "${gauroot}/gdv" ]; then
       gau='gdv'

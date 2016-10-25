@@ -26,7 +26,7 @@
     esac
     shift
   done
-  resul[0]="   Mode   Sym   E/cm-1     IR       RamAct   ${add[@]} "
+  resul[0]=" ${sep} Mode ${sep} Sym ${sep} E/cm-1 ${sep} IR ${sep} RamAct ${sep} ${add[@]} "
   hline='--------------------------------------------------------' 
   for file in ${@}; do # loop over all output files
 #    if [[ "${file}" = *".log" ]] || [ "${log}" -eq 1 ]; then
@@ -122,12 +122,12 @@
       idx=0
       echo " Freq results from file: ${file}"
       echo ${hline}
-      echo "${resul[0]}"
+      echo -e "${resul[0]}"
       for n in $(seq 1 ${njb}); do
         if [ ${idx} -lt ${nfr} ]; then
           for i in $(seq 1 ${nvb}); do
             idx=$[${idx}+1]
-            echo "${resul[${idx}]}"
+            echo -e "${resul[${idx}]}"
           done
         echo ${hline}
         fi

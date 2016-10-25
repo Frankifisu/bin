@@ -31,19 +31,23 @@
 # --------------
 # PBS SUBMISSION
 # --------------
-  if [ -x "/home/j.bloino/bin/subgau.py" ]; then
+#  jblsub="/home/j.bloino/bin/gxx_qsub.py"
+  jblsub="/home/f.egidi/bin/mycopy_gxx_qsub.py"
+  if [[ "${HOSTNAME}" = "avogadro1" && -x "${jblsub}" ]]; then
 #   Sort options from job files
-    for input in "${@}"; do
-      if [[ ${input} = *".com" ]]; then
-        inp=( "${inp[@]}" "${input}" )
-      else
-        opt=( "${opt[@]}" "${input}" )
-      fi
+    while [[ -n "${1}" ]]; do
+      case "${1}" in
+        *.com | *.gjf ) inp=( "${inp[@]}" "${1}" );;
+        -v            ) vrb='-v';;
+        -h | --help   ) "${jblsub}" "-h"; exit 0;;
+        *             ) opt=( "${opt[@]}" "${1}" );;
+      esac; shift
     done
-    if [ "${#inp[@]}" -eq 0 ]; then echo "ERROR: no valid input file"; exit 1; fi
+    if [[ "${#inp[@]}" -eq 0 ]]; then echo "ERROR: no valid input file"; exit 1; fi
 #   Submit all jobs
-    for input in "${inp[*]}"; do
-      comando="$( echo "/home/j.bloino/bin/subgau.py" "${opt[*]}" "${input}" )"
+    for input in ${inp[*]}; do
+      comando="$( echo "${jblsub}" "${opt[*]}" "${input}" )"
+      if [[ "${vrb}" = '-v' ]]; then echo "${comando}"; fi
       eval "${comando}"
 #     Submission journal
       if [ "${USER}" = 'f.egidi' ]; then
@@ -67,7 +71,7 @@
         -g | --gau    ) gauroot="${2}"; shift;;
         -a | --add    ) add="${add} ${2}"; shift;;
         -k | --keep   ) log='>>';;
-        -v | --verbos ) vrb='-v';;
+        -v            ) vrb='-v';;
         -nonice       ) niceness='';;
         -h | --help   ) usage;;
         *             ) echo "ERROR: unrecognized option ${1}"; exit 1;;

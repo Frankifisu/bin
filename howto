@@ -223,6 +223,9 @@
         echo 'ABSOLUTE PATH : realpath $1'
         echo "FILE FIND/SORT: find . -type f -exec du -ha {} + | sort -n -r | less > deleteme.tmp (non-ideal file find/sort)"
       ;;
+      fosfo )
+        echo $'if [[ -f final.dat ]]; then rm final.dat; fi; for i in *log; do grep -m 3 Radiative ${i} > out${i}.dat; done; paste *.dat > final.dat; sedi \'Radiative lifetime:\' \'\' final.dat ; sedi s \'\' final.dat; rm *log.dat; scp final.dat pc@192.168.2.216:~/temp'
+      ;;
       * )
 	echo "we do not have ${input} in the list, sorry"
     esac

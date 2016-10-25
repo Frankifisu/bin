@@ -15,7 +15,7 @@
   declare -a words
   unset add ; declare -a add
   declare -a resul
-  sep='   ' # separator that can be useful to change for LaTeX
+  sep=" \t " # separator that can be useful to change for LaTeX
 # Handle options
   while [ -n "`echo ${1} | grep '^-'`" ]; do
     case ${1} in

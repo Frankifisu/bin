@@ -93,6 +93,8 @@
       gau="gdv"
     elif [ -x "${g09root}/g09/g09" ]; then
       gau="g09"
+    elif [ -x "${g16root}/g16/g16" ]; then
+      gau="g16"
     else
       echo "ERROR: Gaussian environment not properly set"; exit 1
     fi

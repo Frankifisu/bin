@@ -1,6 +1,6 @@
 #!/bin/tcsh
 
-# Check whether gdv or g09
+# Check version
   if ( $?gdvroot ) then
     if ( ! $?gau ) then
       set gau = 'gdv'
@@ -14,6 +14,13 @@
     endif
     if ( ! $?gauroot ) then
       set gauroot = "${g09root}"
+    endif
+  else if ( $?g16root ) then
+    if ( ! $?gau ) then
+      set gau = 'g16'
+    endif
+    if ( ! $?gauroot ) then
+      set gauroot = "${g16root}"
     endif
   else
     echo "ERROR: Gaussian environment not defined in mkcommand"

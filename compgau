@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# COMPARE GAUSSIAN NONSTANDARD ROUTES
+#
 # Usage
   if [ $# -ne 2 ]; then echo 'Usage: compgau td cis'; exit 1; fi
 # Must have the testrt utility

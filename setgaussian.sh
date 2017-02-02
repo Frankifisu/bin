@@ -23,7 +23,7 @@
 # CLEAN PREVIOUS ENVIRONMENT
 # --------------------------
 # check whether Gaussian is already set
-  if [[ -n "${gdvroot}" ]] || [[ -n "${g09root}" ]]; then
+  if [[ -n "${gdvroot}" ]] || [[ -n "${g09root}" ]] || [[ -n "${g16root}" ]]; then
     if [[ "${PATH}" = *'#'* ]] || [[ "${LD_LIBRARY_PATH}" = *'#'* ]]; then
       echo 'ERROR: Unable to remove previous Gaussian setup'; return 1
     else
@@ -34,7 +34,7 @@
       PATH="$( echo "${PATH}" | sed s${op}:${GAUSS_EXEDIR}${op}${op}g )"
       LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${GAUSS_EXEDIR}:${op}${op}" )"
     fi
-    unset op; unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset jblroot
+    unset op; unset GAUSS_EXEDIR ; unset GAUSS_SCRDIR ; unset gdvroot ; unset g09root ; unset g16root ; unset jblroot
   fi
 #
 # -------------
@@ -64,7 +64,7 @@
 # -------------------------
 # DEFINE GAUSSIAN DIRECTORY
 # -------------------------
-# check whether a specific gdv or g09 has been requested
+# check whether a specific version has been requested
   if [[ -n "${gauroot}" ]]; then
     if [[ "$( uname )" = "Linux" ]]; then gauroot="$( readlink ${vrb} -e "${gauroot}" )"; fi
     if [[ ! -d ${gauroot} ]]; then echo "ERROR: ${gauroot} directory not found"; return 1; fi
@@ -72,6 +72,8 @@
       gau='gdv'
     elif [ -x "${gauroot}/g09" ]; then
       gau='g09'
+    elif [ -x "${gauroot}/g16" ]; then
+      gau='g16'
     else
       echo "ERROR: Invalid Gaussian tree ${gauroot}"; return 1
     fi
@@ -85,9 +87,9 @@
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
       if [[ "$( uname )" = "Linux" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -readable -o ! -executable \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "${ver}" \) -print -quit )"
+        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -readable -o ! -executable \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "g16*${ver}"  -o -iname "${ver}" \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -perm -g+rx                \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "${ver}" \) -print -quit )"
+        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -perm -g+rx                \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "g16*${ver}"  -o -iname "${ver}" \) -print -quit )"
       else
         echo "ERROR: Unsupported operating system $( uname )" ; return 1
       fi
@@ -97,7 +99,7 @@
     if [[ -z "${findgau}" ]]; then echo "ERROR: Could not find Gaussian directory"; return 1; fi
     if [ "${vrb}" = '-v' ]; then echo "Found folder ${findgau}"; fi
 #   check whether the Gaussian executable is there
-    for gau in {"gdv","g09"}; do
+    for gau in {"gdv","g09","g16"}; do
       if [[ -x "${findgau}/${gau}" && ! -d "${findgau}/${gau}" ]]; then
         gauroot="${findgau}/.."; break
       elif [[ -x "${findgau}/${gau}/${gau}" && ! -d "${findgau}/${gau}/${gau}" ]]; then
@@ -121,7 +123,8 @@
 # ----------------------------
 # export the relevant environment variables
   if   [[ "${gau}" = "gdv" ]]; then export gdvroot="${gauroot}"
-  elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"; fi
+  elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"
+  elif [[ "${gau}" = "g16" ]]; then export g16root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
   userd="$( stat -c %U . )"

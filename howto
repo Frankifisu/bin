@@ -64,7 +64,6 @@
         echo "COMPILE GDV:"
         echo "  tcsh"
         echo '  setenv gdvroot `pwd`'
-        echo '  source $gdvroot/gdv/bsd/gdv.login'
         echo '  source ~/.tcshrc (FOR PGI, DEPENDS ON MACHINE)'
         echo '  rehash; cd $gdvroot/gdv'
         echo '  nohup ./bsd/bldgdv all > & build.log &'

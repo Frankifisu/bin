@@ -13,6 +13,7 @@
   done
   resul[0]=' State   Sym   E/eV     l/nm       f      D/AU   A/deg    R(L)/cgs   R(V)/cgs'
   hline='--------------------------------------------------------------------------------'
+  temptd="$( mktemp )"
   for file in ${@}; do
 #   Check consistency
     njb=`grep -a -c "Excitation energies and oscillator strengths:" ${file}`
@@ -26,50 +27,50 @@
     for ist in $(seq 1 ${nst}); do
 #     Read excitation energy and oscillator strength
       idx=0
-      grep -a "Excited State " ${file} | grep -a " ${ist}: " > ~/bin/temptd.tmp
+      grep -a "Excited State " ${file} | grep -a " ${ist}: " > "${temptd}"
       while read line; do
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         words[3]=`echo "${words[3]}" | sed s/Singlet-// | sed s/Sym//`
         resul[${irs}]=${sep}${ist}${sep}"  "${words[3]}${sep}${words[4]}${sep}${words[6]}${sep}`echo "${words[8]}" | sed s/f=//`
         idx=$[${idx}+1]
-      done < ~/bin/temptd.tmp
+      done < "${temptd}"
 #     Read transition dipole strength
       idx=0
-      grep -a -A $[${ist}+1] 'Ground to excited state transition electric dipole moments' ${file} | grep -a "  ${ist}  " > ~/bin/temptd.tmp
+      grep -a -A $[${ist}+1] 'Ground to excited state transition electric dipole moments' ${file} | grep -a "  ${ist}  " > "${temptd}"
       while read line; do
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         resul[${irs}]=${resul[${irs}]}${sep}${words[4]}
         idx=$[${idx}+1]
-      done < ~/bin/temptd.tmp
+      done < "${temptd}"
 #     Read E-M transition dipoles angle
       idx=0
-      grep -a -A ${ist} 'E-M Angle' ${file} | grep -a "  ${ist}  " > ~/bin/temptd.tmp
+      grep -a -A ${ist} 'E-M Angle' ${file} | grep -a "  ${ist}  " > "${temptd}"
       while read line; do
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         resul[${irs}]=${resul[${irs}]}${sep}${words[5]}
         idx=$[${idx}+1]
-      done < ~/bin/temptd.tmp
+      done < "${temptd}"
 #     Read transition rotational strength length
       idx=0
-      grep -a -A ${ist} 'R(length)' ${file} | grep -a "  ${ist}  " > ~/bin/temptd.tmp
+      grep -a -A ${ist} 'R(length)' ${file} | grep -a "  ${ist}  " > "${temptd}"
       while read line; do
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         resul[${irs}]=${resul[${irs}]}${sep}${words[4]}
         idx=$[${idx}+1]
-      done < ~/bin/temptd.tmp
+      done < "${temptd}"
 #     Read transition rotational strength velocity
       idx=0
-      grep -a -A ${ist} 'R(velocity)' ${file} | grep -a "  ${ist}  " > ~/bin/temptd.tmp
+      grep -a -A ${ist} 'R(velocity)' ${file} | grep -a "  ${ist}  " > "${temptd}"
       while read line; do
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         resul[${irs}]=${resul[${irs}]}${sep}${words[4]}
         idx=$[${idx}+1]
-      done < ~/bin/temptd.tmp
+      done < "${temptd}"
     done
 #   Print the results
     idx=0
@@ -81,6 +82,4 @@
       echo ${hline}
     done
   done
-  if [ -f temptd.tmp ]; then
-    rm ~/bin/temptd.tmp
-  fi
+  if [ -f "${temptd}" ]; then rm -- "${temptd}"; fi

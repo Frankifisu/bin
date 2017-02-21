@@ -40,13 +40,14 @@
         *.com | *.gjf ) inp=( "${inp[@]}" "${1}" );;
         -v            ) vrb='-v';;
         -h | --help   ) "${jblsub}" "-h"; exit 0;;
+        --            ) ;;
         *             ) opt=( "${opt[@]}" "${1}" );;
       esac; shift
     done
     if [[ "${#inp[@]}" -eq 0 ]]; then echo "ERROR: no valid input file"; exit 1; fi
 #   Submit all jobs
     for input in ${inp[*]}; do
-      comando="$( echo "${jblsub}" "${opt[*]}" "${input}" )"
+      comando="$( echo "${jblsub}" "${opt[*]}" -- "${input}" )"
       if [[ "${vrb}" = '-v' ]]; then echo "${comando}"; fi
       eval "${comando}"
 #     Submission journal

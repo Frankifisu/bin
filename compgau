@@ -6,17 +6,10 @@
   if [ $# -ne 2 ]; then echo 'Usage: compgau td cis'; exit 1; fi
 # Must have the testrt utility
   if [ ! -x "$( which testrt )" ]; then echo 'ERROR: testrt utility not found, is Gaussian defined?'; exit 1; fi
-# Check current directory ownership and permission
-  userd="$( stat -c %U . )"
-  stats="$( stat -c %A . )"
-  if [ "${stats:0:3}" = "drw" -a "${userd}" = "${USER}" ]; then
-    dir="."
-  else
-    dir="${HOME}"
-  fi
 # Build commands
-  testrt "${1}" > "${dir}/route1.tmp"
-  testrt "${2}" > "${dir}/route2.tmp"
-  vimdiff "${dir}/route1.tmp" "${dir}/route2.tmp"
+  route1="$( mktemp )"; route2="$( mktemp )"
+  testrt "${1}" > "${route1}"
+  testrt "${2}" > "${route2}"
+  vimdiff "${route1}" "${route2}"
 # Delete temporary files
-  rm -- "${dir}/route1.tmp" "${dir}/route2.tmp"
+  rm -- "${route1}" "${route2}"

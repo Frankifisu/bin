@@ -26,6 +26,7 @@
     esac
     shift
   done
+  tempfr="$( mktemp )"
   resul[0]=" ${sep} Mode ${sep} Sym ${sep} E/cm-1 ${sep} IR ${sep} RamAct ${sep} ${add[@]} "
   hline='--------------------------------------------------------' 
   for file in ${@}; do # loop over all output files
@@ -50,7 +51,7 @@
     nfr=$[3*${nfr}]
     if [ ${nfr} -ne 0 ]; then
 #     Read symmetries
-      grep -a -B 1 'Frequencies --' ${file} | grep -v -e '--' > ~/bin/tempfr.tmp
+      grep -a -B 1 'Frequencies --' ${file} | grep -v -e '--' > "${tempfr}"
       idx=0
       while read line; do
         read -a words <<< "${line}"
@@ -65,9 +66,9 @@
         resul[${idx}]=${off}$[1+(${idx}-1)%(${nfr}/${njb})]${sep}"  "${words[1]}
         idx=$[${idx}+1]
         resul[${idx}]=${off}$[1+(${idx}-1)%(${nfr}/${njb})]${sep}"  "${words[2]}
-      done < ~/bin/tempfr.tmp
+      done < "${tempfr}"
 #     Read frequencies
-      grep -a 'Frequencies --' ${file} > ~/bin/tempfr.tmp
+      grep -a 'Frequencies --' ${file} > "${tempfr}"
       idx=0
       while read line; do
         read -a words <<< "${line}"
@@ -77,9 +78,9 @@
         resul[${idx}]=${resul[${idx}]}${sep}${words[3]}
         idx=$[${idx}+1]
         resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
-      done < ~/bin/tempfr.tmp
+      done < "${tempfr}"
 #     Read IR intensities
-      grep -a 'IR Inten    --' ${file} > ~/bin/tempfr.tmp
+      grep -a 'IR Inten    --' ${file} > "${tempfr}"
       idx=0
       while read line; do
         read -a words <<< "${line}"
@@ -89,9 +90,9 @@
         resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
         idx=$[${idx}+1]
         resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
-      done < ~/bin/tempfr.tmp
+      done < "${tempfr}"
 #     Read Raman activities
-      grep -a 'Raman Activ --' ${file} > ~/bin/tempfr.tmp
+      grep -a 'Raman Activ --' ${file} > "${tempfr}"
       idx=0
       while read line; do
         read -a words <<< "${line}"
@@ -101,11 +102,11 @@
         resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
         idx=$[${idx}+1]
         resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
-      done < ~/bin/tempfr.tmp
+      done < "${tempfr}"
 #     Read additional info
       iadd=0
       while [ -n "${add[$iadd]}" ]; do
-        grep -a "${add[${iadd}]}" ${file} > ~/bin/tempfr.tmp
+        grep -a "${add[${iadd}]}" ${file} > "${tempfr}"
         iadd=$[${iadd}+1]
         idx=0
         while read line; do
@@ -116,7 +117,7 @@
           resul[${idx}]=${resul[${idx}]}${sep}${words[4]}
           idx=$[${idx}+1]
           resul[${idx}]=${resul[${idx}]}${sep}${words[5]}
-        done < ~/bin/tempfr.tmp
+        done < "${tempfr}"
       done
 #     Print the results
       idx=0
@@ -132,7 +133,6 @@
         echo ${hline}
         fi
       done
-      rm ~/bin/tempfr.tmp
     else
       echo " No frequencies found in file ${file}"
     fi
@@ -140,3 +140,4 @@
 #      echo " Will ignore ${file} because it is not a .log, use -l to force it"
 #    fi
   done
+  if [ -f "${tempfr}" ]; then rm -- "${tempfr}"; fi

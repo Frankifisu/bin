@@ -130,12 +130,13 @@
   userd="$( stat -c %U . )"
   stats="$( stat -c %A . )"
   if [[ "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
-    cp "${gauroot}/${gau}/bsd/${gau}.profile" ./"${gau}.profile.tmp"
-    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
-    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' ./"${gau}.profile.tmp"
+    profile="$( mktemp )"
+    cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"
+    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
+    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
     else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
-    source "${gau}.profile.tmp"
-    rm -- "${gau}.profile.tmp"
+    source "${profile}"
+    rm -- "${profile}"
   else
     source "${gauroot}/${gau}/bsd/${gau}.profile"
   fi
@@ -160,8 +161,14 @@
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 
 #   to fix errors like "multiple definition of `ftn_allocated'" because the Internet told me to
-    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp
-    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/' mkgau.tmp; fi
+#   I also fix the location search for include files
+    if   [[ "$( uname )" = "Linux"  ]]; then
+      sed -i    "s/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/" mkgau.tmp
+      sed -i    "s/make/make\ INCDIR='-I. -I..'/" mkgau.tmp
+    elif [[ "$( uname )" = "Darwin" ]]; then
+      sed -i '' "s/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/" mkgau.tmp
+      sed -i '' "s/make/make\ INCDIR='-I. -I..'/" mkgau.tmp
+    fi
     alias mk="$( cat mkgau.tmp ); chmod o-rwx */*.o */*.exe"
     alias makec="$( cat mkgau.tmp )"
     rm -- mkgau.tmp

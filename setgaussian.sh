@@ -127,19 +127,13 @@
   elif [[ "${gau}" = "g16" ]]; then export g16root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
-  userd="$( stat -c %U . )"
-  stats="$( stat -c %A . )"
-  if [[ "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
-    profile="$( mktemp )"
-    cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"
-    if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
-    elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
-    else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
-    source "${profile}"
-    rm -- "${profile}"
-  else
-    source "${gauroot}/${gau}/bsd/${gau}.profile"
-  fi
+  profile="$( mktemp )"
+  cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"
+  if   [[ "$( uname )" = "Linux"  ]]; then sed -i    's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
+  elif [[ "$( uname )" = "Darwin" ]]; then sed -i '' 's/ulimit\ -c\ 0/ulimit\ -S\ -c\ 0/' "${profile}"
+  else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
+  source "${profile}"
+  rm -- "${profile}"
 # this works on medusa
   if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
 #

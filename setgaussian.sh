@@ -150,7 +150,7 @@
 # Build the mk command
   if [[ -z "${PGI}" ]]; then
     echo "WARNING: PGI compiler not defined"
-  elif [[ -x "$( which mkcommand )" && "${stats:0:3}" = "drw" && "${userd}" = "${USER}" ]]; then
+  elif [[ -x "$( which mkcommand )" ]]; then
     mkcommand # "${gauroot}"
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 

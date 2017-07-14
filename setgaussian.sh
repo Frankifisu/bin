@@ -80,23 +80,25 @@
   else
 #   crawl through the system searching for the desired Gaussian directory
     if [[ -z "${ver}" ]]; then echo "ERROR: Gaussian version not specified"; return 1; fi
-    findgau="" ; declare -i depth=0 ; declare -i mxdpt=5
+    declare findgau=""; declare -i depth=0 ; declare -i mxdpt=5
     while [[ -z "${findgau}" && "${depth}" -le "${mxdpt}" ]]; do
 #     Start from / and work your way down by increasing depth
 #     -prune is used to select which files or directories to skip
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
+      exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata"
+      gauname="-iname gdv*${ver} -o -iname g09*${ver} -o -iname g16*${ver} -o -iname ${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -readable -o ! -executable \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "g16*${ver}"  -o -iname "${ver}" \) -print -quit )"
+        findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( -path "/mnt" -o -path "/proc" -o -path "/private" -o ! -perm -g+rx                \) -prune -o -type d -a \( -iname "gdv*${ver}" -o -iname "g09*${ver}" -o -iname "g16*${ver}"  -o -iname "${ver}" \) -print -quit )"
+        findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -perm -g+rx                \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       else
-        echo "ERROR: Unsupported operating system $( uname )" ; return 1
+        echo "ERROR: Unsupported operating system $( uname )" ; return 0
       fi
       depth=$[${depth}+1]
     done
     unset depth; unset mxdpt
-    if [[ -z "${findgau}" ]]; then echo "ERROR: Could not find Gaussian directory"; return 1; fi
+    if [[ -z "${findgau}" ]]; then echo "${findgau}" "ERROR: Could not find Gaussian directory"; return 1; fi
     if [ "${vrb}" = '-v' ]; then echo "Found folder ${findgau}"; fi
 #   check whether the Gaussian executable is there
     for gau in {"gdv","g09","g16"}; do
@@ -109,6 +111,7 @@
       fi
     done
     unset findgau
+    echo $gauroot
     if [[ -z "${gauroot}" ]]; then echo "ERROR: Could not find Gaussian executable"; return 1; fi
   fi
   if [ "${vrb}" = '-v' ]; then echo "Using Gaussian tree in ${gauroot}"; fi
@@ -126,6 +129,7 @@
   elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"
   elif [[ "${gau}" = "g16" ]]; then export g16root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
+echo "${gauroot}/${gau}/bsd/${gau}.profile"
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
   profile="$( mktemp )"
   cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"

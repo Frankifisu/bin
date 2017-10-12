@@ -11,6 +11,7 @@
     echo '       -g gau : use gaussian directory in path gau'
     echo '       -p pgi : use compiler version pgi'
     echo '       -m mac : use architecture mac (on avogadro)'
+    echo '       -t     : generate ctags file $HOME/.tags'
     echo '       -v     : verbose mode'
     echo '       -h     : print this help and return'
     unset -f usage
@@ -40,7 +41,7 @@
 # -------------
 # PARSE OPTIONS
 # -------------
-  unset gauroot ; unset ver ; unset vrb
+  unset gauroot ; unset ver ; unset vrb ; unset tags
 # check for architecture type via hostname
   case "${HOSTNAME:0:3}" in
     Pop             ) mac='amd64-bulldozer';;
@@ -50,12 +51,13 @@
   esac
   while [[ -n "${1}" ]]; do
     case "${1}" in
-      -g | --gau ) gauroot="${2}"; shift;;
-      -m | --mac ) mac="${2}"; shift;;
-      -p | --pgi ) pgv="${2}"; shift;;
-      -v | --vrb ) vrb='-v';;
-      -h         ) usage ;;
-      *          ) ver="${1}";;
+      -g | --gau  ) gauroot="${2}"; shift;;
+      -m | --mac  ) mac="${2}"; shift;;
+      -p | --pgi  ) pgv="${2}"; shift;;
+      -t | --tags ) tags="tags";;
+      -v | --vrb  ) vrb='-v';;
+      -h          ) usage ;;
+      *           ) ver="${1}";;
     esac
     shift
   done
@@ -175,6 +177,20 @@ echo "${gauroot}/${gau}/bsd/${gau}.profile"
     echo "WARNING: could not build mk command"
   fi
 #
+# ---------------
+# SETUP TAGS FILE
+# ---------------
+  if [[ "${tags}" == "tags" ]]; then
+    if [[ ! -x "$( which ctags )" ]]; then echo "ERROR: ctags command not found"; return 1; fi
+    if [[ -f "${HOME}/.tags" ]]; then echo "WARNING: overwriting ${HOME}/.tags file"; fi
+    if [[ "${vrb}" == '-v' ]]; then
+      ctags -V -R -f "${HOME}/.tags" ${gauroot}
+    else
+      ctags    -R -f "${HOME}/.tags" ${gauroot}
+    fi
+    if ! grep -q tags ${HOME}/.vimrc; then echo "WARNING: remember to reference ${HOME}/.tags file in .vimrc"; fi
+  fi
+#
 # unset all intermediate variables
-  unset gau ; unset gauroot ; unset ver ; unset mac ; unset vrb ; unset pgv; unset userd; unset stats
+  unset gau ; unset gauroot ; unset ver ; unset mac ; unset vrb ; unset pgv ; unset userd ; unset stats ; unset gauname ; unset tags
   return 0

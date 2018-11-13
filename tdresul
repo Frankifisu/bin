@@ -1,17 +1,19 @@
 #!/bin/bash
 #
   if [ ${#} -eq 0 ]; then echo 'Usage: tdresul output.log'; exit 1; fi
-  declare -i idx=0; declare -i njb=0; declare -a words; declare -a resul
+  declare -i idx=0; declare -i njb=0; declare -i nst=0; declare -a words; declare -a resul
 # Handle options
   sep='   ' # separator that can be useful to change for LaTeX
-  while [ -n "`echo ${1} | grep '^-'`" ]; do
-    case ${1} in
-      -s | --sep  ) sep="${2}"; shift;;
-      -h | --help ) echo " Usage: tdresul -s ' & ' output.log"; exit 0;;
+  while [ -n "$( echo "${1} " | grep '^-' )" ]; do
+    case "${1}" in
+      -s | --sep    ) sep="${2}"; shift;;
+      -h | --help   ) echo " Usage: tdresul -n 3 -s ' & ' output.log"; exit 0;;
+      -n | --nstate ) echo boh; nst=${2}; shift;;
     esac
     shift
   done
   resul[0]=' State   Sym   E/eV     l/nm       f      D/AU   A/deg    R(L)/cgs   R(V)/cgs'
+#  resul[0]=' State   Sym   E/eV     l/nm       f    Ciofini    Guido'
   hline='--------------------------------------------------------------------------------'
   temptd="$( mktemp )"
   for file in ${@}; do
@@ -23,7 +25,7 @@
     echo "${resul[0]}"
     line=`grep -a -i -m 1 -B 2 "Excitation energies and oscillator strengths:" ${file} | grep -a "       "`
     words=(${line})
-    nst=${words[0]}
+    if [[ ${nst} -eq 0 ]] || [[ ${nst} -gt ${words[0]} ]]; then nst=${words[0]}; fi
     for ist in $(seq 1 ${nst}); do
 #     Read excitation energy and oscillator strength
       idx=0
@@ -69,6 +71,23 @@
         read -a words <<< "${line}"
         irs=$[${idx}*${nst}+${ist}]
         resul[${irs}]=${resul[${irs}]}${sep}${words[4]}
+        idx=$[${idx}+1]
+      done < "${temptd}"
+#     CT indices
+      idx=0
+      grep -a -A $[${ist}+1] 'D(Ang)' ${file} | grep -a "  ${ist}  " > "${temptd}"
+      while read line; do
+        read -a words <<< "${line}"
+        irs=$[${idx}*${nst}+${ist}]
+        resul[${irs}]=${resul[${irs}]}${sep}${words[8]}
+        idx=$[${idx}+1]
+      done < "${temptd}"
+      idx=0
+      grep -a -m ${ist} 'spaziali' ${file} | tail -n 1 > "${temptd}"
+      while read line; do
+        read -a words <<< "${line}"
+        irs=$[${idx}*${nst}+${ist}]
+        resul[${irs}]=${resul[${irs}]}${sep}${words[6]}
         idx=$[${idx}+1]
       done < "${temptd}"
     done

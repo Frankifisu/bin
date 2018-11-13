@@ -7,51 +7,64 @@
     exit 0
   fi
 # Gaussian must be correctly set up
-  if [ -z "${gdvroot}" ]; then
-    if [ -z "${g09root}" ]; then
-      echo 'ERROR: Gaussian environment not set'; exit 1
-    else
-      gau='g09'; gauroot="${g09root}"
-    fi
+  if   [[ -x "${gdvroot}/gdv/gdv" ]]; then
+    gau="gdv"; gauroot="${gdvroot}"
+  elif [[ -x "${g16root}/g16/g16" ]]; then
+    gau="g16"; gauroot="${g16root}"
+  elif [[ -x "${g09root}/g09/g09" ]]; then
+    gau="g09"; gauroot="${g09root}"
   else
-    gau='gdv'; gauroot="${gdvroot}"
+    echo "ERROR: Gaussian environment not properly set"; exit 1
   fi
 # Handle the nutil
-  if [ ! -d "nutil" ]; then
+  if [[ ! -d "nutil" ]]; then
     mkdir "nutil"
-    cp -- "${gauroot}/${gau}/bsd/nutil.make" "nutil/"
+    cp -p -- "${gauroot}/${gau}/bsd/nutil.make" "nutil/"
     getx "a2nucf" "utilam"
     sed -i "/^OBJAM\ =/s/=/=\ a2nucf.o/" "nutil/nutil.make"
+    sed -i "/^LOBJAM/s/evlind.lo//" "nutil/nutil.make"
   fi
 # Define the link you want in your working
   link="${1}"
-  if [ "${link}" = "nutil" ]; then exit 0; fi
-  if [ ! -f "${gauroot}/${gau}/${link}.F" ]; then
+  if [[ "${link}" == "nutil" ]]; then exit 0; fi
+  if [[ ! -f "${gauroot}/${gau}/${link}.F" ]]; then
     echo "ERROR: Link ${link}.F does not exist"; exit 1
-  elif [ -d "${link}" ]; then
+  elif [[ -d "${link}" ]]; then
     echo "ERROR: You already have a ${link} directory"; exit 1
   fi
-  if [ ! -d "${link}" ]; then
+  if [[ ! -d "${link}" ]]; then
     ink="$( echo "${link}" | sed s/l// )"
     mkdir "${link}"
     line="$( grep -m 1 -- "Deck" "${gauroot}/${gau}/${link}.F" | tr '[:upper:]' '[:lower:]' )"
     deck=(${line})
     rout="${deck[1]}"
     getx "${rout}" "${link}"
-    cp -- "${gauroot}/${gau}/bsd/link.make" "${link}/${link}.make"
-    sed -i "s/502/${ink}/g" "${link}/${link}.make"
-    sed -i "/^OBJ${ink}\ =/s/=/=\ ${rout}.o/" "${link}/${link}.make"
+    if [[ "${link}" == "l1" ]] || [[ "${link}" == "l9999" ]]; then
+      cp -p -- "${gauroot}/${gau}/bsd/${link}.make" "${link}/${link}.make"
+    else
+      cp -p -- "${gauroot}/${gau}/bsd/link.make" "${link}/${link}.make"
+      sed -i "s/502/${ink}/g" "${link}/${link}.make"
+      sed -i "/^OBJ${ink}\ =/s/=/=\ ${rout}.o/" "${link}/${link}.make"
+    fi
   fi
 # Take care of the Makefile
-  if [ ! -f "Makefile" ]; then
-    cp -- "${gauroot}/${gau}/bsd/tree.make" "Makefile"
+  if [[ ! -f "Makefile" ]]; then
+    cp -p -- "${gauroot}/${gau}/bsd/tree.make" "Makefile"
     sed -i "/^all:/s/all:.*/all:\ nutilx\ ${link}x\ edir/" "Makefile"
     sed -i "/^lall:/s/lall:.*/lall:\ nutilxl\ nutillx\ ${link}xl\ ldir/" "Makefile"
+#   Add info on Gaussian version to file
+    tmpfil="$( mktemp )" ; mv "Makefile" "${tmpfil}"
+    echo "# File taken from ${gauroot}" > "Makefile"
+    cat "${tmpfil}" >> "Makefile"; rm -- "${tmpfil}"
   fi
-  if [ -z "$( grep -- "^all:.*${link}x" "Makefile" )" ]; then
+  if [[ -z "$( grep -- "^all:.*${link}x" "Makefile" )" ]]; then
     sed -i "/^all:/s/nutilx/nutilx\ ${link}x/" "Makefile"
   fi
-  if [ -z "$( grep -- "^lall:.*${link}xl" "Makefile" )" ]; then
+  if [[ -z "$( grep -- "^lall:.*${link}xl" "Makefile" )" ]]; then
     sed -i "/^lall:/s/nutillx/nutillx\ ${link}xl/" "Makefile"
+  fi
+# Fix file permissions
+  if [[ "$( groups )" == *gaudev* ]]; then
+    chgrp -c -- gaudev */*.F
   fi
   exit 0

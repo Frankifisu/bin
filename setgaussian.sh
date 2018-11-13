@@ -88,7 +88,7 @@
 #     -prune is used to select which files or directories to skip
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
-      exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata"
+      exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /home -o -path /beegfs"
       gauname="-iname gdv*${ver} -o -iname g09*${ver} -o -iname g16*${ver} -o -iname ${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
         findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
@@ -131,7 +131,7 @@
   elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"
   elif [[ "${gau}" = "g16" ]]; then export g16root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
-echo "${gauroot}/${gau}/bsd/${gau}.profile"
+  echo "${gauroot}/${gau}/bsd/${gau}.profile"
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
   profile="$( mktemp )"
   cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"
@@ -147,7 +147,7 @@ echo "${gauroot}/${gau}/bsd/${gau}.profile"
 # BUILD THE COMPILATION COMMAND
 # -----------------------------
 # Define the compiler
-  if [[ ! -x $( which setpgi.sh ) ]]; then
+  if [[ ! -x $( command -v setpgi.sh ) ]]; then
     echo "WARNING: script setpgi.sh not found, might not be able to compile"
   else
    . setpgi.sh ${vrb} -p "${pgv}"
@@ -156,7 +156,7 @@ echo "${gauroot}/${gau}/bsd/${gau}.profile"
 # Build the mk command
   if [[ -z "${PGI}" ]]; then
     echo "WARNING: PGI compiler not defined"
-  elif [[ -x "$( which mkcommand )" ]]; then
+  elif [[ -x "$( command -v mkcommand )" ]]; then
     mkcommand # "${gauroot}"
     if [ $? -ne 0 ] || [ ! -f mkgau.tmp ]; then echo "ERROR: mkcommand failed"; return 1; fi
 #   I change: FCN='${pgi} -Bstatic_pgi' into: FCN='${pgi} -Bstatic_pgi -Wl,-z,muldefs' 
@@ -169,7 +169,7 @@ echo "${gauroot}/${gau}/bsd/${gau}.profile"
       sed -i '' "s/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/" mkgau.tmp
       sed -i '' "s/make/make\ INCDIR='-I. -I..'/" mkgau.tmp
     fi
-    alias mk="$( cat mkgau.tmp ); chmod o-rwx */*.o */*.exe"
+    alias mk="$( cat mkgau.tmp ) |& tee mk.log; chmod o-rwx */*.o */*.exe; chgrp gaussian */*.o */*.exe"
     alias makec="$( cat mkgau.tmp )"
     rm -- mkgau.tmp
     if [ "${vrb}" = '-v' ]; then alias "mk"; fi
@@ -181,7 +181,7 @@ echo "${gauroot}/${gau}/bsd/${gau}.profile"
 # SETUP TAGS FILE
 # ---------------
   if [[ "${tags}" == "tags" ]]; then
-    if [[ ! -x "$( which ctags )" ]]; then echo "ERROR: ctags command not found"; return 1; fi
+    if [[ ! -x "$( command -v ctags )" ]]; then echo "ERROR: ctags command not found"; return 1; fi
     if [[ -f "${HOME}/.tags" ]]; then echo "WARNING: overwriting ${HOME}/.tags file"; fi
     if [[ "${vrb}" == '-v' ]]; then
       ctags -V -R -f "${HOME}/.tags" ${gauroot}

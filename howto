@@ -27,33 +27,6 @@
 # Now do the work
   for input in ${@}; do
     case ${input} in
-      tar )
-        echo "tar -xvf goofy.tar             (opens the uncompressed archive goofy.tar and puts it in the folder)"
-	echo "tar -cvf goofy.tar file1 file2 (creates the uncompressed archive goofy.tar with file1 and file2)"
-	echo "tar -rvf goofy.tar addme.new   (adds addme.new to goofy.tar)"
-	echo "tar -tf  goofy.tar             (lists the contents of an archive)"
-	echo "  use the -z option to handle gzip files .tgz or .tar.gz"
-      ;;
-      ssh )
-        echo "ssh -X user@where (to use graphical softwares)"
-	echo ""
-        echo "ssh user@where command (to run any command remotely)"
-	echo ""
-	echo "Generate key!"
-	echo "ssh-keygen -t rsa (then press Enter a bunch of times)"
-	echo "ssh-copy-id user@where"
-      ;;
-      sed )
-	echo "Delete all lines starting with pattern and 2 lines after them:"
-	echo "  $ sed  -i '/pattern/,3d' file"
-	echo "Delete last line:"
-	echo "  $ sed  -i '\$d' file"
-	echo "Change all lines starting with pattern:"
-	echo "  $ sed  -i 's/^pattern.*$/replacement/g' file"
-      ;;
-      ln )
-	echo "ln original link"
-      ;;
       gau )
         echo "DEBUG COMPILATION:"
         echo "  (with setgau) makec l502c"
@@ -68,50 +41,53 @@
         echo '  rehash; cd $gdvroot/gdv'
         echo '  nohup ./bsd/bldgdv all > & build.log &'
       ;;
+      git )
+	echo "INTRO:"
+	echo "  Git is a data structure stored in a Repository within the folder .git"
+	echo "    git init (creates a repository in current directory)"
+	echo "  A repository is a set of Commit Objects (each with its SHA1 name, its files, and its references to parent objects)"
+	echo "  and Branches (references to the commit objects)"
+	echo "    A commit object has a Name (found with git log), references to Parent commit objects, and the files that compose it"
+	echo "    The current branch is referenced as HEAD, and the main one is referenced as master"
+	echo "WORKFLOW:"
+	echo "  git log                  (shows the log of all commits up to the initial one)"
+	echo "  git status               (to see which files I have changed)"
+	echo "  git diff                 (to see exactly what I changed or differences between commits with arguments [head1]..[head2])"
+	echo "  git {add,mv,rm}          (to add, move, remove files in this commit)"
+	echo "  git commit -am [message] (to commit changes)"
+	echo "    Note: -m allows to specify the message in command line rather than in the file itself, -a commits all modified files"
+	echo "          alternatively just use git add [files] to specify which files to commit (unchanged files are added automatically)"
+	echo "BRANCHING:"
+	echo "  git branch                                                             (lists the branches)"
+	echo "  git branch -d [branch_name]                                            (deletes a branch)"
+	echo "  git branch [new_branch_head_name] [reference_to_object_to_branch_from] (creates branch)"
+	echo "    Note: You can use git log to find the SHA1 name of the object to branch from or use its branch name (maybe)"
+	echo "  git checkout [branch_head_name]                                        (sets the branch as current branch)" 
+	echo "  git pull . [source_head]                                               (pull the changes from the source_head into the current head)" 
+	echo "COLLABORATING:"
+	echo "  git clone [repository_address] (get and thus join a repository)"
+        echo "  git fetch origin (get changes made by others from the server)"
+        echo "  git merge origin master (merge the changes done by me and others)"
+        echo "  git push origin (push my changes to the repository)"
+	echo "WEB:"
+	echo "  git push -u origin master"
+	echo "NOTES:"
+	echo "  Maintain a stable master commit and create a new branch before developing new features"
+	echo "  Always commit any changes before changing branch with git checkout"
+	echo "  Use merge to draw new features into the master branch, or more rarely to pull a bugfixed master into the development version"
+      ;;
+      gromacs | gmx )
+	echo "  gmx_mpi trjconv -sep -b SKIP_ps -dt DELTAt_ps -f TRAJECTORY.xtc -o OUTPUT.pdb"
+      ;;
+      howto | -h )
+	usage
+      ;;
+      ln )
+	echo "ln original link"
+      ;;
       pgi )
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'
-      ;;
-      tags | ctags )
-        echo 'SETUP TAGS FILE:'
-        echo '  ctags -R $gdvroot'
-        echo '  mv tags $HOME/.tags'
-        echo 'SETUP VIM OPTIONS IN .vimrc:'
-        echo '  if filereadable("/home/fegidi/.tags")'
-        echo '    "look for the .tags file"'
-        echo '    set tags=~/.tags'
-        echo '    "make ctags open routines as new vertical splits with Ctrl+\"'
-        echo '    map <C-\> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>'
-        echo '  endif'
-        echo 'EXPECTED USE:'
-        echo '  Hover the cursor on the routine name, then:'
-        echo '  Ctrl+\ should open a new vertical split on the right'
-        echo '  Ctrl+] should replace current window with tagged file'
-        echo '  :pop   should close the tagged window'
-      ;;
-      rsync )
-	echo "rsync -avn --exclude-from=[exclude-file] source destination"
-	echo "      -a syncs all"
-	echo "      -v verbose"
-	echo "      -n dry run to test before doing anything"
-	echo "      -P to visualize progress and allow restart"
-	echo "      -z to compress files"
-	echo "      --delete to delete files that no longer exist"
-	echo "      --exclude-from reads patterns to exclude from a specified file"
-      ;;
-      regex )
-        echo ".    = Any single character"
-        echo "a|b  = matches either a or b"
-        echo "*    = Preceding pattern zero or more times"
-        echo "+    = Preceding pattern one or more times"
-        echo "?    = Preceding pattern zero or one times"
-        echo "^,$  = Start and End of line, respectively"
-      ;;
-      -h )
-	usage
-      ;;
-      howto )
-	usage
       ;;
       python )
 	echo 'PRINTING'
@@ -182,40 +158,64 @@
         echo '    import package.module       # access it as package.module.function()'
         echo '    from package import module  # access it as module.function()'
       ;;
-      git )
-	echo "INTRO:"
-	echo "  Git is a data structure stored in a Repository within the folder .git"
-	echo "    git init (creates a repository in current directory)"
-	echo "  A repository is a set of Commit Objects (each with its SHA1 name, its files, and its references to parent objects)"
-	echo "  and Branches (references to the commit objects)"
-	echo "    A commit object has a Name (found with git log), references to Parent commit objects, and the files that compose it"
-	echo "    The current branch is referenced as HEAD, and the main one is referenced as master"
-	echo "WORKFLOW:"
-	echo "  git log                  (shows the log of all commits up to the initial one)"
-	echo "  git status               (to see which files I have changed)"
-	echo "  git diff                 (to see exactly what I changed or differences between commits with arguments [head1]..[head2])"
-	echo "  git {add,mv,rm}          (to add, move, remove files in this commit)"
-	echo "  git commit -am [message] (to commit changes)"
-	echo "    Note: -m allows to specify the message in command line rather than in the file itself, -a commits all modified files"
-	echo "          alternatively just use git add [files] to specify which files to commit (unchanged files are added automatically)"
-	echo "BRANCHING:"
-	echo "  git branch                                                             (lists the branches)"
-	echo "  git branch -d [branch_name]                                            (deletes a branch)"
-	echo "  git branch [new_branch_head_name] [reference_to_object_to_branch_from] (creates branch)"
-	echo "    Note: You can use git log to find the SHA1 name of the object to branch from or use its branch name (maybe)"
-	echo "  git checkout [branch_head_name]                                        (sets the branch as current branch)" 
-	echo "  git pull . [source_head]                                               (pull the changes from the source_head into the current head)" 
-	echo "COLLABORATING:"
-	echo "  git clone [repository_address] (get and thus join a repository)"
-        echo "  git fetch origin (get changes made by others from the server)"
-        echo "  git merge origin master (merge the changes done by me and others)"
-        echo "  git push origin (push my changes to the repository)"
-	echo "WEB:"
-	echo "  git push -u origin master"
-	echo "NOTES:"
-	echo "  Maintain a stable master commit and create a new branch before developing new features"
-	echo "  Always commit any changes before changing branch with git checkout"
-	echo "  Use merge to draw new features into the master branch, or more rarely to pull a bugfixed master into the development version"
+      regex )
+        echo ".    = Any single character"
+        echo "a|b  = matches either a or b"
+        echo "*    = Preceding pattern zero or more times"
+        echo "+    = Preceding pattern one or more times"
+        echo "?    = Preceding pattern zero or one times"
+        echo "^,$  = Start and End of line, respectively"
+      ;;
+      rsync )
+	echo "rsync -avn --exclude-from=[exclude-file] source destination"
+	echo "      -a syncs all"
+	echo "      -v verbose"
+	echo "      -n dry run to test before doing anything"
+	echo "      -P to visualize progress and allow restart"
+	echo "      -z to compress files"
+	echo "      --delete to delete files that no longer exist"
+	echo "      --exclude-from reads patterns to exclude from a specified file"
+      ;;
+      sed )
+	echo "Delete all lines starting with pattern and 2 lines after them:"
+	echo "  $ sed  -i '/pattern/,3d' file"
+	echo "Delete last line:"
+	echo "  $ sed  -i '\$d' file"
+	echo "Change all lines starting with pattern:"
+	echo "  $ sed  -i 's/^pattern.*$/replacement/g' file"
+      ;;
+      ssh )
+        echo "ssh -X user@where (to use graphical softwares)"
+	echo ""
+        echo "ssh user@where command (to run any command remotely)"
+	echo ""
+	echo "Generate key!"
+	echo "ssh-keygen -t rsa (then press Enter a bunch of times)"
+	echo "ssh-copy-id user@where"
+      ;;
+      tags | ctags )
+        echo 'SETUP TAGS FILE:'
+        echo '  ctags -R $gdvroot'
+        echo '  mv tags $HOME/.tags'
+        echo 'SETUP VIM OPTIONS IN .vimrc:'
+        echo '  if filereadable("/home/fegidi/.tags")'
+        echo '    "look for the .tags file"'
+        echo '    set tags=~/.tags'
+        echo '    "make ctags open routines as new vertical splits with Ctrl+\"'
+        echo '    map <C-\> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>'
+        echo '  endif'
+        echo 'EXPECTED USE:'
+        echo '  Hover the cursor on the routine name, then:'
+        echo '  Ctrl+\ should open a new vertical split on the right'
+        echo '  Ctrl+] should replace current window with tagged file'
+        echo '  :pop   should close the tagged window'
+      ;;
+      tar )
+        echo "tar -xvf goofy.tar             (opens the uncompressed archive goofy.tar and puts it in the folder)"
+	echo "tar -cvf goofy.tar file1 file2 (creates the uncompressed archive goofy.tar with file1 and file2)"
+	echo "tar -rvf goofy.tar addme.new   (adds addme.new to goofy.tar)"
+	echo "tar -tf  goofy.tar             (lists the contents of an archive)"
+	echo "  use the -z option to handle gzip files .tgz or .tar.gz"
       ;;
       misc )
         echo 'COMPARE FILES : cmp $1 $2 || vimdiff $1 $2'

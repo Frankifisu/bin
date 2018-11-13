@@ -2,7 +2,7 @@
 #
 # Note: To delete all lines starting with pattern and 2 lines after them
 # sed -i '/^pattern/,3d' file
-  function usage {
+  usage () {
     echo 'Usage: sedi [-l 10] [-v] foo bar file(s)'
     echo ' -l  : sed a certain line number'
     echo ' -v  : verbose mode'

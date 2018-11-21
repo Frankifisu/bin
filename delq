@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+  if [[ "${#}" -lt 1 ]]; then echo "USAGE: delq JobID" ; exit 1; fi
+  if [[ "${1}" = "-h" ]]; then echo "USAGE: delq JobID" ; exit 1; fi
+# We need certain utilities
+  for comando in qstat qdel; do
+    command -v "${comando}" > /dev/null 2>&1 && continue
+    echo "ERROR: ${comando} not found"; exit 1
+  done
+#
+# Worker function
+  deljob () {
+    if [[ "${#}" -ne 1 ]]; then echo "ERROR: deljob"; fi
+#   Grep the necessary job info
+    local -a JobInfo
+    if [[ "${1}" = "-last" ]]; then
+#     Delete latest job
+      read -r -a JobInfo <<< "$( qstat -w -n -1 -u ${USER} | tail -n 1 )"
+      JobID="${JobInfo[0]}"
+    else
+#     Delete specified job
+      JobID="${1}"
+      read -r -a JobInfo <<< "$( qstat -w -n -1 "${JobID}" | grep "${JobID}" )"
+    fi
+#   Kill the job
+    qdel "${JobID}" || exit 1
+#   Clean scratch from the machine
+    JobExecHost=${JobInfo[*]: -1}
+    if [[ ! "${JobExecHost}" = "--" ]]; then
+      Machine="${JobExecHost:0:$[$( expr index "${JobExecHost}" "/" )-1]}"
+      SCRDIR="/local/scratch/${USER}"
+      ssh "${USER}@${Machine}" "rm -r -- ${SCRDIR}/*"
+    fi
+  }
+#
+# Delete jobs
+  for JobID in ${@}; do deljob "${JobID}"; done
+  exit 0

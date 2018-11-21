@@ -57,7 +57,7 @@
     shift
   done
 # Set PGI directory
-  for trypgi in "/opt" "/usr" "/cm/shared/apps" "/opt/devel"; do
+  for trypgi in "/opt" "/usr" "/opt/devel"; do
     if [[ -d "${trypgi}/pgi" ]]; then export PGI="${trypgi}/pgi"; break; fi
   done
   if [[ -z "${PGI}" ]]; then echo "ERROR: PGI directory not found"; return 1; fi
@@ -76,8 +76,9 @@
       continue
     fi
 #   try a bunch of possible versions
-    for pgv in 2017 2016 2015 17.7 16.1 15.5 15.4 15.3 14.10 13.6 12.10 12.8 12.5 12.4 11.10 11.8 11.6 11.5 11.4 10.8 10.5; do
-      if [[ -d "${PGI}/${arc}/${pgv}" ]]; then
+    for pgvtry in 2018 2017 2016 2015 18.7 17.7 16.1 15.5 15.4 15.3 14.10 13.6 12.10 12.8 12.5 12.4 11.10 11.8 11.6 11.5 11.4 10.8 10.5; do
+      if [[ -d "${PGI}/${arc}/${pgvtry}" ]]; then
+        pgv="${pgvtry}"
         export PGIDIR="${PGI}/${arc}/${pgv}"
         export PGI_ARCH="${arc}"
         export PGI_VER="${pgv}"
@@ -97,4 +98,5 @@
   else
     echo "ERROR: PGI licence not found"; return 1
   fi
+  unset pgv; unset pgvtry
   return 0

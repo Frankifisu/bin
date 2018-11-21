@@ -7,6 +7,8 @@
   unset inp ; unset opt ; unset add ; unset vrb ; unset mrg
   declare -a inp ; declare -a opt
   declare -i nsec=0 ; declare -i maxsec=3
+#
+# USAGE
   function usage {
     echo "USAGE: subgau [-sleep 1m] [-h] input1.com input2.com"
     echo "  If there is no subgau.py by JBL then defaults to interactive submission"
@@ -22,6 +24,7 @@
     echo "    -h      : print this message and exit"
     exit 0
   }
+#
 # Delayed submission
   if [ "${1}" = "-sleep" ]; then
     if [ "${#}" -lt 2 ]; then usage; fi
@@ -29,19 +32,22 @@
     shift; shift
   fi
   if [ "${#}" -eq 0 ]; then usage; fi
+#
 # --------------
 # PBS SUBMISSION
 # --------------
 #  jblsub="/home/j.bloino/bin/gxx_qsub.py"
-  jblsub="/home/f.egidi/bin/mycopy_gxx_qsub.py"
+  jblsub="/home/f.egidi/bin/gxx_qsub.py"
   if [[ "${HOSTNAME}" = "avogadro1" && -x "${jblsub}" ]]; then
     arc='-n'
 #   Sort options from job files
     while [[ -n "${1}" ]]; do
       case "${1}" in
-        *.com | *.gjf ) inp=( "${inp[@]}" "${1}" );;
+        *.com | *.gjf ) input="${1}" ; inp=( "${inp[@]}" "${input}" );;
+#        *.com | *.gjf ) input="_${1%.*}.tmp.com"; cp -- "${1}" "${input}"; inp=( "${inp[@]}" "${input}" );;
         -m            ) mrg='-m';;
         -v            ) vrb='-v';;
+#        -fq | --fqpar ) fq="${2}"; shift;;
         -n            ) arc='';;
         -h | --help   ) "${jblsub}" "-h"; exit 0;;
         --            ) ;;
@@ -52,6 +58,7 @@
 #   Submit all jobs
     for input in ${inp[*]}; do
       if [[ "${mrg}" = '-m' ]]; then input="${inp[*]}"; fi
+#      if [[ -n "${fq}" ]]; then addfq "${fq}" "${input}" || exit 1; fi
       comando="$( echo "${jblsub}" "${opt[*]}" -- "${input}" )"
       if [[ "${vrb}" = '-v' ]]; then echo "${comando}"; fi
       eval "${comando}"
@@ -62,6 +69,7 @@
       fi
       if [[ "${mrg}" = '-m' ]]; then break; fi
     done
+#    ls -A _*.tmp.* 1> /dev/null 2>&1 && rm -- _*.tmp.*
 # ----------------------
 # INTERACTIVE SUBMISSION
 # ----------------------
@@ -147,3 +155,26 @@
     done
   fi
   exit 0
+## FQ parameters
+#  function fqpar {
+#    local OElec1='0.11685879436'; local OHard1='0.58485173233'; local HElec1='0.00000000001'; local HHard1='0.62501048888'
+#    local OElec2='0.189194'; local OHard2='0.623700'; local HElec2='0.012767'; local HHard2='0.637512'
+#    local OElec3='0.189194'; local OHard3='0.523700'; local HElec3='0.012767'; local HHard3='0.537512'
+#    local _OElec="${2}"; local _OHard="${3}"; local _HElec="${4}"; local _HHard="${5}"
+#    model="$( echo "${1}" | tr '[:upper:]' '[:lower:]' )"
+#    case "${model}" in
+#      rick | old | 1 ) eval ${_OElec}="'${OElec1}'"; eval ${_OHard}="'${OHard1}'"; eval ${_HElec}="'${HElec1}'"; eval ${_HHard}="'${HHard1}'";;
+#      ivan |       2 ) eval ${_OElec}="'${OElec2}'"; eval ${_OHard}="'${OHard2}'"; eval ${_HElec}="'${HElec2}'"; eval ${_HHard}="'${HHard2}'";;
+#      bar* | epr | 3 ) eval ${_OElec}="'${OElec3}'"; eval ${_OHard}="'${OHard3}'"; eval ${_HElec}="'${HElec3}'"; eval ${_HHard}="'${HHard3}'";;
+#      *              ) echo "ERROR: Invalid PEmbed model ${model}"; return 1
+#    esac
+#  }
+#  function addfq {
+#    local model="${1}"; local input="${2}"
+#    local OElec; local OHArd; local HElec; local HHard
+#    fqpar "${model}" OElec OHard HElec HHard || return 1
+#    if [[ ! -f "${input}" ]]; then echo "ERROR: File ${input} not found"; return 1; fi
+#    sedi _OELEC ${OElec} "${input}"; sedi _OHARD ${OHard} "${input}"
+#    sedi _HELEC ${HElec} "${input}"; sedi _HHARD ${HHard} "${input}"
+#  }
+##

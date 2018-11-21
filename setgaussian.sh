@@ -113,7 +113,6 @@
       fi
     done
     unset findgau
-    echo $gauroot
     if [[ -z "${gauroot}" ]]; then echo "ERROR: Could not find Gaussian executable"; return 1; fi
   fi
   if [ "${vrb}" = '-v' ]; then echo "Using Gaussian tree in ${gauroot}"; fi

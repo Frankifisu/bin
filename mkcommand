@@ -23,7 +23,7 @@
       set gauroot = "${g16root}"
     endif
   else
-    echo "ERROR: Gaussian environment not defined in mkcommand"
+    echo "ERROR: Gaussian environment undefined in mkcommand"
     exit 1
   endif
 

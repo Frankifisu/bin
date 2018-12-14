@@ -495,7 +495,7 @@ def check_gjf(gjf_ref: str,
         fmt_pempar = '{}(QPolar={},QElec={},QHard={})'
         model1 = ( 'rick' )
         model2 = ( 'ivan' )
-        model3 = ( 'barone', 'epr' )
+        model3 = ( 'tommaso', 'barone', 'epr' )
         if   model.lower() in model1 :
             line = fmt_pempar.format('O','-0.0','0.11685879436','0.58485173233') + '\n' \
                  + fmt_pempar.format('H','+0.0','0.00000000001','0.62501048888')
@@ -653,7 +653,7 @@ def check_gjf(gjf_ref: str,
                     use718.append(None)
                     opt717.append(None)
                     opt718.append(None)
-                    write_hdr(fobjw, dat_M, dat_P, file_chk, file_rwf)
+                    write_hdr(fobjw, dat_P, dat_M, file_chk, file_rwf)
                 # INSTRUCTIONS
                 else:
                     if line_lo.startswith(r'%'):
@@ -1151,7 +1151,7 @@ echo "----------------------------------------"
         for data in opts.cpfrom:
             pbs_cmds += fmt.format(data, STARTDIR)
     # TODO (ugly patch) Get any cube which may have been generated
-    pbs_cmds += '(cp *.{{cub,cube}} {}) >& /dev/null\n'.format(STARTDIR)
+    pbs_cmds += '(cp *.{{cub,cube,dat}} {}) >& /dev/null\n'.format(STARTDIR)
     # Cleaning
     pbs_cmds += 'cd .. \nrm -rf {}\n'.format(tmpdir)
 
@@ -1189,7 +1189,7 @@ echo "----------------------------------------"
     qsub_args.append('-q {queue}'.format(queue=qname))
     # Silent mode: all output redirected to /dev/null
     if (opts.silent):
-        qsub_args.append('-o /dev/null -e /dev/null')
+        qsub_args.append('-o localhost:/dev/null -e localhost:/dev/null')
     ls_env.extend(set_gxx_env(gxxroot))
     # Add for environment variables
     if ls_env:

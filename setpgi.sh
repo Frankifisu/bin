@@ -57,7 +57,7 @@
     shift
   done
 # Set PGI directory
-  for trypgi in "/opt" "/usr" "/opt/devel"; do
+  for trypgi in "/opt" "/usr" "/opt/devel" "/cm/shared/apps/"; do
     if [[ -d "${trypgi}/pgi" ]]; then export PGI="${trypgi}/pgi"; break; fi
   done
   if [[ -z "${PGI}" ]]; then echo "ERROR: PGI directory not found"; return 1; fi

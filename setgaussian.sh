@@ -130,7 +130,6 @@
   elif [[ "${gau}" = "g09" ]]; then export g09root="${gauroot}"
   elif [[ "${gau}" = "g16" ]]; then export g16root="${gauroot}"; fi
 # load Gaussian bash environment but change the ulimit so we can debug
-  echo "${gauroot}/${gau}/bsd/${gau}.profile"
   if [[ ! -f "${gauroot}/${gau}/bsd/${gau}.profile" ]]; then echo "ERROR: File ${gau}.profile not found"; return 1; fi
   profile="$( mktemp )"
   cp "${gauroot}/${gau}/bsd/${gau}.profile" "${profile}"
@@ -168,7 +167,7 @@
       sed -i '' "s/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/" mkgau.tmp
       sed -i '' "s/make/make\ INCDIR='-I. -I..'/" mkgau.tmp
     fi
-    alias mk="$( cat mkgau.tmp ) |& tee mk.log; chmod o-rwx */*.o */*.exe; chgrp gaussian */*.o */*.exe"
+    alias mk="$( cat mkgau.tmp ) |& tee mk.log; chmod o-rwx */*.o */*.exe; chgrp gaussian */*.o */*.exe; date +'%a %d %b %Y %R' &>> mk.log"
     alias makec="$( cat mkgau.tmp )"
     rm -- mkgau.tmp
     if [ "${vrb}" = '-v' ]; then alias "mk"; fi

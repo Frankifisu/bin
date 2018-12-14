@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# * SET GAUSSIAN ENVIRONMENT *
+#
+# Extract all derivatives
+  for gauge in 'r' 'p'; do for root in 1 2 3; do
+    derfile="state${root}_d${gauge}.dat"
+    elefile="state${root}_d${gauge}.inc"
+    magfile="state${root}_dL.inc"
+    for zero in *step*0.log; do
+      if [[ ! -f "${zero}" ]]; then break; fi
+      zerofile="state${root}_${zero%.log}_${gauge}.dat"
+      zelefile="state${root}_${zero%.log}_${gauge}.inc"
+      zmagfile="state${root}_${zero%.log}_L.inc"
+      mdipderiv.py -gauge=${gauge} -root=${root} "${zero}" > "${zerofile}"
+      grep 'EDip' "${zerofile}" > "${zelefile}"
+      grep 'MDip' "${zerofile}" > "${zmagfile}"
+      for myfile in "${zelefile}" "${zmagfile}"; do
+#       remove last character
+        sed -i 's/.$//' "${myfile}"
+#       remove first few charcters
+        sed -i 's/^.......//' "${myfile}"
+      done
+    done
+    mdipderiv.py -gauge=${gauge} -root=${root} > "${derfile}"
+#   get electric dipole
+    grep 'DEDip' "${derfile}" > "${elefile}"
+    grep 'DMDip' "${derfile}" > "${magfile}"
+    for myfile in "${elefile}" "${magfile}"; do
+#     remove last character
+      sed -i 's/.$//' "${myfile}"
+#     remove first few charcters
+      sed -i 's/^........//' "${myfile}"
+    done
+  done; done
+  unset derfile ; unset magfile ; unset elefile ; unset myfile
+

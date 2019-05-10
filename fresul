@@ -5,7 +5,7 @@
   }
   if [ ${#} -eq 0 ]; then
     usage
-    return 1
+    exit 1
   fi
   declare -i idx=0 # index used in loops
   declare -i njb=0 # number of gaussian jobs
@@ -22,7 +22,7 @@
       -l | --log  ) log=1;;
       -s | --sep  ) sep="${2}"; shift;;
       -a | --add  ) add[${#add[@]}]="$( echo "${2}" )"; shift;;
-      -h | --help ) eval ${usage}; return 1;;
+      -h | --help ) eval ${usage}; exit 1;;
     esac
     shift
   done

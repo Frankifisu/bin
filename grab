@@ -1,5 +1,5 @@
 #!/bin/bash
-  if [[ ${#} -lt 1 ]]; then echo "USAGE: grab 3 char"; return 1 ; fi
+  if [[ ${#} -lt 1 ]]; then echo "USAGE: grab 3 char"; exit 1 ; fi
   declare var; declare -i ichar=${1}
   # If specified, grab from given file or string
   if [[ ${#} -ge 2 ]]; then
@@ -9,7 +9,7 @@
     else
       echo "${var}" | tr -s " " | cut -d " " -f ${ichar}
     fi
-    return 0
+    exit 0
   fi
   # otherwise grab from standard input
   while read -t 0.1 -e var; do # -t aborts read after specified number of seconds

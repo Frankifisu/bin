@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import argparse
+from math import inf
 import socket  # module for the fully qualified named of the headnode
 from subprocess import Popen, PIPE
 try:
@@ -25,14 +26,14 @@ DEFAULT_PATHS = {
 }
 sys.path.insert(0, DEFAULT_PATHS['hpc_modpath'])
 
-import hpcnodes as hpc
+import hpcnodes as hpc  # NOQA
 
 # ================
 #   PROGRAM DATA
 # ================
 
 AUTHOR = "Julien Bloino (julien.bloino@sns.it)"
-VERSION = "2018.10.11"
+VERSION = "2019.03.25"
 # Program name is generated from commandline
 PROGNAME = os.path.basename(sys.argv[0])
 
@@ -107,6 +108,7 @@ GXX_ARCHS = {
     'westmere': 'intel64-nehalem',
     'sandybridge': 'intel64-sandybridge',
     'ivybridge': 'intel64-sandybridge',
+    'skylake': 'intel64-sandybridge',
     'bulldozer': 'amd64-bulldozer'
 }
 # Maximum occupation of the total memory on a given node
@@ -189,6 +191,9 @@ def build_parser():
         '--group', dest='group', type=str,
         help='User group')
     queue.add_argument(
+        '-p', '--project', dest='project', default='account_test',
+        help='Defines the project to run the calculation')
+    queue.add_argument(
         '-P', '--print', dest='prtinfo', action='store_true',
         help='Print information about the submission process')
     queue.add_argument(
@@ -196,7 +201,7 @@ def build_parser():
         help='{}\n{}'.format('Sets the queue type.', HELP_QUEUES),
         metavar='QUEUE')
     queue.add_argument(
-        '-S', '--silent', dest='silent', action='store_true',
+        '-S', '--silent', dest='silent', action='store_false',
         help='''\
 Do not save standard output and error in files
 WARNING: The consequence will be a loss of these outputs''')
@@ -226,7 +231,7 @@ Expert use. Can be cumulated.
         help='Sets the checkpoint filename')
     gaussian.add_argument(
         '-g', '--gxxroot', dest='gxxver', metavar='GAUSSIAN',
-        default='g16a03',
+        default='g16b01',
         help='{}\n{}'.format('Sets the path to the Gaussian executables.',
                              HELP_GXX))
     gaussian.add_argument(
@@ -259,6 +264,12 @@ The possible options are:
         help='''\
 Sets the read-write filename (Expert use!).
 "auto" sets automatically the rwf from the input filename.''')
+    gaussian.add_argument(
+        '-t', '--tmpdir', dest='tmpdir', metavar='TEMP_DIR',
+        help='''\
+Sets the temporary directory where calculations will be run.
+This is set automatically based on the node configuration.
+"{username}" can be used as a placeholder for the username.''')
     gaussian.add_argument(
         '-w', '--wrkdir', dest='gxxwrk', nargs='+', metavar='WORKDIR',
         help='''\
@@ -803,7 +814,12 @@ def get_queue_data(full_queue: str,
     # core_factor: integer multiplier to account for virtual if requested/avail
     core_factor = nprocs_avail/family.nprocs(all=False)
     if nprocs is None:
-        res = nprocs_avail
+        if family.cpu_limits['soft'] is not None:
+            res = family.cpu_limits['soft']
+        elif family.cpu_limits['hard'] is not None:
+            res = family.cpu_limits['hard']
+        else:
+            res = nprocs_avail
     else:
         if nprocs == 'H':  # Half of cores on 1 processor
             res = int(family.ncores*core_factor/2)
@@ -823,6 +839,9 @@ def get_queue_data(full_queue: str,
     nprocs = int(res)
     if nprocs > nprocs_avail:
         raise ValueError('Too many processing units requested.')
+    elif (family.cpu_limits['hard'] is not None and
+          nprocs > family.cpu_limits['hard']):
+        raise ValueError('Number of processing units exceeds hard limit.')
 
     # # Node id
     # # -------
@@ -1024,8 +1043,17 @@ List of available HPC Nodes
     if set(['m', 'mem', 'a', 'all']) & set(opts.gxxl0K):
         mem = None
     else:
-        factor = min(1, nprocs/qnode.nprocs(all=USE_LOGICAL_CORE))
-        mem_byte = int(qnode.size_mem*factor*MEM_OCCUPATION)
+        if nprocs is None:
+            factor = 1.
+        else:
+            factor = min(1., nprocs/qnode.nprocs(all=USE_LOGICAL_CORE))
+        if qnode.mem_limits['soft'] is not None:
+            def_mem = qnode.mem_limits['soft']
+        elif qnode.mem_limits['hard'] is not None:
+            def_mem = qnode.mem_limits['hard']
+        else:
+            def_mem = inf
+        mem_byte = int(min(qnode.size_mem*factor, def_mem)*MEM_OCCUPATION)
         mem = hpc.bytes_units(mem_byte, 0, False, 'g')
         if mem.startswith('0'):
             mem = hpc.bytes_units(mem_byte, 0, False, 'm')
@@ -1071,12 +1099,28 @@ List of available HPC Nodes
         if full_P > qnode.nprocs(all=USE_LOGICAL_CORE):
             print('ERROR: Too many processors required for the chosen queue')
             sys.exit()
+        elif (qnode.cpu_limits['hard'] is not None and
+              full_P > qnode.cpu_limits['hard']):
+            print('ERROR: number of processors exceeds hard limit')
+            sys.exit()
+        if (qnode.mem_limits['hard'] is not None and
+                full_M > qnode.mem_limits['hard']):
+            print('ERROR: Requested memory exceeds hard limit')
+            sys.exit()
         nprocs = full_P
         mem = hpc.bytes_units(full_M, 0, False, 'g')
+    if (qnode.cpu_limits['soft'] is not None and
+            nprocs > qnode.cpu_limits['soft']):
+        print('NOTE: Number of processors exceeds soft limit.')
+    if (qnode.mem_limits['soft'] is not None and
+            hpc.convert_storage(mem) > qnode.mem_limits['soft']):
+        print('NOTE: Requested memory exceeds soft limit.')
     #  PBS commands definition
     # -------------------------
     # First check which storage use
-    if qnode.path_tmpdir is None:
+    if opts.tmpdir is not None:
+        value = opts.tmpdir.format(username=USERNAME)
+    elif qnode.path_tmpdir is None:
         print('''\
 WARNING: No local storage available to store working files.
          Starting directory will be used for storage.''')
@@ -1151,7 +1195,7 @@ echo "----------------------------------------"
         for data in opts.cpfrom:
             pbs_cmds += fmt.format(data, STARTDIR)
     # TODO (ugly patch) Get any cube which may have been generated
-    pbs_cmds += '(cp *.{{cub,cube,dat}} {}) >& /dev/null\n'.format(STARTDIR)
+    pbs_cmds += '(cp *.{{cub,cube,dat,out}} {}) >& /dev/null\n'.format(STARTDIR)
     # Cleaning
     pbs_cmds += 'cd .. \nrm -rf {}\n'.format(tmpdir)
 
@@ -1175,6 +1219,9 @@ echo "----------------------------------------"
             fmt += ' -M {user}@{server}'
         qsub_args.append(fmt.format(addr=opts.mailto, user=USERNAME,
                                     server=EMAILSERVER))
+    # Sets the reference project
+    if opts.project:
+        qsub_cmd += "-P '{}' ".format(opts.project)
     # Nodes-related option: fixes the number of nodes to use (nodes=), and the
     #   number of processors per node (ncpus=)
     # Reserve logical cores if present even if only physical cores used.

@@ -73,7 +73,7 @@
   alias ll="ls -lh"
   alias ltrh="ls -ltrah"
   alias grepi="grep -i"
-  if [[ -x $( command -v rename.ul ) ]] then alias rename="rename.ul"; fi
+  if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
   if [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
   if [[ -d "/bigdata/${USER}" ]]; then export BIGDATA="/bigdata/${USER}"; fi

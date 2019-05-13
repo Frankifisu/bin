@@ -66,7 +66,7 @@
 # -------------
   alias bashrc="vim -- ${myrc}/.bashrc"
   alias rebash="source -- ${myrc}/.bashrc"
-  alias vimrc="vim -- .vimrc"
+  alias vimrc="vim -- ${myrc}/.vimrc"
   alias vimvs="vim -O"
   alias cd..="cd .."
   alias la="ls -A"

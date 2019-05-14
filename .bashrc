@@ -3,6 +3,8 @@
 # ==================================
 # = MY PERSONAL BASHRC ENVIRONMENT =
 # ==================================
+# This file should be sourced from ~/.bashrc which can be kept
+# almost as the default found in /etc/skel/.bashrc
 #
 # -----------
 # SHELL PATHS

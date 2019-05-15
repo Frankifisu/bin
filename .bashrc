@@ -165,13 +165,16 @@
     eval ${ipwrite}
     sconnect ${remote_user} ${remote_host} ${@}
   }
+#
   cineca () {
     sconnect "fegidi00" "login.galileo.cineca.it" ${@}
   }
   alias galileo="cineca"
+#
   natta () {
     sconnect "f.egidi" "natta04.sns.it" ${@}
   }
+#
   artemis () {
     sconnect "fegidi" "artemis.chem.washington.edu" ${@}
   }

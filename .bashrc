@@ -364,14 +364,17 @@
 # ---
 # xtb
 # ---
-  if [[ -d ${HOME}/local/xtb ]]; then
-    export XTBHOME="${HOME}/local/xtb"
-    if [[ -x "${XTBHOME}/Config_xtb_env.bash" ]]; then
-      source "${XTBHOME}/Config_xtb_env.bash"
-    else
-      echo 'ERROR: Cannot configure xtb'
+  for trydir in "${HOME}/local/xtb" "${HOME}/usr/local/xtb"; do
+    if [[ -d "${trydir}" ]]; then
+      export XTBHOME="${trydir}"
+      if [[ -x "${XTBHOME}/Config_xtb_env.bash" ]]; then
+        source "${XTBHOME}/Config_xtb_env.bash"
+      else
+        echo 'ERROR: Cannot configure xtb'
+      fi
+      break
     fi
-  fi
+  done; unset trydir
 #
 # --
 # eT

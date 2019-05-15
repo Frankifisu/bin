@@ -5,7 +5,8 @@
 # -----------------------------
 #
 # List available queues
-  if [ "${#}" -eq 0 ]; then
+  if [[ "$( hostname )" != "avogadro"* ]]; then echo "ERROR: Not on avogadro"; exit 1; fi
+  if [[ "${#}" -eq 0 && $( hostname ) == "avogadro"* ]]; then
     echo "-----------------+-------------+-------+----------------------+------------"
     echo " Node     | CPUs | Mem |  HDD  | Clock | Proc                 | Flag (I04) "
     echo "-----------------+-------------+-------+----------------------+------------"

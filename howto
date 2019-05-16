@@ -194,6 +194,13 @@
 	echo "ssh-keygen -t rsa (then press Enter a bunch of times)"
 	echo "ssh-copy-id user@where"
       ;;
+      slurm )
+        echo "saldo -bc (Project allotted time remaining balance)"
+        echo "sinfo (Prints queue information about nodes and partitions)"
+        echo "squeue (List jubs in the schedule)"
+        echo "sbatch job_script.sh (submit job)"
+        echo "scancel job_ID (Cancel Job)"
+      ;;
       tags | ctags )
         echo 'SETUP TAGS FILE:'
         echo '  ctags -R $gdvroot'

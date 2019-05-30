@@ -60,7 +60,7 @@
 #  shopt -s globstar
 # Directory for temporary files
   for trydir in "/tmp" "/var/tmp" "${HOME}/tmp" "${HOME}/usr/tmp" "${HOME}"; do
-    if [[ -d ${trydir} ]]; then export TMPDIR="${tmpdir}"; break; fi
+    if [[ -d ${trydir} ]]; then export TMPDIR="${trydir}"; break; fi
   done; unset trydir
 #
 # -------------

@@ -284,7 +284,7 @@
   }
 # Clean working compilation
   mkclean () {
-    local -a listrm=( '*/*.o' '*/*.exe' )
+    local -a listrm=( '*.o' 'cubegen' '*/*.o' '*/*.exe' )
     for targetrm in ${listrm[*]}; do
       if [ ! -f "${targetrm}" ]; then continue; fi
       rm -- "${targetrm}"
@@ -296,63 +296,63 @@
     if [[ -z "${GAUSS_SCRDIR}" ]]; then echo "GAUSS_SCRDIR not defined"; return 1; fi
     for i in "${GAUSS_SCRDIR}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
   }
-# Generate cube using cubegen
-  cube () {
-    usage () {
-      echo "USAGE: cube [-o mycub] [-s S] [-n nproc] -f name.fchk NN [MM ...]"
-      echo "         -o mycub : sets the output cube base name as mycub"
-      echo "         -p npts  : sets the number of points per side of the cube"
-      echo "         -n nproc : use nproc processors"
-      echo "         -f file  : specifies the .fchk input file"
-      echo "         -d type  : does density of specified type (SCF, MP2, ...) instead of MOs"
-      echo "         -s {A,B} : sets the orbital spin as either A or B, or requests spin density if -d is set"
-      echo "         -v       : verbose mode"
-      echo "         NN MM... : lists the orbital numbers"
-      unset -f usage
-    }
-    if [ "${#}" -lt 2 ]; then usage; return 0; fi
-    if [[ -z "${gdvroot}" ]] && [[ -z "${g09root}" ]] && [[ -z "${g16root}" ]]; then echo "ERROR: Gaussian environment not defined"; return 1; fi
-    local vrb="" outcub="" dens="" spin=""; local -i nproc=0; local -a orbs
-    unset npts; unset cubpath
-#    shopt -s extglob
-    while [ -n "${1}" ]; do
-      case "${1}" in
-        *.fchk ) file="${1}";;
-        -f     ) file="${2}"; shift;;
-      +([0-9]) ) orbs=( "${orbs[@]}" "${1}" );;
-        -o     ) outcub="${2}"; shift;;
-        -p     ) npts="${2}"; shift;;
-        -d     ) dens="${2}"; shift;;
-        -s     ) spin="${2}"; shift;;
-        -n     ) nproc="${2}"; shift;;
-        -w     ) cubpath="${2}"; shift;;
-        -vcd   ) ;;
-        -v     ) vrb="-v";;
-        *      ) echo "ERROR: unrecognized option ${1}"; return 1;;
-      esac; shift
-    done
-    file="${file%fchk}"
-    if [[ ! -f "${file}fchk" ]]; then echo "ERROR: Cannot find file ${file}fchk"; return 1; fi
-    if [[ -z "${outcub}" ]]; then outcub="${file}"; fi
-    if [[ -n ${dens} ]]; then
-      if [[ -z "${spin}" ]]; then
-        comando="$( echo ${cubpath}/cubegen ${nproc} Density="${dens}" "${file}fchk" "${outcub}dens.cube" )"
-      else
-        comando="$( echo ${cubpath}/cubegen ${nproc}    Spin="${dens}" "${file}fchk" "${outcub}spin.cube" )"
-      fi
-      if [ "${vrb}" = "-v" ]; then echo " ${comando}"; fi
-      eval ${comando}
-    elif [[ "${#orbs}" -gt 0 ]]; then
-      for orb in ${orbs[@]}; do
-        comando="$( echo ${cubpath}/cubegen ${nproc} ${spin}MO="${orb}" "${file}fchk" "${outcub}${spin}${orb}.cube" ${npts} )"
-        if [ "${vrb}" = "-v" ]; then echo " ${comando}"; fi
-        eval ${comando}
-      done
-    else
-      echo "ERROR: Target orbitals or density not specified"
-    fi
-#    unset outcub; unset spin; unset dens; unset nproc; unset orbs; unset file; unset outcub; unset comando; unset npts
-  }
+## Generate cube using cubegen
+#  cube () {
+#    usage () {
+#      echo "USAGE: cube [-o mycub] [-s S] [-n nproc] -f name.fchk NN [MM ...]"
+#      echo "         -o mycub : sets the output cube base name as mycub"
+#      echo "         -p npts  : sets the number of points per side of the cube"
+#      echo "         -n nproc : use nproc processors"
+#      echo "         -f file  : specifies the .fchk input file"
+#      echo "         -d type  : does density of specified type (SCF, MP2, ...) instead of MOs"
+#      echo "         -s {A,B} : sets the orbital spin as either A or B, or requests spin density if -d is set"
+#      echo "         -v       : verbose mode"
+#      echo "         NN MM... : lists the orbital numbers"
+#      unset -f usage
+#    }
+#    if [ "${#}" -lt 2 ]; then usage; return 0; fi
+#    if [[ -z "${gdvroot}" ]] && [[ -z "${g09root}" ]] && [[ -z "${g16root}" ]]; then echo "ERROR: Gaussian environment not defined"; return 1; fi
+#    local vrb="" outcub="" dens="" spin=""; local -i nproc=0; local -a orbs
+#    unset npts; unset cubpath
+##    shopt -s extglob
+#    while [ -n "${1}" ]; do
+#      case "${1}" in
+#        *.fchk ) file="${1}";;
+#        -f     ) file="${2}"; shift;;
+#      +([0-9]) ) orbs=( "${orbs[@]}" "${1}" );;
+#        -o     ) outcub="${2}"; shift;;
+#        -p     ) npts="${2}"; shift;;
+#        -d     ) dens="${2}"; shift;;
+#        -s     ) spin="${2}"; shift;;
+#        -n     ) nproc="${2}"; shift;;
+#        -w     ) cubpath="${2}"; shift;;
+#        -vcd   ) ;;
+#        -v     ) vrb="-v";;
+#        *      ) echo "ERROR: unrecognized option ${1}"; return 1;;
+#      esac; shift
+#    done
+#    file="${file%fchk}"
+#    if [[ ! -f "${file}fchk" ]]; then echo "ERROR: Cannot find file ${file}fchk"; return 1; fi
+#    if [[ -z "${outcub}" ]]; then outcub="${file}"; fi
+#    if [[ -n ${dens} ]]; then
+#      if [[ -z "${spin}" ]]; then
+#        comando="$( echo ${cubpath}/cubegen ${nproc} Density="${dens}" "${file}fchk" "${outcub}dens.cube" )"
+#      else
+#        comando="$( echo ${cubpath}/cubegen ${nproc}    Spin="${dens}" "${file}fchk" "${outcub}spin.cube" )"
+#      fi
+#      if [ "${vrb}" = "-v" ]; then echo " ${comando}"; fi
+#      eval ${comando}
+#    elif [[ "${#orbs}" -gt 0 ]]; then
+#      for orb in ${orbs[@]}; do
+#        comando="$( echo ${cubpath}/cubegen ${nproc} ${spin}MO="${orb}" "${file}fchk" "${outcub}${spin}${orb}.cube" ${npts} )"
+#        if [ "${vrb}" = "-v" ]; then echo " ${comando}"; fi
+#        eval ${comando}
+#      done
+#    else
+#      echo "ERROR: Target orbitals or density not specified"
+#    fi
+##    unset outcub; unset spin; unset dens; unset nproc; unset orbs; unset file; unset outcub; unset comando; unset npts
+#  }
 # GaussView
   GV_DIR="${HOME}/usr/share/GaussView/gv"
   if [[ -d "${GV_DIR}" ]]; then

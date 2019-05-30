@@ -75,6 +75,7 @@
   alias ll="ls -lh"
   alias ltrh="ls -ltrah"
   alias grepi="grep -i"
+  if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
   if [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
@@ -84,6 +85,7 @@
     if [[ "${#}" -eq 0 ]]; then echo "Usage: prev command"; return 1 ; fi
     history | head -n -1 | grep ${1}
   }
+#
   vimcmp () {
     if [[ "${#}" -ne 2 ]]; then echo "Usage: vimcmp file1 file2 "; return 1 ; fi
     if [[ ! -r "${1}" ]]; then echo "ERROR: Can't read file ${1}"; return 1 ; fi
@@ -93,6 +95,7 @@
     cmp -s "${1}" "${2}" && echo "No difference between ${1} and ${2}" || vimdiff "${1}" "${2}"
     return 0
   }
+#
   swap () {
     if [[ "${#}" -ne 2 ]]; then echo 'ERROR: two arguments needed'; return 1; fi
     if [[ "${1}" == "${2}" ]]; then echo 'ERROR: different arguments needed'; return 1; fi
@@ -103,6 +106,7 @@
     mv -T -- "${1}" "${todelete}" && mv -T -- "${2}" "${1}" && mv -T -- "${todelete}" "${2}"
     return 0
   }
+#
   trova () {
 # Use of regular expressions (regex):
 # .  == Something (whatever)

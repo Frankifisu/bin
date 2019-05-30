@@ -203,10 +203,10 @@
       ;;
       tags | ctags )
         echo 'SETUP TAGS FILE:'
-        echo '  ctags -R $gdvroot'
+        echo '  ctags -R $directory'
         echo '  mv tags $HOME/.tags'
         echo 'SETUP VIM OPTIONS IN .vimrc:'
-        echo '  if filereadable("/home/fegidi/.tags")'
+        echo '  if filereadable($HOME."/.tags")'
         echo '    "look for the .tags file"'
         echo '    set tags=~/.tags'
         echo '    "make ctags open routines as new vertical splits with Ctrl+\"'

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -77,6 +77,9 @@ def cubeparse():
     parser.add_argument('-a', '--add',
         dest='bonus', default='0',
         help='Additional custom integer flag')
+    parser.add_argument('-d', '--denfil',
+        dest='denfil',
+        help='Set density file name')
 #   OPTION PARSING
     opts = parser.parse_args()
 #   CONSISTENCY CHECKS
@@ -112,7 +115,7 @@ def gencubomand(opts):
      #cubegen nprocs  kind  fchkfile  cubefile  npts  format cubefile2 iprint [bonus]
      cubomando = CUBCMD
      cubomando = opts.wrkdir + cubomando
-     for word in opts.nproc, opts.kind, opts.fchk, opts.cub, opts.npts, opts.cbfmt, opts.cub2, opts.iprint, opts.bonus:
+     for word in opts.nproc, opts.kind, opts.fchk, opts.cub, opts.npts, opts.cbfmt, opts.cub2, opts.iprint, opts.bonus, opts.denfil:
          cubomando = cubomando + ' ' + str(word)
      return cubomando
 

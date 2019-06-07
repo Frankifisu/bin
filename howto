@@ -86,6 +86,10 @@
       ln )
 	echo "ln original link"
       ;;
+      pdf )
+        echo "pdfunite file1.pdf file2.pdf filemerge.pdf"
+        echo "pdfseparate file1.pdf file2.pdf filemerge.pdf"
+      ;;
       pgi )
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'

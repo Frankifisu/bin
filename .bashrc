@@ -383,8 +383,38 @@
 # --
 # eT
 # --
-  export LIBINT_DATA_PATH="/usr/local/libint/2.4.2/share/libint/2.4.2/basis"
-  export SAD_ET_DIR="${HOME}/usr/local/eT/src/molecular_system/sad"
+  for trydir in "${HOME}/local/eT" "${HOME}/usr/local/eT"; do
+    if [[ -d "${trydir}" ]]; then
+      export ET_DIR="${trydir}"
+      export SAD_ET_DIR="${ET_DIR}/src/molecular_system/sad"
+      break
+    fi
+  done; unset trydir
+#
+# ------
+# LibInt
+# ------
+  if [[ -z "${LIBINT_HOME}" ]]; then 
+    for tryver in "2.4.2" "2.2.0"; do
+      for trydir in "/usr/local/libint/${tryver}"; do
+        if [[ -d "${trydir}" ]]; then
+          export LIBINT_VER="${tryver}"
+          export LIBINT_HOME="${trydir}"
+          break 2
+        fi
+      done; unset trydir
+    done; unset tryver
+  elif [[ -z "${LIBINT_VER}" ]]; then
+    for tryver in "2.4.2" "2.2.0"; do
+      if [[ "${LIBINT_HOME}" == *"/libint/${tryver}"* ]]; then
+        export LIBINT_VER="${tryver}"
+        break
+      fi
+    done; unset tryver
+  fi
+  if [[ -d "${LIBINT_HOME}" ]] && [[ -n "${LIBINT_VER}" ]]; then 
+    export LIBINT_DATA_PATH="${LIBINT_HOME}/share/libint/${LIBINT_VER}/basis"
+  fi
 
 # ------
 # GAMESS

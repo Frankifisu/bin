@@ -78,6 +78,7 @@
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
   if [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
+  if [[ -x $( command -v squeue ) ]]; then alias qme="squeue -A IscrC_SEISMS"; fi
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
   if [[ -d "/bigdata/${USER}" ]]; then export BIGDATA="/bigdata/${USER}"; fi
 # functions

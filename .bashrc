@@ -387,7 +387,7 @@
   for trydir in "${HOME}/local/eT" "${HOME}/usr/local/eT"; do
     if [[ -d "${trydir}" ]]; then
       export ET_DIR="${trydir}"
-      export SAD_ET_DIR="${ET_DIR}/src/molecular_system/sad"
+      export SAD_ET_DIR="${ET_DIR}/src/molecule/sad"
       break
     fi
   done; unset trydir

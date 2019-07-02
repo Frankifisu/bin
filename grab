@@ -12,6 +12,6 @@
     exit 0
   fi
   # otherwise grab from standard input
-  while read -t 0.1 -e var; do # -t aborts read after specified number of seconds
+  while read -t 0.01 -e var; do # -t aborts read after specified number of seconds
     echo "${var}" | tr -s " " | cut -d " " -f ${ichar}
   done

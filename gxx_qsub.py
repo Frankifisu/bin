@@ -201,7 +201,7 @@ def build_parser():
         help='{}\n{}'.format('Sets the queue type.', HELP_QUEUES),
         metavar='QUEUE')
     queue.add_argument(
-        '-S', '--silent', dest='silent', action='store_false',
+        '-S', '--silent', dest='silent', action='store_true',
         help='''\
 Do not save standard output and error in files
 WARNING: The consequence will be a loss of these outputs''')

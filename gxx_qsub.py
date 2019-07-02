@@ -506,7 +506,7 @@ def check_gjf(gjf_ref: str,
         fmt_pempar = '{}(QPolar={},QElec={},QHard={})'
         model1 = ( 'rick' )
         model2 = ( 'ivan' )
-        model3 = ( 'tommaso', 'barone', 'epr' )
+        model3 = ( 'tommaso', 'barone', 'epr', 'fqc' )
         if   model.lower() in model1 :
             line = fmt_pempar.format('O','-0.0','0.11685879436','0.58485173233') + '\n' \
                  + fmt_pempar.format('H','+0.0','0.00000000001','0.62501048888')
@@ -713,7 +713,7 @@ def check_gjf(gjf_ref: str,
                                 line = add_fq('rick')
                             if( line_lo == 'ivan' ) :
                                 line = add_fq('ivan')
-                            if( line_lo in ('barone', 'epr') ) :
+                            if( line_lo in ('barone', 'epr', 'fqc', 'tommaso') ) :
                                 line = add_fq('epr')
                             if( opts.pem and line_lo == 'pempar' ) :
                                 line = add_fq(opts.pem)

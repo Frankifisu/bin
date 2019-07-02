@@ -91,12 +91,14 @@ def cubeparse():
         opts.cub = chknam + CUBEXT
 #   CHECK NUMBER OF POINTS
     opts.npts = str.lower(str(opts.npts))
-    if opts.npts[:3] == 'fin':
-        opts.npts = '-4'
+    if opts.npts[:3] == 'coa':
+        opts.npts = '-2'
     elif opts.npts[:3] == 'med':
         opts.npts = '-3'
-    elif opts.npts[:3] == 'coa':
-        opts.npts = '-2'
+    elif opts.npts[:3] == 'fin':
+        opts.npts = '-4'
+    elif opts.npts[:3] == 'ult':
+        opts.npts = '-22'
     else :
         try:
             int(opts.npts)

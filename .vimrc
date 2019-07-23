@@ -35,3 +35,5 @@ if filereadable($HOME."/.tags")
   "make ctags open routines as new vertical splits with Ctrl+\"
   map <C-\> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
 endif
+"Automatically execute commands for certain file types"
+autocmd FileType python setlocal shiftwidth=4 softtabstop=4

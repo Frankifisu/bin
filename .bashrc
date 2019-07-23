@@ -416,7 +416,10 @@
   if [[ -d "${LIBINT_HOME}" ]] && [[ -n "${LIBINT_VER}" ]]; then 
     export LIBINT_DATA_PATH="${LIBINT_HOME}/share/libint/${LIBINT_VER}/basis"
   fi
-
+# --------
+# LSDALTON
+# --------
+  alias lsdalton="${HOME}/usr/local/lsdalton/build_pcm/lsdalton -nobackup"
 # ------
 # GAMESS
 # ------

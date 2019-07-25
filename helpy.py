@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+##
+## GET HELP ON PYTHON MODULES AND COMMANDS
+##
+
 # =========
 #  MODULES
 # =========
@@ -12,20 +16,6 @@ import argparse # commandline argument parsers
 #  PROGRAM DATA
 # ==============
 PROGNAME = os.path.basename(sys.argv[0])
-USERNAME = os.getenv('USER')
-HOMEDIR = os.getenv('HOME')
-
-# ==========
-#  DEFAULTS
-# ==========
-
-# =================
-#  BASIC FUNCTIONS
-# =================
-def errore(message=None):
-    if message != None:
-        print('ERROR: ' + message)
-    sys.exit(1)
 
 # =================
 #  PARSING OPTIONS
@@ -36,22 +26,10 @@ def parseopt():
         description='Command-line option parser')
     # MANDATORY ARGUMENTS
     parser.add_argument('obj', help='Object to seek help about specified as mod or mod.obj')
-    # OPTIONAL ARGUMENTS
-    parser.add_argument('-v', '--iprint',
-        dest='iprt', action='count', default=0,
-        help='Set printing level')
     # OPTION PARSING
     opts = parser.parse_args()
     # OPTION CHECKING
     return opts
-
-# ================
-#  WORK FUNCTIONS
-# ================
-def filparse(input_file):
-    with open(input_file, 'r') as file_obj:
-        for line in file_obj :
-            pass
 
 # ==============
 #  MAIN PROGRAM
@@ -59,9 +37,9 @@ def filparse(input_file):
 def main():
     # PARSE OPTIONS
     opts = parseopt()
-    # IMPORT MODULE
     help_this = opts.obj
     try:
+        # POSSIBLY IMPORT MODULE
         modulo = help_this.split('.')[0]
         importlib.import_module(modulo)
     except:

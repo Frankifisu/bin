@@ -76,6 +76,7 @@
   alias ltrh="ls -ltrah"
   alias grepi="grep -i"
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
+  if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
   if [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
   if [[ -x $( command -v squeue ) ]]; then alias qme="squeue -A IscrC_SEISMS"; fi

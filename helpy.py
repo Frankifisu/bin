@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-##
-## GET HELP ON PYTHON MODULES AND COMMANDS
-##
+"""Qickly get help on Python objects from command line"""
 
 # =========
 #  MODULES
@@ -25,7 +23,10 @@ def parseopt():
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
     # MANDATORY ARGUMENTS
-    parser.add_argument('obj', help='Object to seek help about specified as mod or mod.obj')
+    parser.add_argument('obj',
+        help='''\
+Object to seek help about specified simply as obj
+or more completely like module.class.method''')
     # OPTION PARSING
     opts = parser.parse_args()
     # OPTION CHECKING

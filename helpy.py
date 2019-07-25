@@ -35,7 +35,7 @@ def parseopt():
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
     # MANDATORY ARGUMENTS
-    parser.add_argument('modulo', help='Module to import')
+    parser.add_argument('obj', help='Object to seek help about specified as mod or mod.obj')
     # OPTIONAL ARGUMENTS
     parser.add_argument('-v', '--iprint',
         dest='iprt', action='count', default=0,
@@ -60,9 +60,14 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # IMPORT MODULE
-    modulo = opts.modulo
-    importlib.import_module(modulo)
-    help(modulo)
+    help_this = opts.obj
+    try:
+        modulo = help_this.split('.')[0]
+        importlib.import_module(modulo)
+    except:
+        pass
+    finally:
+        help(help_this)
     sys.exit()
 
 # ===========

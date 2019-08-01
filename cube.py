@@ -1,50 +1,39 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import re
-import argparse
-import socket  # module for the fully qualified named of the headnode
-import subprocess
-try:
-    import typing
-except ModuleNotFoundError:
-    print('ERROR: Python 3.5 or later needed.')
-    sys.exit()
+import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
+import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
+import re #Regex
+import argparse #Commandline argument parsers
+import socket #Module for the fully qualified named of the headnode
+import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
+import typing #To add typing to functions
 
-# ==============
-#  PROGRAM DATA
-# ==============
+# ================
+#   PROGRAM DATA
+# ================
 AUTHOR = "FRANCO EGIDI (franco.egidi@sns.it)"
 VERSION = "2019.01.03"
 # Program name is generated from commandline
 PROGNAME = os.path.basename(sys.argv[0])
 
-# ==========
-#  DEFAULTS
-# ==========
+# ============
+#   DEFAULTS
+# ============
 CUBEXT = '.cub'
 CUBCMD = 'cubegen'
 
-# ===========
-#  FUNCTIONS
-# ===========
-# NUMBER OF AVAILABLE PROCESSORS
-def ncpuavail() -> int :
-    try:
-        result = subprocess.run('nproc', stdout=subprocess.PIPE)
-        nprocs = result.stdout.decode('utf-8').split()[0]
-    except:
-        nprocs = 1
-    return int(nprocs)
-# ERROR FUNCTION
-def cuberr(message) :
-    print('ERROR: ' + message)
-    sys.exit()
+# =================
+#  BASIC FUNCTIONS
+# =================
+def cuberr(message=None) :
+    # ERROR FUNCTION
+    if message != None:
+        print('ERROR: ' + message)
+    sys.exit(1)
 
-# =================
-#  PARSING OPTIONS
-# =================
+# ===================
+#   PARSING OPTIONS
+# ===================
 def cubeparse():
     # CREATE PARSER
     parser = argparse.ArgumentParser(prog=PROGNAME,
@@ -112,9 +101,20 @@ def cubeparse():
         opts.nproc = max(ncpuavail()//2, 1)
     return opts
 
-
+# =============
+#   FUNCTIONS
+# =============
+def ncpuavail() -> int :
+    # NUMBER OF AVAILABLE PROCESSORS
+    try:
+        result = subprocess.run('nproc', stdout=subprocess.PIPE)
+        nprocs = result.stdout.decode('utf-8').split()[0]
+    except:
+        nprocs = 1
+    return int(nprocs)
 def gencubomand(opts):
-     #cubegen nprocs  kind  fchkfile  cubefile  npts  format cubefile2 iprint [bonus]
+     # ASSEMBLE CUBEGEN COMMAND
+     # cubegen nprocs  kind  fchkfile  cubefile  npts  format cubefile2 iprint [bonus]
      cubomando = CUBCMD
      cubomando = opts.wrkdir + cubomando
      for word in opts.nproc, opts.kind, opts.fchk, opts.cub, opts.npts, opts.cbfmt, opts.cub2, opts.iprint, opts.bonus, opts.denfil:
@@ -124,8 +124,7 @@ def gencubomand(opts):
 # ================
 #   MAIN PROGRAM
 # ================
-
-if __name__ == '__main__':
+def main():
     # Option parsing
     opts = cubeparse()
     # Generate cubegen command
@@ -134,3 +133,8 @@ if __name__ == '__main__':
     print(cubomando)
     subprocess.run(cubomando, shell=True, executable='/bin/bash')
 
+# =============
+#   MAIN CALL
+# =============
+if __name__ == '__main__':
+    main()

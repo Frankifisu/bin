@@ -201,7 +201,7 @@ def build_parser():
         help='{}\n{}'.format('Sets the queue type.', HELP_QUEUES),
         metavar='QUEUE')
     queue.add_argument(
-        '-S', '--silent', dest='silent', action='store_false',
+        '-S', '--silent', dest='silent', action='store_true',
         help='''\
 Do not save standard output and error in files
 WARNING: The consequence will be a loss of these outputs''')
@@ -1195,7 +1195,7 @@ echo "----------------------------------------"
         for data in opts.cpfrom:
             pbs_cmds += fmt.format(data, STARTDIR)
     # TODO (ugly patch) Get any cube which may have been generated
-    pbs_cmds += '(cp *.{{cub,cube,dat,out}} {}) >& /dev/null\n'.format(STARTDIR)
+    pbs_cmds += '(cp *.{{cub,cube,dat,out,off}} {}) >& /dev/null\n'.format(STARTDIR)
     # Cleaning
     pbs_cmds += 'cd .. \nrm -rf {}\n'.format(tmpdir)
 

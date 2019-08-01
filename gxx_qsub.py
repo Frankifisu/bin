@@ -1195,7 +1195,7 @@ echo "----------------------------------------"
         for data in opts.cpfrom:
             pbs_cmds += fmt.format(data, STARTDIR)
     # TODO (ugly patch) Get any cube which may have been generated
-    pbs_cmds += '(cp *.{{cub,cube,dat,out}} {}) >& /dev/null\n'.format(STARTDIR)
+    pbs_cmds += '(cp *.{{cub,cube,dat,out,off}} {}) >& /dev/null\n'.format(STARTDIR)
     # Cleaning
     pbs_cmds += 'cd .. \nrm -rf {}\n'.format(tmpdir)
 

@@ -90,10 +90,10 @@
 #
   vimcmp () {
     if [[ "${#}" -ne 2 ]]; then echo "Usage: vimcmp file1 file2 "; return 1 ; fi
-    if [[ ! -r "${1}" ]]; then echo "ERROR: Can't read file ${1}"; return 1 ; fi
-    if [[ ! -r "${2}" ]]; then echo "ERROR: Can't read file ${2}"; return 1 ; fi
-    if [[ ! "$( file -b "${1}" )" == *"text"* ]] && [[ ! "$( file -b "${1}" )" == *"program"* ]]; then echo "File ${1} not a text file"; return 1; fi
-    if [[ ! "$( file -b "${2}" )" == *"text"* ]] && [[ ! "$( file -b "${2}" )" == *"program"* ]]; then echo "File ${2} not a text file"; return 1; fi
+    for arg in ${@}; do
+      if [[ ! -r "${arg}" ]]; then echo "ERROR: Can't read file ${arg}"; return 1 ; fi
+      if [[ ! "$( file -b "${arg}" )" == *"text"* ]] && [[ ! "$( file -b "${arg}" )" == *"program"* ]]; then echo "File ${arg} not a text file"; return 1; fi
+    done
     cmp -s "${1}" "${2}" && echo "No difference between ${1} and ${2}" || vimdiff "${1}" "${2}"
     return 0
   }
@@ -164,11 +164,12 @@
         if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
       done
       if [[ -n "${dest_fil}" ]]; then
-        echo "provo " $dest_fil
-        ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' ${dest_fil}\\" )"
+        ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}\\" )"
+        eval ${ipwrite}
       fi
     fi
     if [[ ${#remote[@]} -eq 2 ]]; then
+      echo ssh ${remote_user}@${remote_host}
       ssh ${remote_user}@${remote_host}
     else
       if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
@@ -179,7 +180,11 @@
   office () {
     if [[ "$( hostname )" == "avocado" ]]; then echo "ERROR: Already on avocado"; return 1; fi
     export officeip=192.168.253.208
-    sconnect "franco" "${officeip}" ${@}
+    if ncat -w 0.1 -i 0.1 ${officeip} 22 2>&1 | grep -iq "Idle"; then
+      sconnect "franco" "${officeip}" ${@}
+    else
+      ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
+    fi
   }
 # Connect to avogadro
   avogadro () {

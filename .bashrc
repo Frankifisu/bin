@@ -15,12 +15,12 @@
   for addpath in "${HOME}/bin" "${HOME}/usr/bin"; do
     if [[ -d "${addpath}" ]]; then
       export PATH="${addpath}:${PATH}"; fi
-  done; unset ldpath
+  done; unset addpath
 # LD_LIBRARY_PATH
   for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64"; do
     if [[ -d ${addpath} ]]; then
       export LD_LIBRARY_PATH="${addpath}:${LD_LIBRARY_PATH}"; fi
-  done; unset ldpath
+  done; unset addpath
 #
 # -------
 # HISTORY

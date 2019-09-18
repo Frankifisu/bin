@@ -169,11 +169,10 @@
       fi
     fi
     if [[ ${#remote[@]} -eq 2 ]]; then
-      echo ssh ${remote_user}@${remote_host}
       ssh ${remote_user}@${remote_host}
     else
       if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
-      scp -p "$@" ${remote_user}@${remote_host}:"${dest_dir}"
+      scp -p "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }
 # Connect to avocado

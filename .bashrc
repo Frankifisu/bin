@@ -180,8 +180,13 @@
   office () {
     if [[ "$( hostname )" == "avocado" ]]; then echo "ERROR: Already on avocado"; return 1; fi
     export officeip=192.168.253.208
+    if [[ "${1}" == "-u" ]]; then
+      remote_user="${2}"; shift; shift
+    else
+      remote_user="franco"
+    fi
     if ncat -w 0.1 -i 0.1 ${officeip} 22 2>&1 | grep -iq "Idle"; then
-      sconnect "franco" "${officeip}" ${@}
+      sconnect "${remote_user}" "${officeip}" ${@}
     else
       ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
     fi

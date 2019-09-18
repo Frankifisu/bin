@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 #Define new functionals
-declare -a funcnam=( 'hf' 'lda' 'tpss' 'pbe' 'bly' 'b97d' 'pbe0' 'm06' 'm062x' 'sogga' 'pw1' 'cam')
-declare -a funckey=( 'HF' 'LSDA' 'RevTPSSRevTPSS' 'PBEPBE' 'BLYP' 'B97D' 'PBE1PBE' 'M06' 'M062X' 'SOGGA11X' 'mPW1PW91' 'CAM-B3LYP')
+declare -a funcnam=( 'hf' 'lda' 'tpss' 'pbe' 'bly' 'bhh' 'b97d' 'wb97x' 'pbe0' 'm06' 'm062x' 'sogga' 'pw1' 'cam' )
+declare -a funckey=( 'HF' 'LSDA' 'RevTPSSRevTPSS' 'PBEPBE' 'BLYP' 'BHandHLYP' 'B97D' 'wB97X' 'PBE1PBE' 'M06' 'M062X' 'SOGGA11X' 'mPW1PW91' 'CAM-B3LYP')
 if [[ "${#funcnam[@]}" -ne "${#funckey[@]}" ]]; then echo "ERROR: Array mismatch"; exit 1; fi
 
 function usage {

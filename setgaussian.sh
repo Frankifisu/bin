@@ -88,8 +88,8 @@
 #     -prune is used to select which files or directories to skip
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
-      exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /home -o -path /beegfs"
-      gauname="-iname gdv*${ver} -o -iname g09*${ver} -o -iname g16*${ver} -o -iname ${ver}"
+      exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /test_ocean -o -path /home -o -path /beegfs"
+      gauname="-iname gdv*${ver} -o -iname g16*${ver} -o -iname ${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
         findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then

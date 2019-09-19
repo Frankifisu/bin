@@ -89,7 +89,8 @@ GXX_VERSIONS = {
     'g09d01': ['shared', 'g09.d01'],
     'g09e01': ['shared', 'g09.e01'],
     'g16a03': ['shared', 'g16.a03'],
-    'g16b01': ['shared', 'g16.b01']
+    'g16b01': ['shared', 'g16.b01'],
+    'g16c01': ['shared', 'g16.c01']
 }
 GDV_VERSIONS = {
     'gdvi02': ['shared', 'gdv.i02'],
@@ -121,6 +122,7 @@ It can be given as an absolute path or with the following keywords:
 + g09e01 : Gaussian 09 Rev. E.01  (2015/12/15)
 + g16a03 : Gaussian 16 Rev. A.03  (2016/12/25, default)
 + g16b01 : Gaussian 16 Rev. B.01  (2017/12/20)
++ g16c01 : Gaussian 16 Rev. C.01  (2017/12/20)
 + gdvi02 : Gaussian DV Rev. I.02  (2014/12/07)
 + gdvi03 : Gaussian DV Rev. I.03  (2015/03/02)
 + gdvi04p: Gaussian DV Rev. I.04+ (2015/10/05)
@@ -231,7 +233,7 @@ Expert use. Can be cumulated.
         help='Sets the checkpoint filename')
     gaussian.add_argument(
         '-g', '--gxxroot', dest='gxxver', metavar='GAUSSIAN',
-        default='g16b01',
+        default='g16c01',
         help='{}\n{}'.format('Sets the path to the Gaussian executables.',
                              HELP_GXX))
     gaussian.add_argument(

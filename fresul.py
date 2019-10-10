@@ -27,6 +27,7 @@ HOMEDIR = os.getenv('HOME')
 # Permitted file extensions
 OUTEXT = frozenset(('.log', '.out'))
 # Patterns to search within file
+WANT = ('Freq', 'IR', 'Raman')
 SRCXPR = {
     'Mode'   : None,
     'Freq'   : ' Frequencies -- ',
@@ -35,6 +36,13 @@ SRCXPR = {
     'Raman'  : ' Raman Activ -- ',
     'redmas' : ' Red. masses -- ',
     'Start'  : ' Initial command:'
+    }
+# Units for data read in input
+INUNIT = {
+    'Freq'   : 'cm-1',
+    'IR'     : 'km/mol',
+    'Raman'  : 'A^4/amu',
+    'redmas' : 'amu'
     }
 # Output strings for column headers
 OUTXPR = {
@@ -45,6 +53,59 @@ OUTXPR = {
     'Raman'  : 'Raman',
     'redmas' : 'Red Mas'
     }
+
+# =========
+#  CLASSES
+# =========
+# Normal coordinate class
+class norcor:
+    def __init__(self, nmod, sym='?'):
+        self.nmod = nmod
+        self.sym  = sym
+# Class for generic property
+class prop:
+    def __init__(self, name, value, unit='?'):
+        self.name = name
+        self.value = value
+        self.unit = unit
+# Class for normal coordinate with properties
+class vibprop:
+    def __init__(self, norcor):
+        self.norcor = norcor
+        self.props  = []
+    def addprop(self, name, value, unit='?'):
+        newprop = prop(name, value, unit)
+        self.props.append(newprop)
+    def getval(self, name):
+        value = None
+        for prop in self.props:
+            if prop.name is name:
+                value = theprop.value
+        return value
+    def getunit(self, name):
+        unit = None
+        for prop in self.props:
+            if prop.name is name:
+                unit = prop.unit
+        return unit
+    def propnames(self):
+        names = []
+        for prop in self.props:
+            names.append(prop.name)
+        return names
+    def _getvalues(self):
+        values = []
+        for prop in self.props:
+            values.append(prop.value)
+        return values
+    def _getunits(self):
+        units = []
+        for prop in self.props:
+            values.append(prop.unit)
+        return units
+    def getinfo(self):
+        mode = [ self.norcor.nmod, self.norcor.sym ] + self._getvalues()
+        return mode
 
 # =================
 #  BASIC FUNCTIONS
@@ -96,60 +157,48 @@ def filparse(input_file) -> list:
     """
     # Array to collect all vibrational info
     idres = -1
-    results = []
+    boh = []
     with open(input_file, 'r') as file_obj:
         # For Gaussian I have to go back two lines for symmetry and mode
         prevline = ['', '']
         modes = []
+        syms = []
         for line in file_obj:
             # Store one set of results for every calculation
             if SRCXPR.get('Start') in line:
                 idres = idres + 1
-                results = padlist(results, idres, [])
-            if idres == -1:
+                boh = padlist(boh, idres, [])
+                newdat = []
+            if idres < 0:
                 continue
             # Get modes of interest and symmetry
             if SRCXPR.get('Freq') in line:
+                boh[idres].extend(newdat)
+                newdat = []
                 modes = [ int(number) for number in prevline[1].split() ]
                 syms = prevline[0].split()
-                results[idres] = padlist(results[idres], 0, [])
-                idxmod, results[idres][0] = listele(results[idres][0], OUTXPR.get('Mode'))
-                idxsym, results[idres][0] = listele(results[idres][0], OUTXPR.get('Sym'))
-                index = max(idxmod, idxsym)
-                for idat, vib in enumerate(modes):
-                    results[idres] = padlist(results[idres], vib, [])
-                    results[idres][vib] = padlist(results[idres][vib], index, None)
-                    results[idres][vib][idxmod] = modes[idat]
-                    results[idres][vib][idxsym] = syms[idat]
+                for mode, sym in zip(modes, syms):
+                    newdat.append(vibprop(norcor(mode, sym)))
             # Get info
-            results[idres] = datasrc(line, modes, 'Freq',  results[idres])
-            results[idres] = datasrc(line, modes, 'IR',    results[idres])
-            results[idres] = datasrc(line, modes, 'Raman', results[idres])
+            for prop in WANT:
+                data = datard(line, modes, prop)
+                for imod in range(0,len(data)):
+                    newdat[imod].addprop(prop, data[imod])
             # Save line before overwriting in loop
             prevline[1] = prevline[0]
             prevline[0] = line
-    return results
+    return boh
 
-def datasrc(line: str, modes: list, toget: str, vibinfo: list) -> list:
-    """
-    Parse file with data of the same type expected to be
-    listed in rows and extend vibinfo array
-    """
+def datard(line: str, modes: list, toget: str) -> list:
     expr = SRCXPR.get(toget)
+    data = []
     if expr is None:
-        return vibinfo
+        return None
     if expr in line:
-        datard = line.replace(expr, "").split()
-        if len(modes) != len (datard):
+        data = line.replace(expr, "").split()
+        if len(modes) != len (data):
             errore('Incompatibility between number of modes and available data')
-        # Take care of header list
-        index, vibinfo[0] = listele(vibinfo[0], OUTXPR.get(toget))
-        for idat, vib in enumerate(modes):
-            # Store results but first pad lists so we don't get errors
-            vibinfo = padlist(vibinfo, vib, [])
-            vibinfo[vib] = padlist(vibinfo[vib], index, None)
-            vibinfo[vib][index] = datard[idat]
-    return vibinfo
+    return data
 
 def padlist(inlist: list, index, padding) -> list:
     """
@@ -159,19 +208,6 @@ def padlist(inlist: list, index, padding) -> list:
         inlist = inlist + (index + 1 - len(inlist)) * [padding]
     return inlist
 
-def listele(inlist: list, header: str) -> typing.Tuple[int, list]:
-    """
-    Checks if inlist contains element otherwise add it.
-    A (possibly) new list and the element index are returned
-    """
-    outlist = inlist
-    try:
-        headpos = outlist.index(header)
-    except:
-        headpos = len(outlist)
-        outlist.append(header)
-    return headpos, outlist
-
 # ==============
 #  MAIN PROGRAM
 # ==============
@@ -180,7 +216,13 @@ def main():
     opts = parseopt()
     results = filparse(opts.outfil)
     for calc in results:
-        print(tabulate(calc, headers='firstrow', floatfmt=opts.fmt, tablefmt=opts.tbf))
+        # BUILD TABLE HEADER
+        new = [[OUTXPR.get('Mode'), OUTXPR.get('Sym')]]
+        new[0].extend(calc[0].propnames())
+        # BUILD VALUE LISTS
+        for mode in calc:
+            new.append(mode.getinfo())
+        print(tabulate(new, headers='firstrow', floatfmt=opts.fmt, tablefmt=opts.tbf))
     sys.exit()
 
 # ===========

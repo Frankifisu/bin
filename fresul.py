@@ -39,9 +39,11 @@ SRCXPR = {
     }
 # Units for data read in input
 INUNIT = {
-    'Freq'   : 'cm-1',
+    'Mode'   : '',
+    'Sym'    : '',
+    'Freq'   : f'cm\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}',
     'IR'     : 'km/mol',
-    'Raman'  : 'A^4/amu',
+    'Raman'  : f'\N{ANGSTROM SIGN}\N{SUPERSCRIPT FOUR}/amu',
     'redmas' : 'amu'
     }
 # Output strings for column headers
@@ -62,12 +64,16 @@ class norcor:
     def __init__(self, nmod, sym='?'):
         self.nmod = nmod
         self.sym  = sym
+    def __str__(self):
+        return f'Mode {self.nmod} ({self.sym})'
 # Class for generic property
 class prop:
     def __init__(self, name, value, unit='?'):
         self.name = name
         self.value = value
         self.unit = unit
+    def __str__(self):
+        return f'{self.name} = {self.value} {self.unit}'
 # Class for normal coordinate with properties
 class vibprop:
     def __init__(self, norcor):
@@ -93,19 +99,24 @@ class vibprop:
         for prop in self.props:
             names.append(prop.name)
         return names
-    def _getvalues(self):
+    def propvalues(self):
         values = []
         for prop in self.props:
             values.append(prop.value)
         return values
-    def _getunits(self):
+    def propunits(self):
         units = []
         for prop in self.props:
-            values.append(prop.unit)
+            units.append(prop.unit)
         return units
     def getinfo(self):
-        mode = [ self.norcor.nmod, self.norcor.sym ] + self._getvalues()
+        mode = [ self.norcor.nmod, self.norcor.sym ] + self.propvalues()
         return mode
+    def __str__(self):
+        toprint = str(self.norcor)
+        for prop in self.props:
+            toprint = toprint + ' ' +  str(prop)
+        return toprint
 
 # =================
 #  BASIC FUNCTIONS
@@ -157,7 +168,7 @@ def filparse(input_file) -> list:
     """
     # Array to collect all vibrational info
     idres = -1
-    boh = []
+    results = []
     with open(input_file, 'r') as file_obj:
         # For Gaussian I have to go back two lines for symmetry and mode
         prevline = ['', '']
@@ -167,13 +178,13 @@ def filparse(input_file) -> list:
             # Store one set of results for every calculation
             if SRCXPR.get('Start') in line:
                 idres = idres + 1
-                boh = padlist(boh, idres, [])
+                results = results + [[]]
                 newdat = []
             if idres < 0:
                 continue
             # Get modes of interest and symmetry
             if SRCXPR.get('Freq') in line:
-                boh[idres].extend(newdat)
+                results[idres].extend(newdat)
                 newdat = []
                 modes = [ int(number) for number in prevline[1].split() ]
                 syms = prevline[0].split()
@@ -183,30 +194,22 @@ def filparse(input_file) -> list:
             for prop in WANT:
                 data = datard(line, modes, prop)
                 for imod in range(0,len(data)):
-                    newdat[imod].addprop(prop, data[imod])
+                    newdat[imod].addprop(prop, data[imod], INUNIT.get(prop))
             # Save line before overwriting in loop
             prevline[1] = prevline[0]
             prevline[0] = line
-    return boh
+    return results
 
 def datard(line: str, modes: list, toget: str) -> list:
     expr = SRCXPR.get(toget)
-    data = []
     if expr is None:
         return None
+    data = []
     if expr in line:
         data = line.replace(expr, "").split()
         if len(modes) != len (data):
             errore('Incompatibility between number of modes and available data')
     return data
-
-def padlist(inlist: list, index, padding) -> list:
-    """
-    Pad list to length
-    """
-    if len(inlist) < index + 1:
-        inlist = inlist + (index + 1 - len(inlist)) * [padding]
-    return inlist
 
 # ==============
 #  MAIN PROGRAM
@@ -217,12 +220,13 @@ def main():
     results = filparse(opts.outfil)
     for calc in results:
         # BUILD TABLE HEADER
-        new = [[OUTXPR.get('Mode'), OUTXPR.get('Sym')]]
-        new[0].extend(calc[0].propnames())
+        header = [OUTXPR.get('Mode'), OUTXPR.get('Sym')] + calc[0].propnames()
+        units = ['', ''] + calc[0].propunits()
         # BUILD VALUE LISTS
+        table = []
         for mode in calc:
-            new.append(mode.getinfo())
-        print(tabulate(new, headers='firstrow', floatfmt=opts.fmt, tablefmt=opts.tbf))
+            table.append(mode.getinfo())
+        print(tabulate(table, headers=header, floatfmt=opts.fmt, tablefmt=opts.tbf))
     sys.exit()
 
 # ===========

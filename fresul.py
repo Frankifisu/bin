@@ -27,7 +27,7 @@ HOMEDIR = os.getenv('HOME')
 # Permitted file extensions
 OUTEXT = frozenset(('.log', '.out'))
 # Patterns to search within file
-WANT = ('Freq', 'IR', 'Raman')
+WANT = ('Freq', 'IR', 'Raman', 'redmas')
 SRCXPR = {
     'Mode'   : None,
     'Freq'   : ' Frequencies -- ',
@@ -174,32 +174,31 @@ def filparse(input_file) -> list:
         prevline = ['', '']
         modes = []
         syms = []
+        idnew = 0
         for line in file_obj:
             # Store one set of results for every calculation
             if SRCXPR.get('Start') in line:
                 idres = idres + 1
                 results = results + [[]]
-                newdat = []
             if idres < 0:
                 continue
             # Get modes of interest and symmetry
             if SRCXPR.get('Freq') in line:
-                results[idres].extend(newdat)
-                newdat = []
+                idnew = len(results[idres]) 
                 modes = [ int(number) for number in prevline[1].split() ]
                 syms = prevline[0].split()
                 for mode, sym in zip(modes, syms):
-                    newdat.append(vibprop(norcor(mode, sym)))
+                    results[idres].append(vibprop(norcor(mode, sym)))
             # Get info
             for prop in WANT:
                 data = datard(line, modes, prop)
-                for imod in range(0,len(data)):
-                    newdat[imod].addprop(prop, data[imod], INUNIT.get(prop))
+                for newvibprop, datum in zip(results[idres][idnew:], data):
+                    newvibprop.addprop(prop, datum, INUNIT.get(prop))
             # Save line before overwriting in loop
             prevline[1] = prevline[0]
             prevline[0] = line
     return results
-
+#
 def datard(line: str, modes: list, toget: str) -> list:
     expr = SRCXPR.get(toget)
     if expr is None:

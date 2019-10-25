@@ -27,6 +27,9 @@ HOMEDIR = os.getenv('HOME')
 #  BASIC FUNCTIONS
 # =================
 def errore(message=None):
+    """
+    Error function
+    """
     if message != None:
         print('ERROR: ' + message)
     sys.exit(1)
@@ -35,6 +38,9 @@ def errore(message=None):
 #  PARSING OPTIONS
 # =================
 def parseopt():
+    """
+    Parse options
+    """
     # CREATE PARSER
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')

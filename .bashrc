@@ -172,7 +172,7 @@
       ssh ${remote_user}@${remote_host}
     else
       if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
-      scp -p "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
+      scp -p -r "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }
 # Connect to avocado

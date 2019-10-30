@@ -1,3 +1,4 @@
+cd -- $HOME
 mkdir tmp
 mkdir usr
 cd usr/

@@ -174,7 +174,8 @@
         if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
       done
       if [[ -n "${dest_fil}" ]]; then
-        ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}\\" )"
+        ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
+        #)" #to fix mistake in coloring
         eval ${ipwrite}
       fi
     fi

@@ -83,6 +83,16 @@
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
   if [[ -d "/bigdata/${USER}" ]]; then export BIGDATA="/bigdata/${USER}"; fi
 # functions
+  dropbox () {
+   local dropboxdir="${HOME}/.dropbox-dist"
+   local dropboxd="${dropboxdir}/dropboxd"
+   if [[ -x ${dropboxd} ]]; then
+     nohup ${dropboxd} 2>&1 > ${dropboxdir}/dropbox.out &
+   else
+     echo "Cannot find excecutable ${dropboxd}"
+   fi
+  }
+#
   prev () {
     if [[ "${#}" -eq 0 ]]; then echo "Usage: prev command"; return 1 ; fi
     history | head -n -1 | grep ${1}
@@ -414,34 +424,38 @@
     if [[ -d "${trydir}" ]]; then
       export ET_DIR="${trydir}"
       export SAD_ET_DIR="${ET_DIR}/src/molecule/sad"
+      libint2
       break
     fi
   done; unset trydir
 #
-# ------
-# LibInt
-# ------
-  if [[ -z "${LIBINT_HOME}" ]]; then 
-    for tryver in "2.4.2" "2.2.0"; do
-      for trydir in "/usr/local/libint/${tryver}"; do
-        if [[ -d "${trydir}" ]]; then
-          export LIBINT_VER="${tryver}"
-          export LIBINT_HOME="${trydir}"
-          break 2
+# -------
+# LibInt2
+# -------
+  libint2 () {
+    local -a versions=( "2.4.2" "2.2.0" "libint-2.7.0-beta.1" )
+    if [[ -z "${LIBINT2_HOME}" ]]; then 
+      for tryver in ${versions[@]}; do
+        for trydir in "/usr/local/libint/${tryver}" "$HOME/Downloads/libint/${tryver}"; do
+          if [[ -d "${trydir}" ]]; then
+            export LIBINT2_VER="${tryver}"
+            export LIBINT2_HOME="${trydir}"
+            break 2
+          fi
+        done; unset trydir
+      done; unset tryver
+    elif [[ -z "${LIBINT2_VER}" ]]; then
+      for tryver in ${versions[@]}; do
+        if [[ "${LIBINT22_HOME}" == *"/libint/${tryver}"* ]]; then
+          export LIBINT2_VER="${tryver}"
+          break
         fi
-      done; unset trydir
-    done; unset tryver
-  elif [[ -z "${LIBINT_VER}" ]]; then
-    for tryver in "2.4.2" "2.2.0"; do
-      if [[ "${LIBINT_HOME}" == *"/libint/${tryver}"* ]]; then
-        export LIBINT_VER="${tryver}"
-        break
-      fi
-    done; unset tryver
-  fi
-  if [[ -d "${LIBINT_HOME}" ]] && [[ -n "${LIBINT_VER}" ]]; then 
-    export LIBINT_DATA_PATH="${LIBINT_HOME}/share/libint/${LIBINT_VER}/basis"
-  fi
+      done; unset tryver
+    fi
+    if [[ -d "${LIBINT2_HOME}" ]] && [[ -n "${LIBINT2_VER}" ]]; then 
+      export LIBINT2_DATA_PATH="${LIBINT2_HOME}/share/libint/${LIBINT2_VER}/basis"
+    fi
+  }
 # --------
 # LSDALTON
 # --------

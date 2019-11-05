@@ -423,18 +423,6 @@
     fi
   done; unset trydir
 #
-# --
-# eT
-# --
-  for trydir in "${HOME}/local/eT" "${HOME}/usr/local/eT"; do
-    if [[ -d "${trydir}" ]]; then
-      export ET_DIR="${trydir}"
-      export SAD_ET_DIR="${ET_DIR}/src/molecule/sad"
-      libint2
-      break
-    fi
-  done; unset trydir
-#
 # -------
 # LibInt2
 # -------
@@ -462,6 +450,18 @@
       export LIBINT2_DATA_PATH="${LIBINT2_HOME}/share/libint/${LIBINT2_VER}/basis"
     fi
   }
+#
+# --
+# eT
+# --
+  for trydir in "${HOME}/local/eT" "${HOME}/usr/local/eT"; do
+    if [[ -d "${trydir}" ]]; then
+      export ET_DIR="${trydir}"
+      export SAD_ET_DIR="${ET_DIR}/src/molecule/sad"
+      libint2
+      break
+    fi
+  done; unset trydir
 # --------
 # LSDALTON
 # --------

@@ -34,13 +34,13 @@
         echo "  ulimit -c unlimited"
         echo "  [run calculation normally to get the core]"
         echo "  gdb path/l502.exe core.12345 ; then type where"
-        echo "COMPILE GDV:"
+        echo "COMPILE Gaussian:"
         echo "  tcsh"
-        echo '  setenv gdvroot `pwd`'
-        echo '  source $gdvroot/gdv/bsd/gdv.login'
+        echo '  setenv g16root `pwd`'
+        echo '  source $g16root/g16/bsd/g16.login'
         echo '  source ~/.tcshrc (FOR PGI, DEPENDS ON MACHINE)'
-        echo '  rehash; cd $gdvroot/gdv'
-        echo '  nohup ./bsd/bldgdv all > & build.log &'
+        echo '  rehash; cd $g16root/g16'
+        echo '  nohup ./bsd/bldg16 all > & build.log &'
       ;;
       git )
 	echo "INTRO:"

@@ -82,7 +82,7 @@
   else
 #   crawl through the system searching for the desired Gaussian directory
     if [[ -z "${ver}" ]]; then echo "ERROR: Gaussian version not specified"; return 1; fi
-    declare findgau=""; declare -i depth=0 ; declare -i mxdpt=5
+    declare findgau=""; declare -i depth=0 ; declare -i mxdpt=4
     while [[ -z "${findgau}" && "${depth}" -le "${mxdpt}" ]]; do
 #     Start from / and work your way down by increasing depth
 #     -prune is used to select which files or directories to skip
@@ -138,8 +138,16 @@
   else echo "ERROR: Unsupported operating system $( uname )" ; return 1; fi
   source "${profile}"
   rm -- "${profile}"
-# this works on medusa
-  if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
+# Set scratch directory
+  if [[ -z "${GAUSS_SCRDIR}" ]]; then
+    # this works on medusa
+    if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
+    if [[ -n "${TMPDIR}" ]]; then
+      if [[ ! -d "${TMPDIR}/GauScr/${USER}" ]]; then
+        mkdir -p -- "${TMPDIR}/GauScr/${USER}" || return 1
+      fi
+      export GAUSS_SCRDIR="${TMPDIR}/GauScr/${USER}"; fi
+  fi
 #
 # -----------------------------
 # BUILD THE COMPILATION COMMAND

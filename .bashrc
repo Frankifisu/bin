@@ -226,6 +226,21 @@
     sconnect "fegidi" "artemis.chem.washington.edu" ${@}
   }
 #
+# ---
+# ADF
+# ---
+  for addpath in "/opt/adf" "${HOME}/usr/local/adf"; do
+    if [[ -d "${addpath}" ]]; then
+      for testdir in ${addpath}/adf2019.*; do
+        if [[ -d "${testdir}" ]]; then
+          export ADFVER="${testdir##*adf}"
+          . ${testdir}/adfbashrc.sh
+        fi
+      done; unset testdir
+    fi
+  done; unset addpath
+#
+#
 # ------
 # DALTON
 # ------

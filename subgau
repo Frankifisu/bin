@@ -11,7 +11,7 @@
 # USAGE
   function usage {
     echo "USAGE: subgau [-sleep 1m] [-h] input1.com input2.com"
-    echo "  If there is no subgau.py by JBL then defaults to interactive submission"
+    echo "  If there is no queuing system then defaults to interactive submission"
     echo "  with the following optional arguments"
     echo "    -o nam  : sets the output filename to nam"
     echo "    -w wrk  : use the working directory in wrk"

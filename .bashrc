@@ -54,7 +54,7 @@
 # default permissions
   umask 'u=rwx,g=rx,o='
 # Expand $directories removing the annoying behavior of escaping the dollar sign
-#  shopt -s direxpand
+  shopt -s direxpand
 # If set, the pattern "**" used in a pathname expansion context will
 # match all files and zero or more directories and subdirectories.
 #  shopt -s globstar
@@ -235,6 +235,11 @@
         if [[ -d "${testdir}" ]]; then
           export ADFVER="${testdir##*adf}"
           . ${testdir}/adfbashrc.sh
+          if [[ -d "${SCM_TMPDIR}" ]]; then
+            trydir="${SCM_TMPDIR}/${USER}/adf"
+            if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
+            export SCM_TMPDIR="${trydir}"
+          fi
         fi
       done; unset testdir
     fi

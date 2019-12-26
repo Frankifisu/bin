@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#
+# Run Gaussian16 calculation given input file list
+#
+
 # =========
 #  MODULES
 # =========
@@ -16,12 +20,14 @@ import typing
 # ==============
 #  PROGRAM DATA
 # ==============
+AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
+VERSION = '2020.01.01'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
 LD_LIBRARY_PATH = os.getenv('LD_LIBRARY_PATH')
 SHELL = os.getenv('SHELL')
-TEST_TMP = ('/tmp', '/var/tmp', HOME)
+TEST_TMP = ('/tmp', '/var/tmp', os.path.join(HOME, '/tmp'))
 
 # ==========
 #  DEFAULTS
@@ -56,7 +62,8 @@ def envsource(tosource: str) -> dict :
     """
     Source bash file to update environment
     """
-    comando = " ".join(['source', tosource, '&&', 'env']) # command to source file and get environment
+    # command to source file and get environment
+    comando = 'source ' + tosource + ' && env'
     process = subprocess.run(comando, shell=True, executable='/bin/bash', stdout=subprocess.PIPE)
     dictenv = dict() # create a dictionary to hold the generated environment
     for line in process.stdout.decode().split('\n'):
@@ -144,6 +151,7 @@ def gauscr() -> str:
     Set Gaussian scratch directory
     """
     # try a few commomn path for temporary directories
+    tmpdir = HOME
     for testdir in TEST_TMP:
         if os.path.isdir(testdir):
             tmpdir = testdir

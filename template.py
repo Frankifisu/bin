@@ -11,13 +11,15 @@ import argparse # commandline argument parsers
 import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import numpy #Scientific computing
+import typing #Support for type hints
 
 # ==============
 #  PROGRAM DATA
 # ==============
 PROGNAME = os.path.basename(sys.argv[0])
-USERNAME = os.getenv('USER')
-HOMEDIR = os.getenv('HOME')
+USER = os.getenv('USER')
+HOME = os.getenv('HOME')
+SHELL = os.getenv('SHELL')
 
 # ==========
 #  DEFAULTS
@@ -41,18 +43,17 @@ def parseopt():
     """
     Parse options
     """
-    # CREATE PARSER
+    # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
-    # MANDATORY ARGUMENTS
+    # Mandatory arguments
     parser.add_argument('opt1', help='First mandatory argument')
-    # OPTIONAL ARGUMENTS
+    # Optional arguments
     parser.add_argument('-v', '--iprint',
         dest='iprt', action='count', default=0,
         help='Set printing level')
-    # OPTION PARSING
     opts = parser.parse_args()
-    # OPTION CHECKING
+    # Check options
     return opts
 
 # ================

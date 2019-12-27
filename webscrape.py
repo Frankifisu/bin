@@ -14,6 +14,7 @@ import numpy #Scientific computing
 import typing #Support for type hints
 from bs4 import BeautifulSoup #Parse HTTP code
 import mechanicalsoup #Fill webpage forms
+import webbrowser #Open pages in browser
 
 # ==============
 #  PROGRAM DATA
@@ -29,6 +30,7 @@ SHELL = os.getenv('SHELL')
 # ==========
 BASEURL = 'https://www.gazzettaufficiale.it'
 GZUFURL = BASEURL + '/ricerca/testuale/concorsi?reset=true'
+OUTFILE = 'concorsi.html'
 FAIL = 'la ricerca effettuata non ha prodotto risultati'
 TIPI = {'Concorso', 'Avviso', 'Graduatoria', 'Diario'}
 ANNO = 2019
@@ -46,7 +48,7 @@ TEMPLATE = """
  </body>
 </html>
 """
-EVIDENZE = {'chimica', 'tipo b', 'RTDb', '03/A2', 'CHIM-02'}
+EVIDENZE = {'chimica', 'tipo b', 'RTDb', '03/A2', 'CHIM/02'}
 
 # =========
 #  CLASSES
@@ -83,11 +85,15 @@ def parseopt():
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
-    # Mandatory arguments
-    parser.add_argument('opt1', help='First mandatory argument')
     # Optional arguments
-    parser.add_argument('-v', '--iprint',
-        dest='iprt', action='count', default=0,
+    parser.add_argument('-f', '--find', type=str,
+        default='ricercatore',
+        help='Parola da cercare')
+    parser.add_argument('-n', '--numero',
+        dest='num', action='store', default=0,
+        help='Numero della gazzetta da cercare')
+    parser.add_argument('-v', '--verbose',
+        dest='vrb', action='count', default=0,
         help='Set printing level')
     opts = parser.parse_args()
     # Check options
@@ -172,7 +178,7 @@ def writepage(atti):
     for evidenza in EVIDENZE:
         pattern = re.compile(evidenza, re.IGNORECASE)
         sito = pattern.sub('<strong>'+evidenza+'</strong>', sito)
-    with open('concorsi.html', 'w') as concorsi:
+    with open(OUTFILE,'w') as concorsi:
         concorsi.write(sito)
     return 0
 
@@ -181,17 +187,18 @@ def writepage(atti):
 # ==============
 def main():
     # PARSE OPTIONS
-    #opts = parseopt()
+    opts = parseopt()
     # Estremi
-    numero = 102
-    tosearch = 'ricercatore'
     # Fill form and submit
-    #ricerca = gzform(numero, ANNO, tosearch)
+    #ricerca = gzform(opts.num, ANNO, opts.find)
     # Parse results of form submission
     with open('webpage.txt', 'r') as ricerca:
         atti = estrai_atti(ricerca)
     # CREATE HTML DOCUMENT
     writepage(atti)
+    # OPEN HTML DOCUMENT IN BROWSER
+    filepath = os.path.realpath(OUTFILE)
+    #webbrowser.open('file://' + filepath, new=1)
     sys.exit()
 
 # ===========

@@ -78,7 +78,7 @@ class prop:
 class vibprop:
     def __init__(self, norcor):
         self.norcor = norcor
-        self.props  = []
+        self.props  = list()
     def addprop(self, name, value, unit='?'):
         newprop = prop(name, value, unit)
         self.props.append(newprop)
@@ -95,17 +95,17 @@ class vibprop:
                 unit = prop.unit
         return unit
     def propnames(self):
-        names = []
+        names = list()
         for prop in self.props:
             names.append(prop.name)
         return names
     def propvalues(self):
-        values = []
+        values = list()
         for prop in self.props:
             values.append(prop.value)
         return values
     def propunits(self):
-        units = []
+        units = list()
         for prop in self.props:
             units.append(prop.unit)
         return units
@@ -168,12 +168,12 @@ def filparse(input_file) -> list:
     """
     # Array to collect all vibrational info
     idres = -1
-    results = []
+    results = list()
     with open(input_file, 'r') as file_obj:
         # For Gaussian I have to go back two lines for symmetry and mode
         prevline = ['', '']
-        modes = []
-        syms = []
+        modes = list()
+        syms = list()
         idnew = 0
         for line in file_obj:
             # Store one set of results for every calculation
@@ -203,7 +203,7 @@ def datard(line: str, modes: list, toget: str) -> list:
     expr = SRCXPR.get(toget)
     if expr is None:
         return None
-    data = []
+    data = list()
     if expr in line:
         data = line.replace(expr, "").split()
         if len(modes) != len (data):
@@ -222,7 +222,7 @@ def main():
         header = [OUTXPR.get('Mode'), OUTXPR.get('Sym')] + calc[0].propnames()
         units = ['', ''] + calc[0].propunits()
         # BUILD VALUE LISTS
-        table = []
+        table = list()
         for mode in calc:
             table.append(mode.getinfo())
         print(tabulate(table, headers=header, floatfmt=opts.fmt, tablefmt=opts.tbf))

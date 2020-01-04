@@ -17,7 +17,7 @@
       export PATH="${addpath}:${PATH}"; fi
   done; unset addpath
 # LD_LIBRARY_PATH
-  for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64"; do
+  for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64" "/usr/lib/x86_64-linux-gnu"; do
     if [[ -d ${addpath} ]]; then
       export LD_LIBRARY_PATH="${addpath}:${LD_LIBRARY_PATH}"; fi
   done; unset addpath
@@ -240,6 +240,7 @@
             if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
             export SCM_TMPDIR="${trydir}"
           fi
+          break
         fi
       done; unset testdir
     fi

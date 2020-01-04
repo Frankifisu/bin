@@ -30,10 +30,11 @@ SHELL = os.getenv('SHELL')
 # ==========
 BASEURL = 'https://www.gazzettaufficiale.it'
 GZUFURL = BASEURL + '/ricerca/testuale/concorsi?reset=true'
-OUTFILE = 'concorsi.html'
+ANNO = 2019
 FAIL = 'la ricerca effettuata non ha prodotto risultati'
 TIPI = {'Concorso', 'Avviso', 'Graduatoria', 'Diario'}
-ANNO = 2019
+EVIDENZE = {'chimica', 'chimiche', 'tipo b', 'RTD', '03/A2', 'CHIM/02'}
+OUTFILE = 'concorsi.html'
 TEMPLATE = """
 <!DOCTYPE html>
 <head>
@@ -48,7 +49,6 @@ TEMPLATE = """
  </body>
 </html>
 """
-EVIDENZE = {'chimica', 'tipo b', 'RTDb', '03/A2', 'CHIM/02'}
 
 # =========
 #  CLASSES
@@ -90,7 +90,7 @@ def parseopt():
         default='ricercatore',
         help='Parola da cercare')
     parser.add_argument('-n', '--numero',
-        dest='num', action='store', default=0,
+        dest='num', action='store', default=1,
         help='Numero della gazzetta da cercare')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
@@ -188,17 +188,15 @@ def writepage(atti):
 def main():
     # PARSE OPTIONS
     opts = parseopt()
-    # Estremi
-    # Fill form and submit
-    #ricerca = gzform(opts.num, ANNO, opts.find)
-    # Parse results of form submission
-    with open('webpage.txt', 'r') as ricerca:
-        atti = estrai_atti(ricerca)
+    # FILL WEBSITE FORM AND SUBMIT
+    ricerca = gzform(opts.num, ANNO, opts.find)
+    # PARSE WEBSITE WITH RESULTS
+    atti = estrai_atti(ricerca)
     # CREATE HTML DOCUMENT
     writepage(atti)
     # OPEN HTML DOCUMENT IN BROWSER
     filepath = os.path.realpath(OUTFILE)
-    #webbrowser.open('file://' + filepath, new=1)
+    webbrowser.open('file://' + filepath, new=1)
     sys.exit()
 
 # ===========

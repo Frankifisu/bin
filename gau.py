@@ -226,7 +226,6 @@ def main():
         if opts.vrb >= 1:
             print(comando)
         gaurun = subprocess.run(comando, shell=True, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        print(time1-time0)
     sys.exit()
 
 # ===========

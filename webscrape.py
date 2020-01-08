@@ -12,6 +12,7 @@ import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import numpy #Scientific computing
 import typing #Support for type hints
+import datetime #Handle dates
 from bs4 import BeautifulSoup #Parse HTTP code
 import mechanicalsoup #Fill webpage forms
 import webbrowser #Open pages in browser
@@ -30,7 +31,10 @@ SHELL = os.getenv('SHELL')
 # ==========
 BASEURL = 'https://www.gazzettaufficiale.it'
 GZUFURL = BASEURL + '/ricerca/testuale/concorsi?reset=true'
-ANNO = 2019
+ANNO = 2020
+TODAY = datetime.date.today()
+GIORNI = [1, 4] #I numeri che mi interessano escono martedi e venerdi
+CAPODANNO = datetime.date(ANNO, 1, 1)
 FAIL = 'la ricerca effettuata non ha prodotto risultati'
 TIPI = {'Concorso', 'Avviso', 'Graduatoria', 'Diario'}
 EVIDENZE = {'chimica', 'chimiche', 'tipo b', 'RTD', '03/A2', 'CHIM/02'}
@@ -90,7 +94,7 @@ def parseopt():
         default='ricercatore',
         help='Parola da cercare')
     parser.add_argument('-n', '--numero',
-        dest='num', action='store', default=1,
+        dest='num', action='store', default=contagiorni(CAPODANNO, TODAY),
         help='Numero della gazzetta da cercare')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
@@ -102,6 +106,20 @@ def parseopt():
 # ================
 #  WORK FUNCTIONS
 # ================
+def contagiorni(start, end):
+    """
+    Conta i giorni della settimana tra due date
+    """
+    if start > end :
+        return 0
+    timediff = end - start
+    weeks, extradays = divmod(timediff.days, 7)
+    days = 0
+    for giorno in GIORNI:
+        days = days + weeks
+        if extradays > (giorno - start.weekday()) % 7 :
+            days = days + 1
+    return days
 def gzform(numero, anno, tosearch):
     """
     Riempi form quarta sezione Gazzetta Ufficiale
@@ -162,7 +180,8 @@ def writepage(atti):
     soup = BeautifulSoup(newweb, 'html.parser')
     bodytag = soup.body
     for atto in atti:
-        if 'universit' in atto.rubrica.lower() and 'concorso' in atto.tipo.lower():
+        #if 'universit' in atto.rubrica.lower() and 'concorso' in atto.tipo.lower():
+        if 'concorso' in atto.tipo.lower():
             # Nuovo paragrafo
             entry = soup.new_tag("p")
             # Crea tag con link al sito sul nome dell'ente

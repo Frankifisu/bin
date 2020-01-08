@@ -143,10 +143,11 @@
     # this works on medusa
     if [[ -d "/home/GauScr/" ]]; then export GAUSS_SCRDIR="/home/GauScr/"; fi
     if [[ -n "${TMPDIR}" ]]; then
-      if [[ ! -d "${TMPDIR}/GauScr/${USER}" ]]; then
-        mkdir -p -- "${TMPDIR}/GauScr/${USER}" || return 1
+      trydir="${TMPDIR}/${USER}/gaussian"
+      if [[ ! -d "${trydir}" ]]; then
+        mkdir -p -- "${trydir}" || return 1
       fi
-      export GAUSS_SCRDIR="${TMPDIR}/GauScr/${USER}"; fi
+      export GAUSS_SCRDIR="${trydir}"; fi
   fi
 #
 # -----------------------------

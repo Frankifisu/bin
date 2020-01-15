@@ -17,11 +17,10 @@ import typing #Explicit typing of arguments
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.01.01'
+VERSION = '2020.15.01'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
-LD_LIBRARY_PATH = os.getenv('LD_LIBRARY_PATH')
 
 # ==========
 #  DEFAULTS
@@ -33,6 +32,7 @@ GAUPATH = {
     'b01' : '/opt/gaussian/g16b01',
     'c01' : '/opt/gaussian/g16c01',
 }
+NBO = '/opt/nbo7/bin'
 FQWRKDIR = '/opt/gaussian/working/fqqm_a03'
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
@@ -171,9 +171,9 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     # Set basic envvars from current or login shell
     os.environ['USER'] = USER
     os.environ['HOME'] = HOME
-    os.environ['LD_LIBRARY_PATH'] = LD_LIBRARY_PATH
-    for envvar in ['PATH']: # Add more here if needed
-        os.environ[envvar] = loginshvar(envvar)
+    os.environ['PATH'] = loginshvar('PATH')
+    if os.path.isdir(NBO):
+        os.environ['PATH'] = NBO + ':' + os.environ['PATH']
     # Set Gaussian variables
     os.environ['g16root'] = gauroot
     os.environ['GAUSS_SCRDIR'] = gauscr

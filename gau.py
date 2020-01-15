@@ -9,13 +9,9 @@
 # =========
 import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
 import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
-import glob #Unix pathname expansion: glob.glob('*.txt')
-import re #Regex
 import argparse # commandline argument parsers
-import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
-import numpy #Scientific computing
-import typing
+import typing #Explicit typing of arguments
 
 # ==============
 #  PROGRAM DATA
@@ -26,12 +22,12 @@ PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
 LD_LIBRARY_PATH = os.getenv('LD_LIBRARY_PATH')
-SHELL = os.getenv('SHELL')
-TEST_TMP = ('/tmp', '/var/tmp', os.path.join(HOME, '/tmp'))
 
 # ==========
 #  DEFAULTS
 # ==========
+BASH = '/bin/bash'
+TEST_TMP = ('/tmp', '/var/tmp', HOME+'/tmp')
 GAUPATH = {
     'a03' : '/opt/gaussian/g16a03',
     'b01' : '/opt/gaussian/g16b01',
@@ -51,6 +47,17 @@ def errore(message=None):
     if message != None:
         print('ERROR: ' + message)
     sys.exit(1)
+def bashrun(comando: str, env=None) -> str:
+    """
+    Run bash subprocess with sensible defaults
+    and return output
+    """
+    if env is None:
+        process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    else:
+        process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    output = process.stdout.decode()
+    return output
 def check_extension(to_check: str, allowed_ext):
     """
     Check file extension
@@ -58,18 +65,13 @@ def check_extension(to_check: str, allowed_ext):
     filnam, filext = os.path.splitext(to_check)
     if filext not in allowed_ext:
         errore(f'Invalid file extension for {to_check}')
-def envsource(tosource: str) -> dict :
+def loginshvar(var: str) -> str :
     """
-    Source bash file to update environment
+    Get environment variable from the login shell
     """
-    # command to source file and get environment
-    comando = 'source ' + tosource + ' && env'
-    process = subprocess.run(comando, shell=True, executable='/bin/bash', stdout=subprocess.PIPE)
-    dictenv = dict() # create a dictionary to hold the generated environment
-    for line in process.stdout.decode().split('\n'):
-        (key, _, value) = line.partition("=")
-        dictenv[key] = value
-    return dictenv
+    comando = " ".join(['env -i', BASH, ' -l -c "printenv', var, '"'])
+    out = bashrun(comando)
+    return out
 def ncpuavail() -> int :
     """
     Find number of processors in the machine
@@ -127,6 +129,9 @@ def parseopt():
     # Check options
     for fil in opts.gjf:
         check_extension(fil, INPEXT)
+    if opts.fq :
+        opts.wrkdir = FQWRKDIR
+        opts.gauroot = GAUPATH['a03']
     if not os.path.isdir(opts.gauscr):
          errore(f'Invalid Gaussian scratch directory {opts.gauscr}')
     if not os.path.isdir(opts.gauroot):
@@ -138,9 +143,6 @@ def parseopt():
     if opts.wrkdir is not None:
         if not os.path.isdir(opts.wrkdir):
              errore(f'Invalid Gaussian working directory {opts.wrkdir}')
-    if opts.fq :
-        opts.wrkdir = FQWRKDIR
-        opts.gauroot = GAUPATH['a03']
     return opts
 
 # ================
@@ -150,36 +152,38 @@ def gauscr() -> str:
     """
     Set Gaussian scratch directory
     """
-    # try a few commomn path for temporary directories
+    # try a few common paths as temporary directories
     tmpdir = HOME
     for testdir in TEST_TMP:
         if os.path.isdir(testdir):
             tmpdir = testdir
             break
     # create and set a user scratch subdirectory
-    GAUSS_SCRDIR = os.path.join(tmpdir, USER, 'GauScr')
+    GAUSS_SCRDIR = os.path.join(tmpdir, USER, 'gauscr')
     if not os.path.isdir(GAUSS_SCRDIR):
         os.makedirs(GAUSS_SCRDIR, exist_ok=True)
     return GAUSS_SCRDIR
-def setgaussian(gauroot, gauscr):
+def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
-    Set Gaussian environment
+    Set basic Gaussian environment and return Gaussian command
     """
-    # Existence checks
-    if not os.path.isdir(gauscr):
-         errore(f'Invalid Gaussian scratch directory {opgs.gauscr}')
-    if not os.path.isdir(gauroot):
-         errore(f'Invalid Gaussian directory {opts.gauroot}')
-    # Set gaussian root
     os.environ.clear()
+    # Set basic envvars from current or login shell
+    os.environ['USER'] = USER
+    os.environ['HOME'] = HOME
+    os.environ['LD_LIBRARY_PATH'] = LD_LIBRARY_PATH
+    for envvar in ['PATH']: # Add more here if needed
+        os.environ[envvar] = loginshvar(envvar)
+    # Set Gaussian variables
     os.environ['g16root'] = gauroot
     os.environ['GAUSS_SCRDIR'] = gauscr
-    for key, value in envsource(gauroot + '/g16/bsd/g16.profile').items() :
-        os.environ[key] = value
-#def filparse(input_file):
-#    with open(input_file, 'r') as file_obj:
-#        for line in file_obj :
-#            pass
+    if vrb >= 1:
+        print(f"Gaussian diretory set to {os.getenv('g16root')}")
+        print(f"Gaussian scratch diretory set to {os.getenv('GAUSS_SCRDIR')}")
+    gaucmd = BASECMD
+    profile = gauroot + "/g16/bsd/g16.profile"
+    gaucmd = " ".join(["source", profile, ";", gaucmd])
+    return gaucmd
 
 # ==============
 #  MAIN PROGRAM
@@ -187,19 +191,16 @@ def setgaussian(gauroot, gauscr):
 def main():
     # PARSE OPTIONS
     opts = parseopt()
-    # DEFINE GAUSSIAN ENVIRONMENT
-    setgaussian(opts.gauroot, opts.gauscr)
-    if opts.vrb >= 1:
-        print(f"Gaussian diretory set to {os.getenv('g16root')}")
-        print(f"Gaussian scratch diretory set to {os.getenv('GAUSS_SCRDIR')}")
+    # DEFINE GAUSSIAN ENVIRONMENT AND SUBMISSION COMMAND
+    gaucmd = setgaussian(opts.gauroot, opts.gauscr, opts.vrb)
     # ASSEMBLE GAUSSIAN COMMAND
-    gaucmd = BASECMD
+    gaucmd = " ".join([gaucmd, f'-m="{opts.mem}"'])
     if opts.procs is not None:
         gaucmd = " ".join([gaucmd, f'-c="{opts.procs}"'])
     else:
         gaucmd = " ".join([gaucmd, f'-p="{opts.nproc}"'])
-    gaucmd = " ".join([gaucmd, f'-m="{opts.mem}"'])
     if opts.wrkdir is not None:
+        # Add {wrkdir} and {wrkdir/exe-dir} to executable paths
         exedir = os.getenv("GAUSS_EXEDIR")
         exedir = ":".join([opts.wrkdir, exedir])
         srcexe = os.path.join(opts.wrkdir, 'exe-dir')
@@ -221,11 +222,14 @@ def main():
             gauout = opts.out
             if num > 1: # if there are multiple inputs but the output filename is set then append output
                 ad = '>>'
-        # ASSEMBLE COMMAND
+        # RUN COMMAND
         comando = " ".join([gaucmd, da, gauinp, ad, gauout])
         if opts.vrb >= 1:
             print(comando)
-        gaurun = subprocess.run(comando, shell=True, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        gaurun = bashrun(comando, env=os.environ)
+        if opts.vrb >= 1:
+            print(gaurun)
+        # LOG CALCULATION: TOBEDONE
     sys.exit()
 
 # ===========

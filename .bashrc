@@ -198,18 +198,14 @@
     if ncat -w 0.1 -i 0.1 ${officeip} 22 2>&1 | grep -iq "Idle"; then
       sconnect "${remote_user}" "${officeip}" ${@}
     else
-      ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
+      echo 'I need to find some server whence to hop to the office'
+      #ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
     fi
   }
 # Connect to diamond
   diamond () {
     if [[ "$( hostname )" == "diamond"* ]]; then echo "ERROR: Already on diamond"; return 1; fi
     sconnect -IP "f.egidi" "diamond01.sns.it" ${@}
-  }
-# Connect to avogadro
-  avogadro () {
-    if [[ "$( hostname )" == "avogadro"* ]]; then echo "ERROR: Already on avogadro"; return 1; fi
-    sconnect -IP "f.egidi" "avogadro.sns.it" ${@}
   }
 #
 # Connect to Galileo

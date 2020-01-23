@@ -1,3 +1,4 @@
+" In $HOME/vimrc write: source $HOME/usr/bin/.vimrc
 "color evening"
 filetype plugin indent on
 syntax on

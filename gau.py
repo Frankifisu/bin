@@ -174,7 +174,8 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     os.environ['PATH'] = loginshvar('PATH')
     if os.path.isdir(NBO):
         os.environ['PATH'] = NBO + ':' + os.environ['PATH']
-        os.environ['NBODTL'] = 'verbose'
+        if vrb >=2:
+            os.environ['NBODTL'] = 'verbose'
     # Set Gaussian variables
     os.environ['g16root'] = gauroot
     os.environ['GAUSS_SCRDIR'] = gauscr

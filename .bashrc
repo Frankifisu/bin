@@ -163,7 +163,7 @@
     done
     local remote_user="${remote[${ruser}]}"
     local remote_host="${remote[${rhost}]}"
-    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "avocado" ]]; then
+    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "banana" ]]; then
 #     This function sends the IP into the .bashrc of a remote host
 #     before performing a ssh or scp operation.
 #     It expects the remote host .bashrc to have an office function
@@ -172,6 +172,7 @@
       for test_dir in "usr/bin" "bin"; do
         test_fil="${test_dir}/.bashrc"
         if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
+        if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then echo si; else echo no; fi
       done
       if [[ -n "${dest_fil}" ]]; then
         ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
@@ -186,10 +187,10 @@
       scp -p -r "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }
-# Connect to avocado
+# Connect to banana
   office () {
-    if [[ "$( hostname )" == "avocado" ]]; then echo "ERROR: Already on avocado"; return 1; fi
-    export officeip=192.168.253.102
+    if [[ "$( hostname )" == "banana" ]]; then echo "ERROR: Already on banana"; return 1; fi
+    export officeip=192.168.253.81
     if [[ "${1}" == "-u" ]]; then
       remote_user="${2}"; shift; shift
     else

@@ -189,7 +189,7 @@
 # Connect to avocado
   office () {
     if [[ "$( hostname )" == "avocado" ]]; then echo "ERROR: Already on avocado"; return 1; fi
-    export officeip=192.168.253.81
+    export officeip=192.168.253.102
     if [[ "${1}" == "-u" ]]; then
       remote_user="${2}"; shift; shift
     else

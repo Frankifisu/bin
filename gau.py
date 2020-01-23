@@ -174,6 +174,7 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     os.environ['PATH'] = loginshvar('PATH')
     if os.path.isdir(NBO):
         os.environ['PATH'] = NBO + ':' + os.environ['PATH']
+        os.environ['NBODTL'] = 'verbose'
     # Set Gaussian variables
     os.environ['g16root'] = gauroot
     os.environ['GAUSS_SCRDIR'] = gauscr
@@ -184,6 +185,13 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     profile = gauroot + "/g16/bsd/g16.profile"
     gaucmd = " ".join(["source", profile, ";", gaucmd])
     return gaucmd
+#def pembed(gauinp, keyword: str) -> bool:
+#    """
+#    Check if Route section has PEmbed keyword
+#    """
+#    to_search = re.compile(r'\bpembed', re.IGNORECASE)
+#    haspembed = route_has(gauinp, to_search)
+#    return haspembed
 
 # ==============
 #  MAIN PROGRAM

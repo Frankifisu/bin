@@ -31,11 +31,14 @@ GAUPATH = {
     'a03' : '/opt/gaussian/g16a03',
     'b01' : '/opt/gaussian/g16b01',
     'c01' : '/opt/gaussian/g16c01',
-}
+    }
 NBO = '/opt/nbo7/bin'
 FQWRKDIR = '/opt/gaussian/working/fqqm_a03'
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
+GAUINP = {
+        'route' : r'^#[t,n,p]?\b'
+        }
 
 # =================
 #  BASIC FUNCTIONS
@@ -186,6 +189,17 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     profile = gauroot + "/g16/bsd/g16.profile"
     gaucmd = " ".join(["source", profile, ";", gaucmd])
     return gaucmd
+def tmpinp(gauinp: str, vrb: int=0) -> str:
+    """
+    Parse Gaussian Input file and generate a revised Input
+    """
+    tmpinp = '.' + gauinp
+    with open(tmpinp, 'w') as fileout:
+        with open(gauinp, 'r') as filein:
+            for line in filein:
+                if re.match(GAUINP['route'], line):
+                   fileout.write(line)
+    return tmpinp
 #def pembed(gauinp, keyword: str) -> bool:
 #    """
 #    Check if Route section has PEmbed keyword
@@ -220,6 +234,7 @@ def main():
     ad = '>'
     # LOOP OVER INPUT FILES ONE BY ONE
     for num, gauinp in enumerate(opts.gjf, start=1):
+        # CREATE NEW TEMPORARY INPUT FILE
         if not os.path.isfile(gauinp):
             errore(f'File {gauinp} not found')
         # ADD KEYWORDS ON THE FLY: TOBEDONE
@@ -229,7 +244,8 @@ def main():
             gauout = filnam + '.log'
         else:
             gauout = opts.out
-            if num > 1: # if there are multiple inputs but the output filename is set then append output
+            if num > 1:
+                # if there are multiple inputs but the output filename is set then append output
                 ad = '>>'
         # RUN COMMAND
         comando = " ".join([gaucmd, da, gauinp, ad, gauout])

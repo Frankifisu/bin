@@ -38,7 +38,7 @@ CAPODANNO = datetime.date(ANNO, 1, 1)
 FAIL = 'la ricerca effettuata non ha prodotto risultati'
 TIPI = {'Concorso', 'Avviso', 'Graduatoria', 'Diario'}
 EVIDENZE = {'chimica', 'chimiche', 'tipo b', 'RTD', '03/A2', 'CHIM/02'}
-OUTFILE = 'concorsi.html'
+OUTFILE = '/tmp/concorsi.html'
 TEMPLATE = """
 <!DOCTYPE html>
 <head>
@@ -142,6 +142,7 @@ def estrai_atti(ricerca):
     if soup.find_all("li", string=FAIL):
         errore(FAIL)
     atti = list()
+    trovato = False
     for span in soup.find_all('span'):
         # Estrai il tipo di informazione
         try:
@@ -158,6 +159,7 @@ def estrai_atti(ricerca):
         elif classe == 'risultato_b':
             pass # Non contiene il termine cercato
         elif classe == 'risultato':
+            trovato = True
             pubblicaz = atto(rubrica=rubrica, ente=ente)
             # Estrai tipo di documento
             risuldata = span.find('span', {'class': 'data'}).contents[0].string.strip().lower()
@@ -171,6 +173,8 @@ def estrai_atti(ricerca):
             testo = span.find_all('a')[1].contents[0].string.replace('\n',' ').strip()
             pubblicaz.testo = " ".join(testo.split())
             atti.append(pubblicaz)
+    if not trovato:
+        errore('Nessun risultato trovato')
     return atti
 def writepage(atti):
     """
@@ -196,8 +200,8 @@ def writepage(atti):
     sito = str(soup.prettify())
     for evidenza in EVIDENZE:
         pattern = re.compile(evidenza, re.IGNORECASE)
-        sito = pattern.sub('<strong>'+evidenza+'</strong>', sito)
-    with open(OUTFILE,'w') as concorsi:
+        sito = pattern.sub('<strong>' + evidenza + '</strong>', sito)
+    with open(OUTFILE, 'w') as concorsi:
         concorsi.write(sito)
     return 0
 

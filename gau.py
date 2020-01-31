@@ -33,7 +33,7 @@ GAUPATH = {
     'c01' : '/opt/gaussian/g16c01',
     }
 NBO = '/opt/nbo7/bin'
-FQWRKDIR = '/opt/gaussian/working/fqqm_a03'
+FQWRKDIR = '/opt/gaussian/working/g16a03_fq'
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
 GAUINP = {
@@ -59,7 +59,7 @@ def bashrun(comando: str, env=None) -> str:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    output = process.stdout.decode()
+    output = process.stdout.decode().rstrip()
     return output
 def check_extension(to_check: str, allowed_ext):
     """
@@ -166,7 +166,7 @@ def gauscr() -> str:
     if not os.path.isdir(GAUSS_SCRDIR):
         os.makedirs(GAUSS_SCRDIR, exist_ok=True)
     return GAUSS_SCRDIR
-def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
+def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
     Set basic Gaussian environment and return Gaussian command
     """
@@ -185,7 +185,7 @@ def setgaussian(gauroot: str, gauscr: str, vrb: int=0) -> str:
     if vrb >= 1:
         print(f"Gaussian diretory set to {os.getenv('g16root')}")
         print(f"Gaussian scratch diretory set to {os.getenv('GAUSS_SCRDIR')}")
-    gaucmd = BASECMD
+    gaucmd = basecmd
     profile = gauroot + "/g16/bsd/g16.profile"
     gaucmd = " ".join(["source", profile, ";", gaucmd])
     return gaucmd
@@ -215,7 +215,7 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # DEFINE GAUSSIAN ENVIRONMENT AND SUBMISSION COMMAND
-    gaucmd = setgaussian(opts.gauroot, opts.gauscr, opts.vrb)
+    gaucmd = setgaussian(BASECMD, opts.gauroot, opts.gauscr, opts.vrb)
     # ASSEMBLE GAUSSIAN COMMAND
     gaucmd = " ".join([gaucmd, f'-m="{opts.mem}"'])
     if opts.procs is not None:
@@ -224,7 +224,8 @@ def main():
         gaucmd = " ".join([gaucmd, f'-p="{opts.nproc}"'])
     if opts.wrkdir is not None:
         # Add {wrkdir} and {wrkdir/exe-dir} to executable paths
-        exedir = os.getenv("GAUSS_EXEDIR")
+        tmpcmd = setgaussian("echo $GAUSS_EXEDIR", opts.gauroot, opts.gauscr, opts.vrb)
+        exedir = bashrun(tmpcmd, env=os.environ)
         exedir = ":".join([opts.wrkdir, exedir])
         srcexe = os.path.join(opts.wrkdir, 'exe-dir')
         if os.path.isdir(srcexe):

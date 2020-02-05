@@ -137,8 +137,10 @@ def parseopt():
         opts.gauroot = GAUPATH['a03']
     if not os.path.isdir(opts.gauscr):
          errore(f'Invalid Gaussian scratch directory {opts.gauscr}')
+    if opts.gauroot in GAUPATH.keys():
+        opts.gauroot = GAUPATH[opts.gauroot]
     if not os.path.isdir(opts.gauroot):
-         errore(f'Invalid Gaussian directory {opts.gauroot}')
+        errore(f'Invalid Gaussian directory {opts.gauroot}')
     if opts.nproc in ["all", "max"]:
         opts.nproc = ncpuavail()
     elif opts.nproc in ["half", "hlf"]:

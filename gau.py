@@ -136,7 +136,7 @@ def parseopt():
         opts.wrkdir = FQWRKDIR
         opts.gauroot = GAUPATH['a03']
     if not os.path.isdir(opts.gauscr):
-         errore(f'Invalid Gaussian scratch directory {opts.gauscr}')
+        errore(f'Invalid Gaussian scratch directory {opts.gauscr}')
     if opts.gauroot in GAUPATH.keys():
         opts.gauroot = GAUPATH[opts.gauroot]
     if not os.path.isdir(opts.gauroot):
@@ -145,6 +145,8 @@ def parseopt():
         opts.nproc = ncpuavail()
     elif opts.nproc in ["half", "hlf"]:
         opts.nproc = max(ncpuavail()//2, 1)
+    elif opts.nproc > ncpuavail():
+        errore('Too many processors requested')
     if opts.wrkdir is not None:
         if not os.path.isdir(opts.wrkdir):
              errore(f'Invalid Gaussian working directory {opts.wrkdir}')
@@ -164,7 +166,7 @@ def gauscr() -> str:
             tmpdir = testdir
             break
     # create and set a user scratch subdirectory
-    GAUSS_SCRDIR = os.path.join(tmpdir, USER, 'gauscr')
+    GAUSS_SCRDIR = os.path.join(tmpdir, USER, 'gaussian')
     if not os.path.isdir(GAUSS_SCRDIR):
         os.makedirs(GAUSS_SCRDIR, exist_ok=True)
     return GAUSS_SCRDIR

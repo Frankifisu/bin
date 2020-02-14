@@ -419,7 +419,7 @@
 ##    unset outcub; unset spin; unset dens; unset nproc; unset orbs; unset file; unset outcub; unset comando; unset npts
 #  }
 # GaussView
-  GV_DIR="${HOME}/usr/share/GaussView/gv"
+  export GV_DIR="${HOME}/usr/local/gaussian/GaussView6"
   if [[ -d "${GV_DIR}" ]]; then
     alias gview="${GV_DIR}/gview.sh &"
   else

@@ -17,10 +17,11 @@ import typing #Explicit typing of arguments
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.15.01'
+VERSION = '2020.13.02'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
+PWD = os.getenv('PWD')
 
 # ==========
 #  DEFAULTS
@@ -108,8 +109,8 @@ def parseopt():
         dest='wrkdir', action='store', default=None,
         help='Set working directory path')
     parser.add_argument('-a', '--add', metavar='KEWORDS',
-        dest='keywords', action='append',
-        help='Add keywords to input file(s)')
+        dest='add', action='store', type=str, default=None,
+        help='Add keyword string to input file(s)')
     parser.add_argument('-m', '--mem', metavar='GAUSS_MDEF',
         dest='mem', action='store', default='1GB',
         help='Set memory in Words or Bytes')
@@ -122,6 +123,12 @@ def parseopt():
     parser.add_argument('-t', '--tmp', metavar='GAUSS_SCRDIR',
         dest='gauscr', action='store', default=gauscr(),
         help='Set scratch directory')
+    parser.add_argument('-chk',
+        dest='chk', action='store_true', default=False,
+        help='Generate an unformatted checkpoint file')
+    parser.add_argument('-fchk',
+        dest='fchk', action='store_true', default=False,
+        help='Generate a formatted checkpoint file')
     parser.add_argument('-fq',
         dest='fq', action='store_true', default=False,
         help='Perform a FQFmu calculation')
@@ -145,7 +152,7 @@ def parseopt():
         opts.nproc = ncpuavail()
     elif opts.nproc in ["half", "hlf"]:
         opts.nproc = max(ncpuavail()//2, 1)
-    elif opts.nproc > ncpuavail():
+    elif int(opts.nproc) > ncpuavail():
         errore('Too many processors requested')
     if opts.wrkdir is not None:
         if not os.path.isdir(opts.wrkdir):
@@ -170,15 +177,21 @@ def gauscr() -> str:
     if not os.path.isdir(GAUSS_SCRDIR):
         os.makedirs(GAUSS_SCRDIR, exist_ok=True)
     return GAUSS_SCRDIR
+def cleanenv(env):
+    """
+    Get clean environment
+    """
+    env.clear()
+    # Set basic envvars from current or login shell
+    env['USER'] = USER
+    env['HOME'] = HOME
+    env['PATH'] = loginshvar('PATH')
+    env['PWD']  = loginshvar('PWD')
+    return env
 def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
     Set basic Gaussian environment and return Gaussian command
     """
-    os.environ.clear()
-    # Set basic envvars from current or login shell
-    os.environ['USER'] = USER
-    os.environ['HOME'] = HOME
-    os.environ['PATH'] = loginshvar('PATH')
     if os.path.isdir(NBO):
         os.environ['PATH'] = NBO + ':' + os.environ['PATH']
         if vrb >=2:
@@ -219,6 +232,7 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # DEFINE GAUSSIAN ENVIRONMENT AND SUBMISSION COMMAND
+    os.environ = cleanenv(os.environ)
     gaucmd = setgaussian(BASECMD, opts.gauroot, opts.gauscr, opts.vrb)
     # ASSEMBLE GAUSSIAN COMMAND
     gaucmd = " ".join([gaucmd, f'-m="{opts.mem}"'])
@@ -242,11 +256,18 @@ def main():
         # CREATE NEW TEMPORARY INPUT FILE
         if not os.path.isfile(gauinp):
             errore(f'File {gauinp} not found')
-        # ADD KEYWORDS ON THE FLY: TOBEDONE
+        gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
+        # ADD KEYWORDS ON THE FLY
+        if opts.add:
+            gaucmd = " ".join([gaucmd, f'-r="{opts.add}"'])
+        # SPECIFY CHECKPOINT FILES
+        if opts.chk:
+            gaucmd = " ".join([gaucmd, f'-y="{gauinp_nam}.chk"'])
+        if opts.fchk:
+            gaucmd = " ".join([gaucmd, f'-fchk="{gauinp_nam}.fchk"'])
         # SET OUTPUT FILE
         if opts.out is None:
-            filnam, filext = os.path.splitext(gauinp)
-            gauout = filnam + '.log'
+            gauout = gauinp_nam + '.log'
         else:
             gauout = opts.out
             if num > 1:

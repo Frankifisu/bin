@@ -140,7 +140,8 @@ def parseopt():
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
     # MANDATORY ARGUMENTS
-    parser.add_argument('outfil', help='Gaussian output file')
+    parser.add_argument('outfil', nargs='+',
+        help='Gaussian output file')
     # OPTIONAL ARGUMENTS
     parser.add_argument('-t', '--table',
         dest='tbf', action='store', default='simple',
@@ -154,9 +155,10 @@ def parseopt():
     # OPTION PARSING
     opts = parser.parse_args()
     # CONSISTENCY CHECKS
-    filnam, filext = os.path.splitext(opts.outfil)
-    if filext not in OUTEXT:
-        errore('Invalid file extension')
+    for fil in opts.outfil:
+        filnam, filext = os.path.splitext(fil)
+        if filext not in OUTEXT:
+            errore('Invalid file extension')
     return opts
 
 # ================
@@ -216,16 +218,19 @@ def datard(line: str, modes: list, toget: str) -> list:
 def main():
     # PARSE OPTIONS
     opts = parseopt()
-    results = filparse(opts.outfil)
-    for calc in results:
-        # BUILD TABLE HEADER
-        header = [OUTXPR.get('Mode'), OUTXPR.get('Sym')] + calc[0].propnames()
-        units = ['', ''] + calc[0].propunits()
-        # BUILD VALUE LISTS
-        table = list()
-        for mode in calc:
-            table.append(mode.getinfo())
-        print(tabulate(table, headers=header, floatfmt=opts.fmt, tablefmt=opts.tbf))
+    for fil in opts.outfil:
+        results = filparse(fil)
+        for calc in results:
+            if len(calc) == 0:
+                break
+            # BUILD TABLE HEADER
+            header = [OUTXPR.get('Mode'), OUTXPR.get('Sym')] + calc[0].propnames()
+            units = ['', ''] + calc[0].propunits()
+            # BUILD VALUE LISTS
+            table = list()
+            for mode in calc:
+                table.append(mode.getinfo())
+            print(tabulate(table, headers=header, floatfmt=opts.fmt, tablefmt=opts.tbf))
     sys.exit()
 
 # ===========

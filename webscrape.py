@@ -93,13 +93,15 @@ def parseopt():
     parser.add_argument('-f', '--find', type=str,
         default='ricercatore',
         help='Parola da cercare')
-    parser.add_argument('-n', '--numero',
+    parser.add_argument('-n', '--numero', type=int,
         dest='num', action='store', default=contagiorni(CAPODANNO, TODAY),
         help='Numero della gazzetta da cercare')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
         help='Set printing level')
     opts = parser.parse_args()
+    if opts.num < 0:
+        opts.num = contagiorni(CAPODANNO, TODAY) + opts.num
     # Check options
     return opts
 

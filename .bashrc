@@ -419,11 +419,13 @@
 ##    unset outcub; unset spin; unset dens; unset nproc; unset orbs; unset file; unset outcub; unset comando; unset npts
 #  }
 # GaussView
-  export GV_DIR="${HOME}/usr/local/gaussian/GaussView6"
-  if [[ -d "${GV_DIR}" ]]; then
+  for trydir in '/opt' '/opt/gaussian' "${HOME}/usr/local"  "${HOME}/usr/local/gaussian"; do
+    if [[ -d ${trydir}/GaussView6 ]]; then
+      export GV_DIR="${trydir}/GaussView6"
+      break; fi
+  done; unset trydir
+  if [[ -x "${GV_DIR}/gview.sh" ]]; then
     alias gview="${GV_DIR}/gview.sh &"
-  else
-    unset GV_DIR
   fi
 #
 # ---
@@ -440,6 +442,22 @@
       break
     fi
   done; unset trydir
+#
+# -----
+# INTEL
+# -----
+  for INTELDIR in "/opt/intel"; do
+    if [[ -d ${INTELDIR} ]]; then
+      tosource="$( find ${INTELDIR} -name mklvars.sh )"
+      if [[ -x "${tosource}" ]]; then
+        source ${tosource} "intel64"
+      fi; unset mpivars
+      tosource="$( find ${INTELDIR} -name mpivars.sh )"
+      if [[ -x "${tosource}" ]]; then
+        source ${tosource}
+      fi; unset mpivars
+    fi
+  done
 #
 # -------
 # LibInt2

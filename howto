@@ -27,6 +27,12 @@
 # Now do the work
   for input in ${@}; do
     case ${input} in
+      adf )
+        echo 'COMPILING'
+        echo '  cd $ADFHOME; source $( find ${ADFHOME} -name adfbashrc.sh )'
+        echo '  Install/configure -b "-o GNU"'
+        echo '  $ADFBIN/foray -j 8'
+      ;;
       gau )
         echo "DEBUG COMPILATION:"
         echo "  (with setgau) makec l502c"
@@ -34,6 +40,8 @@
         echo "  ulimit -c unlimited"
         echo "  [run calculation normally to get the core]"
         echo "  gdb path/l502.exe core.12345 ; then type where"
+        echo "PERMISSIONS:"
+        echo '  for file in $( find ${g16root} \( -name *.F -o -name *.make \) -print ); do chgrp gausrc ${file}; done'
         echo "COMPILE Gaussian:"
         echo "  tcsh"
         echo '  setenv g16root `pwd`'
@@ -228,6 +236,12 @@
 	echo "tar -rvf goofy.tar addme.new   (adds addme.new to goofy.tar)"
 	echo "tar -tf  goofy.tar             (lists the contents of an archive)"
 	echo "  use the -z option to handle gzip files .tgz or .tar.gz"
+      ;;
+      user* | group* | grp | usr )
+        echo "sudo adduser NEWSER"
+	echo "sudo usermod -a -G GROUP NEWSER"
+	echo "sudo deluser USER GROUP"
+	echo "sudo groupadd GROUP"
       ;;
       misc )
         echo 'COMPARE FILES : cmp $1 $2 || vimdiff $1 $2'

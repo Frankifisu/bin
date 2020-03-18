@@ -94,6 +94,10 @@
       ln )
 	echo "ln original link"
       ;;
+      mutt )
+        echo 'mutt -s "Subject" -a attachment.dat -- recipient@gmail.com <<< "bla bla"'
+        echo 'mutt -s "Subject" -a attachment.dat -- recipient@gmail.com < file.txt'
+      ;;
       pdf )
         echo "pdfunite file1.pdf file2.pdf filemerge.pdf"
         echo "pdfseparate file1.pdf file2.pdf filemerge.pdf"

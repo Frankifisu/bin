@@ -11,7 +11,7 @@ git config --global user.email "franco.egidi@gmail.com"
 git config --list
 sudo apt install openssh-server
 # ssh-keygen -t rsa
-mkdir -v -p ~/usr/bin && cd ~/usr/bin
+mkdir -v -p ~/usr/bin && cd ~/usr
 git clone https://github.com/Frankifisu/bin.git
 echo ' source $HOME/usr/bin/.muttrc' >> ~/.muttrc
 echo ' source $HOME/usr/bin/.vimrc' >> ~/.vimrc

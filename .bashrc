@@ -75,7 +75,6 @@
   alias ll="ls -lh"
   alias ltrh="ls -ltrah"
   alias grepi="grep -i"
-  alias myip="ip route get 1 | head -n 1 | grab 7"
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi

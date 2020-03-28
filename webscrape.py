@@ -4,6 +4,7 @@
 #  MODULES
 # =========
 import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
+import platform #Info about the current machine
 import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
 import glob #Unix pathname expansion: glob.glob('*.txt')
 import re #Regex
@@ -38,7 +39,10 @@ CAPODANNO = datetime.date(ANNO, 1, 1)
 FAIL = 'la ricerca effettuata non ha prodotto risultati'
 TIPI = {'Concorso', 'Avviso', 'Graduatoria', 'Diario'}
 EVIDENZE = {'chimica', 'chimiche', 'tipo b', 'RTD', '03/A2', 'CHIM/02'}
-OUTFILE = '/tmp/concorsi.html'
+if platform.uname().system == 'Windows':
+    OUTFILE = r'C:\Users\franc\Desktop\concorsi.html'
+else:
+    OUTFILE = '/tmp/concorsi.html'
 TEMPLATE = """
 <!DOCTYPE html>
 <head>

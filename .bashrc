@@ -98,6 +98,23 @@
     history | head -n -1 | grep ${1}
   }
 #
+  getline () {
+    if [[ ${#} -lt 1 ]]; then echo "Usage: getline 3 file "; return 1 ; fi
+    local -i linenum
+    linenum=${1}; shift
+    if [[ ${#} -ge 1 ]]; then
+      for file in ${@}; do
+        head -n ${linenum} "${file}" | tail -n 1
+      done
+    else
+      local -i count=0
+      while read -t 0.1 -e var; do # -t aborts read after specified number of seconds
+        count=$(( count+1 ))
+        if [[ ${count} -eq ${linenum} ]]; then echo ${var}; break; fi
+      done
+    fi
+  }
+#
   vimcmp () {
     if [[ "${#}" -ne 2 ]]; then echo "Usage: vimcmp file1 file2 "; return 1 ; fi
     for arg in ${@}; do

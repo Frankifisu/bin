@@ -11,8 +11,11 @@ git config --global user.email "franco.egidi@gmail.com"
 git config --list
 sudo apt install openssh-server
 # ssh-keygen -t rsa
-mkdir -v -p usr/bin
-# git clone https://github.com/Frankifisu/bin.git
+mkdir -v -p ~/usr/bin && cd ~/usr
+git clone https://github.com/Frankifisu/bin.git
+echo ' source $HOME/usr/bin/.muttrc' >> ~/.muttrc
+echo ' source $HOME/usr/bin/.vimrc' >> ~/.vimrc
+echo ' source $HOME/usr/bin/.bashrc' >> ~/.bashrc
 sudo apt install -y vim mutt
 sudo apt install -y texlive-full texmaker
 sudo apt install -y chromium-browser

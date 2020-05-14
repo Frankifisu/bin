@@ -205,6 +205,7 @@
         echo "ssh -X user@where (to use graphical softwares)"
 	echo ""
         echo "ssh user@where command (to run any command remotely)"
+        echo "ssh user@where 'bash -s' <<< command"
 	echo ""
 	echo "Generate key!"
 	echo "ssh-keygen -t rsa (then press Enter a bunch of times)"

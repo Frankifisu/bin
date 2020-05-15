@@ -39,7 +39,6 @@ SMTP_DATA = {
     'PORT'   : 465,
     }
 SIGNED = f'Message from {USER}@{HOSTNAME}'
-FOOTER = f'\n{"-"*len(SIGNED)}\n{SIGNED}'
 
 # =================
 #  BASIC FUNCTIONS
@@ -110,7 +109,7 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
             body = filobj.read()
     except:
         body = msg
-    body = body + FOOTER
+    body = body + f'\n{"-"*len(SIGNED)}\n{SIGNED}'
     emsg.set_content(body)
     #Attachments
     for attfil in att:

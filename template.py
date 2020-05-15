@@ -29,9 +29,7 @@ SHELL = os.getenv('SHELL')
 #  BASIC FUNCTIONS
 # =================
 def errore(message=None):
-    """
-    Error function
-    """
+    """Error function"""
     if message != None:
         print('ERROR: ' + message)
     sys.exit(1)
@@ -40,9 +38,7 @@ def errore(message=None):
 #  PARSING OPTIONS
 # =================
 def parseopt():
-    """
-    Parse options
-    """
+    """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')

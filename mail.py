@@ -70,7 +70,7 @@ def parseopt():
         help='Blind Carbon Copy addresses')
     parser.add_argument('-s', '--subject', type=str,
         dest='sbj', action='store', default=SIGNED,
-        help='Subject')
+        help='Mail subject')
     parser.add_argument('-m', '--msg', type=str,
         dest='msg', action='store', default=" ",
         help='Email body as string or text file')
@@ -119,13 +119,13 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
         # Guess the content type based on the file's extension.  Encoding
         # will be ignored, although we should check for simple things like
         # gzip'd or compressed files.
-        ctype, encoding = mimetypes.guess_type(path)
+        ctype, encoding = mimetypes.guess_type(attfil)
         if ctype is None or encoding is not None:
             # No guess could be made, or the file is encoded (compressed), so
             # use a generic bag-of-bits type.
             ctype = 'application/octet-stream'
         maintype, subtype = ctype.split('/', 1)
-        with open(path, 'rb') as fp:
+        with open(attfil, 'rb') as fp:
             emsg.add_attachment(fp.read(),
                                 maintype=maintype,
                                 subtype=subtype,
@@ -149,7 +149,12 @@ def main():
     # SEND MESSAGE
     with smtplib.SMTP_SSL(SMTP_DATA.get('SERVER'), SMTP_DATA.get('PORT')) as server:
         server.login(SMTP_DATA.get('MAIL'), SMTP_DATA.get('PASSWD'))
-        server.send_message(emsg)
+        try:
+            server.send_message(emsg)
+            if opts.vrb >= 1:
+               print('Message successfully sent')
+        except:
+            errore('Failed to send message')
     sys.exit()
 
 # ===========

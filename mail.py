@@ -8,6 +8,7 @@
 #  MODULES
 # =========
 import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
+import platform #Computer info
 import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
 import glob #Unix pathname expansion: glob.glob('*.txt')
 import re #Regex
@@ -27,7 +28,7 @@ PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
 SHELL = os.getenv('SHELL')
-HOSTNAME = os.getenv('HOSTNAME')
+HOSTNAME = platform.node()
 
 # ==========
 #  DEFAULTS
@@ -39,6 +40,17 @@ SMTP_DATA = {
     'PORT'   : 465,
     }
 SIGNED = f'Message from {USER}@{HOSTNAME}'
+FOOTER = f"""
+  <html>
+    <head></head>
+    <body>
+      <TT>
+        <p>{"-"*len(SIGNED)}</p>
+        <p>{SIGNED}</p>
+      </TT>
+    </body>
+  </html>
+  """
 
 # =================
 #  BASIC FUNCTIONS
@@ -111,6 +123,7 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
         body = msg
     body = body + f'\n{"-"*len(SIGNED)}\n{SIGNED}'
     emsg.set_content(body)
+    emsg.add_alternative(FOOTER, subtype='html')
     #Attachments
     for attfil in att:
         if not os.path.isfile(attfil):

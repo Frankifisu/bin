@@ -10,10 +10,7 @@
 import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
 import platform #Computer info
 import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
-import glob #Unix pathname expansion: glob.glob('*.txt')
-import re #Regex
 import argparse # commandline argument parsers
-import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Support for type hints
 import smtplib #To send emails
 import email #To send emails
@@ -43,12 +40,10 @@ SIGNED = f'Message from {USER}@{HOSTNAME}'
 FOOTER = f"""
   <html>
     <head></head>
-    <body>
-      <TT>
-        <p>{"-"*len(SIGNED)}</p>
-        <p>{SIGNED}</p>
-      </TT>
-    </body>
+    <body><TT>
+      <p>{"-"*len(SIGNED)}</p>
+      <p>{SIGNED}</p>
+    </TT></body>
   </html>
   """
 
@@ -121,7 +116,6 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
             body = filobj.read()
     except:
         body = msg
-    body = body + f'\n{"-"*len(SIGNED)}\n{SIGNED}'
     emsg.set_content(body)
     emsg.add_alternative(FOOTER, subtype='html')
     #Attachments

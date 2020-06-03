@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Run Gaussian16 calculation given input file list
+# Run Gaussian16 calculation given input files
 #
 
 # =========
@@ -9,6 +9,7 @@
 # =========
 import os #OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
 import sys #System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
+import re #Regex
 import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
@@ -17,11 +18,11 @@ import typing #Explicit typing of arguments
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.13.02'
+VERSION = '2020.05.28'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
-PWD = os.getenv('PWD')
+PWD = os.getcwd()
 
 # ==========
 #  DEFAULTS
@@ -34,22 +35,48 @@ GAUPATH = {
     'c01' : '/opt/gaussian/g16c01',
     }
 NBO = '/opt/nbo7/bin'
-FQWRKDIR = '/opt/gaussian/working/g16a03_fq'
+GAUFQ = {
+        'working' : '/opt/gaussian/working/g16a03_fq',
+        'gauroot' : GAUPATH['a03'],
+        }
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
 GAUINP = {
-        'route' : r'^#[t,n,p]?\b'
+        'link0'  : r'^%',
+        'route'  : r'^#[t,n,p]?\b',
         }
 
+# =========
+#  CLASSES
+# =========
+# Gaussian input file class
+class molecule:
+    def __init__(self, charge=0, spinmul=1, geom=['C O H H']):
+        self.charge = charge
+        self.spinmul = spinmul
+        self.geom = geom
+    def __str__(self):
+        return f'{self.charge} {self.spinmul}\n {self.geom}'
+    def __repr__(self):
+class gauinput:
+    def __init__(self,
+                 link0 = [],
+                 #route = ['# HF/3-21G', 'Geom=(ModelA)'],
+                 route = [],
+                 title = [],
+                 mol   = molecule()):
+        self.link0 = link0
+        self.route = route
+        self.title = title
+        self.mol   = str(mol)
+        self.tail  = tail
 # =================
 #  BASIC FUNCTIONS
 # =================
 def errore(message=None):
-    """
-    Error function
-    """
+    """Error function"""
     if message != None:
-        print('ERROR: ' + message)
+        print(f'ERROR: {message}')
     sys.exit(1)
 def bashrun(comando: str, env=None) -> str:
     """
@@ -140,8 +167,8 @@ def parseopt():
     for fil in opts.gjf:
         check_extension(fil, INPEXT)
     if opts.fq :
-        opts.wrkdir = FQWRKDIR
-        opts.gauroot = GAUPATH['a03']
+        opts.wrkdir = GAUFQ['working']
+        opts.gauroot = GAUFQ['gauroot']
     if not os.path.isdir(opts.gauscr):
         errore(f'Invalid Gaussian scratch directory {opts.gauscr}')
     if opts.gauroot in GAUPATH.keys():
@@ -194,6 +221,7 @@ def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
     if os.path.isdir(NBO):
         os.environ['PATH'] = NBO + ':' + os.environ['PATH']
+        os.environ['NO_STOP_MESSAGE'] = '1'
         if vrb >=2:
             os.environ['NBODTL'] = 'verbose'
     # Set Gaussian variables
@@ -210,12 +238,60 @@ def tmpinp(gauinp: str, vrb: int=0) -> str:
     """
     Parse Gaussian Input file and generate a revised Input
     """
-    tmpinp = '.' + gauinp
+    tmpinp = '._' + gauinp
     with open(tmpinp, 'w') as fileout:
         with open(gauinp, 'r') as filein:
             for line in filein:
-                if re.match(GAUINP['route'], line):
-                   fileout.write(line)
+                towrite = line
+                if re.match(GAUINP['route'], line) or Route:
+                    #Route section, find number of fragments
+                    Route = True
+                    found = re.search(GAUINP['frag'], line.lower())
+                    if found:
+                        nfrag = int(found.group(0)[5:])
+                    if not line.strip():
+                        fileout.write('Geom=(Connectivity,SkipAng)\n')
+                        Route = False
+                if re.match(GAUINP['atoms'], line) and WrtCon:
+                    #Line starting with noatoms, write connectivity
+                    lastatom = filwrt(NATOMS_SOLUTE, fileout)
+                    for ifrag in range(nfrag-1):
+                        #Write water connectivity
+                        iat = lastatom + ifrag*3 + 1
+                        newaqcon = connaq(iat)
+                        fileout.write(newaqcon)
+                    fileout.write('\n')
+                fileout.write(towrite)
+    if vrb >= 1:
+        print(f'Written file tmpinp')
+    return tmpinp
+def parsegau(gauinp: str, vrb: int=0) -> str:
+    """
+    Parse Gaussian Input file and generate a revised Input
+    """
+    newfil = gauinput()
+    with open(gauinp, 'r') as filein:
+        dolink0 = True
+        doroute = True
+        for line in filein:
+            towrite = line
+            if re.match(GAUINP['comment'], line)
+            if dolink0 and re.match(GAUINP['link0'], line.lstrip()):
+                #Link0
+                newfil.link0 = newfil.link0 + line.lstrip()
+                continue
+            if re.match(GAUINP['route'], line) or Route:
+                #Route section
+                dolink0 = False
+                Route = True
+                found = re.search(GAUINP['frag'], line.lower())
+                if found:
+                    nfrag = int(found.group(0)[5:])
+                if not line.strip():
+                    Route = False
+                continue
+    if vrb >= 1:
+        print(f'Written file tmpinp')
     return tmpinp
 #def pembed(gauinp, keyword: str) -> bool:
 #    """
@@ -252,8 +328,14 @@ def main():
     da = '<'
     ad = '>'
     # LOOP OVER INPUT FILES ONE BY ONE
-    for num, gauinp in enumerate(opts.gjf, start=1):
+    for num, _gauinp in enumerate(opts.gjf, start=1):
         # CREATE NEW TEMPORARY INPUT FILE
+        if opts.mod:
+            gauinp = tmpinp(_gauinp, opts.vrb)
+            if opts.vrb >= 1:
+                print(f'Using modified file {gauinp} as input')
+        else:
+            gauinp = _gauinp
         if not os.path.isfile(gauinp):
             errore(f'File {gauinp} not found')
         gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
@@ -267,7 +349,11 @@ def main():
             gaucmd = " ".join([gaucmd, f'-fchk="{gauinp_nam}.fchk"'])
         # SET OUTPUT FILE
         if opts.out is None:
-            gauout = gauinp_nam + '.log'
+            if gauinp_nam[0] == '.':
+                _gauinp_nam = gauinp_nam[1:]
+            else:
+                _gauinp_nam = gauinp_nam
+            gauout = _gauinp_nam + '.log'
         else:
             gauout = opts.out
             if num > 1:
@@ -278,6 +364,10 @@ def main():
         if opts.vrb >= 1:
             print(comando)
         gaurun = bashrun(comando, env=os.environ)
+        if _gauinp != gauinp:
+            os.remove(gauinp)
+            if opts.vrb >=1 :
+                print(f'File {gauinp} removed')
         if opts.vrb >= 1:
             print(gaurun)
         # LOG CALCULATION: TOBEDONE

@@ -133,7 +133,7 @@ def tipoluogo(luogo, luoghi):
     return trovato
 def asciiplot(xy):
     """Print pairs as ascii plot"""
-    LX = 80
+    LX = max(80, len(xy))
     LY = 22
     OUTY = LY
     CHARS = [ ' ', '+', '*' ]

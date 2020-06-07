@@ -28,7 +28,7 @@ PWD = os.getcwd()
 #  DEFAULTS
 # ==========
 BASH = '/bin/bash'
-TEST_TMP = ('/tmp', '/var/tmp', HOME+'/tmp')
+TEST_TMP = ('/tmp', '/var/tmp', HOME+'/tmp', HOME)
 GAUPATH = {
     'a03' : '/opt/gaussian/g16a03',
     'b01' : '/opt/gaussian/g16b01',
@@ -224,7 +224,6 @@ def gauscr() -> str:
     Set Gaussian scratch directory
     """
     # try a few common paths as temporary directories
-    tmpdir = HOME
     for testdir in TEST_TMP:
         if os.path.isdir(testdir):
             tmpdir = testdir
@@ -249,6 +248,7 @@ def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
     Set basic Gaussian environment and return Gaussian command
     """
+    #Check if NBO analysis is available
     if os.path.isdir(NBO):
         os.environ['PATH'] = NBO + ':' + os.environ['PATH']
         os.environ['NO_STOP_MESSAGE'] = '1'
@@ -269,10 +269,11 @@ def parsegau(gauinp: str, vrb: int=0) -> str:
     Parse Gaussian Input file and generate a revised Input
     """
     listfil = []
+    #Parse input file to generate Gaussian input file objects
     with open(gauinp, 'r') as filein:
-        #Look for Route section
         lines = filein.readlines()
         listfil = parsemul(lines, listfil)
+    #Write output file
     tmpinp = '._' + gauinp
     with open(tmpinp, 'w') as fileout:
         for gjf in listfil:
@@ -285,6 +286,7 @@ def parsegau(gauinp: str, vrb: int=0) -> str:
 def parsemul(lines, listfil):
     """Parse single Gaussian job"""
     newfil = gauinput()
+    Route = False
     for nline, line in enumerate(lines):
         if not line.strip():
             #Skip unnecessary empty lines at the beginning
@@ -295,9 +297,12 @@ def parsemul(lines, listfil):
         elif re.match(GAUINP['route'], line.lstrip()):
             #Route section found
             nroute = nline
+            Route = True
             break
     #Read Route section
-    nstart = nroute + readsection(lines[nroute:], newfil.title)
+    if not Route:
+        errore('Route section not found')
+    nstart = nroute + readsection(lines[nroute:], newfil.route)
     #Possibly read Title and Molecule
     fullroute = " ".join(newfil.route)
     if not re.search(GAUINP['allchk'], fullroute):
@@ -306,6 +311,7 @@ def parsemul(lines, listfil):
     #Read Tail
     lempty = 0
     for nline, line in enumerate(lines[nstart:]):
+        #DA RIVEDERE PER CONTROLLARE RIGHE VUOTE
         if re.match(GAUINP['link1'], line.lower()):
             listfil = parsemul(lines[nline + nstart + 1:], listfil)
             break
@@ -323,13 +329,6 @@ def readsection(lines, toadd):
             break
         toadd.append(line)
     return nline + 1
-#def pembed(gauinp, keyword: str) -> bool:
-#    """
-#    Check if Route section has PEmbed keyword
-#    """
-#    to_search = re.compile(r'\bpembed', re.IGNORECASE)
-#    haspembed = route_has(gauinp, to_search)
-#    return haspembed
 
 # ==============
 #  MAIN PROGRAM

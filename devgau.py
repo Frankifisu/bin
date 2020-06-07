@@ -42,34 +42,48 @@ GAUFQ = {
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
 GAUINP = {
-        'link0'  : r'^%',
-        'route'  : r'^#[t,n,p]?\b',
+        'link0'  : r'%',
+        'route'  : r'\s*#[t,n,p]?',
         }
 
 # =========
 #  CLASSES
 # =========
 # Gaussian input file class
-class molecule:
-    def __init__(self, charge=0, spinmul=1, geom=['C O H H']):
-        self.charge = charge
-        self.spinmul = spinmul
-        self.geom = geom
-    def __str__(self):
-        return f'{self.charge} {self.spinmul}\n {self.geom}'
-    def __repr__(self):
 class gauinput:
     def __init__(self,
                  link0 = [],
-                 #route = ['# HF/3-21G', 'Geom=(ModelA)'],
                  route = [],
                  title = [],
-                 mol   = molecule()):
-        self.link0 = link0
+                 mol   = [],
+                 tail  = []):
+        self.link0 = list()
         self.route = route
         self.title = title
-        self.mol   = str(mol)
+        self.mol   = mol
         self.tail  = tail
+    def gjf(self):
+        gjf = []
+        sep = ['\n']
+        if self.link0:
+            gjf = gjf + self.link0
+        gjf = gjf + self.route + ['route'] + sep
+        if self.title:
+            gjf = gjf + self.title +  ['title'] + sep
+        if self.mol:
+            gjf = gjf + self.mol   + ['mol'] + sep
+        if self.tail:
+            gjf = gjf + self.tail + sep
+        return gjf
+    def default(self):
+        self.route = ['# HF/3-21G', 'Geom=(ModelA)']
+        self.title = ['Test calculation']
+        self.mol   = ['0 1', ' C O H H ']
+        return self
+    def __str__(self):
+        string = "".join(self.gjf())
+        return string
+
 # =================
 #  BASIC FUNCTIONS
 # =================
@@ -234,64 +248,47 @@ def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     profile = gauroot + "/g16/bsd/g16.profile"
     gaucmd = " ".join(["source", profile, ";", gaucmd])
     return gaucmd
-def tmpinp(gauinp: str, vrb: int=0) -> str:
-    """
-    Parse Gaussian Input file and generate a revised Input
-    """
-    tmpinp = '._' + gauinp
-    with open(tmpinp, 'w') as fileout:
-        with open(gauinp, 'r') as filein:
-            for line in filein:
-                towrite = line
-                if re.match(GAUINP['route'], line) or Route:
-                    #Route section, find number of fragments
-                    Route = True
-                    found = re.search(GAUINP['frag'], line.lower())
-                    if found:
-                        nfrag = int(found.group(0)[5:])
-                    if not line.strip():
-                        fileout.write('Geom=(Connectivity,SkipAng)\n')
-                        Route = False
-                if re.match(GAUINP['atoms'], line) and WrtCon:
-                    #Line starting with noatoms, write connectivity
-                    lastatom = filwrt(NATOMS_SOLUTE, fileout)
-                    for ifrag in range(nfrag-1):
-                        #Write water connectivity
-                        iat = lastatom + ifrag*3 + 1
-                        newaqcon = connaq(iat)
-                        fileout.write(newaqcon)
-                    fileout.write('\n')
-                fileout.write(towrite)
-    if vrb >= 1:
-        print(f'Written file tmpinp')
-    return tmpinp
 def parsegau(gauinp: str, vrb: int=0) -> str:
     """
     Parse Gaussian Input file and generate a revised Input
     """
     newfil = gauinput()
     with open(gauinp, 'r') as filein:
-        dolink0 = True
-        doroute = True
+        DoLink0 = True
+        DoRoute = True
+        DoTitle = True
+        DoMol   = True
+        DoingRoute = False
         for line in filein:
-            towrite = line
-            if re.match(GAUINP['comment'], line)
-            if dolink0 and re.match(GAUINP['link0'], line.lstrip()):
+            if DoLink0 and re.match(GAUINP['link0'], line.lstrip()):
                 #Link0
-                newfil.link0 = newfil.link0 + line.lstrip()
-                continue
-            if re.match(GAUINP['route'], line) or Route:
+                newfil.link0.append(line.lstrip())
+            elif DoingRoute or ( DoRoute and re.match(GAUINP['route'], line) ):
                 #Route section
-                dolink0 = False
-                Route = True
-                found = re.search(GAUINP['frag'], line.lower())
-                if found:
-                    nfrag = int(found.group(0)[5:])
-                if not line.strip():
-                    Route = False
-                continue
+                DoLink0 = False
+                DoingRoute = True
+                if line.strip():
+                    newfil.route.append(line.lstrip())
+                else:
+                    DoRoute = False
+                    DoingRoute = False
+            elif DoTitle:
+                if line.strip():
+                    newfil.title.append(line)
+                else:
+                    DoTitle = False
+            elif DoMol:
+                if line.strip():
+                    newfil.mol.append(line)
+                else:
+                    Mol = False
+            elif not DoRoute:
+                newfil.tail.append(line)
+    print(newfil.gjf())
+    print(newfil)
     if vrb >= 1:
         print(f'Written file tmpinp')
+    errore()
     return tmpinp
 #def pembed(gauinp, keyword: str) -> bool:
 #    """
@@ -330,10 +327,9 @@ def main():
     # LOOP OVER INPUT FILES ONE BY ONE
     for num, _gauinp in enumerate(opts.gjf, start=1):
         # CREATE NEW TEMPORARY INPUT FILE
-        if opts.mod:
-            gauinp = tmpinp(_gauinp, opts.vrb)
-            if opts.vrb >= 1:
-                print(f'Using modified file {gauinp} as input')
+        gauinp = parsegau(_gauinp, opts.vrb)
+        if opts.vrb >= 1:
+            print(f'Using modified file {gauinp} as input')
         else:
             gauinp = _gauinp
         if not os.path.isfile(gauinp):

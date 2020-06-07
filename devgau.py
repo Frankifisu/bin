@@ -245,7 +245,10 @@ def parseopt():
         help='Generate a formatted checkpoint file')
     parser.add_argument('-fq',
         dest='fq', action='store_true', default=False,
-        help='Perform a FQFmu calculation')
+        help='Perform a FQ(Fmu) calculation')
+   # parser.add_argument('-mail', '--verbose',
+   #     dest='mail', action='store_true', default=False,
+   #     help='Send the user an email at the end of the script')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
         help='Set printing level')

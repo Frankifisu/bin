@@ -18,7 +18,7 @@ import typing #Explicit typing of arguments
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.05.28'
+VERSION = '2020.06.08'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
@@ -43,7 +43,9 @@ BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
 GAUINP = {
         'link0'  : r'%',
-        'route'  : r'\s*#[t,n,p]?',
+        'link1'  : r'--link1--',
+        'route'  : r'#(t|n|p)?\s',
+        'allchk' : r'geom(=|=\(|\()allch(ec)?k',
         }
 
 # =========
@@ -52,26 +54,37 @@ GAUINP = {
 # Gaussian input file class
 class gauinput:
     def __init__(self,
-                 link0 = [],
-                 route = [],
-                 title = [],
-                 mol   = [],
-                 tail  = []):
-        self.link0 = list()
+                 link0 = None,
+                 route = None,
+                 title = None,
+                 mol   = None,
+                 tail  = None):
+        self.link0 = link0
         self.route = route
         self.title = title
         self.mol   = mol
         self.tail  = tail
+        if self.link0 is None:
+            self.link0 = []
+        if self.route is None:
+            self.route = []
+        if self.title is None:
+            self.title = []
+        if self.mol is None:
+            self.mol = []
+        if self.tail is None:
+            self.tail = []
     def gjf(self):
         gjf = []
         sep = ['\n']
         if self.link0:
             gjf = gjf + self.link0
-        gjf = gjf + self.route + ['route'] + sep
+        gjf = gjf + self.route + sep
+        print(gjf)
         if self.title:
-            gjf = gjf + self.title +  ['title'] + sep
+            gjf = gjf + self.title + sep
         if self.mol:
-            gjf = gjf + self.mol   + ['mol'] + sep
+            gjf = gjf + self.mol + sep
         if self.tail:
             gjf = gjf + self.tail + sep
         return gjf
@@ -176,6 +189,9 @@ def parseopt():
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
         help='Set printing level')
+    parser.add_argument('--dry',
+        dest='dry', action='store_true', default=False,
+        help=argparse.SUPPRESS)
     opts = parser.parse_args()
     # Check options
     for fil in opts.gjf:
@@ -227,7 +243,7 @@ def cleanenv(env):
     env['USER'] = USER
     env['HOME'] = HOME
     env['PATH'] = loginshvar('PATH')
-    env['PWD']  = loginshvar('PWD')
+    env['PWD']  = PWD
     return env
 def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
     """
@@ -252,44 +268,61 @@ def parsegau(gauinp: str, vrb: int=0) -> str:
     """
     Parse Gaussian Input file and generate a revised Input
     """
-    newfil = gauinput()
+    listfil = []
     with open(gauinp, 'r') as filein:
-        DoLink0 = True
-        DoRoute = True
-        DoTitle = True
-        DoMol   = True
-        DoingRoute = False
-        for line in filein:
-            if DoLink0 and re.match(GAUINP['link0'], line.lstrip()):
-                #Link0
-                newfil.link0.append(line.lstrip())
-            elif DoingRoute or ( DoRoute and re.match(GAUINP['route'], line) ):
-                #Route section
-                DoLink0 = False
-                DoingRoute = True
-                if line.strip():
-                    newfil.route.append(line.lstrip())
-                else:
-                    DoRoute = False
-                    DoingRoute = False
-            elif DoTitle:
-                if line.strip():
-                    newfil.title.append(line)
-                else:
-                    DoTitle = False
-            elif DoMol:
-                if line.strip():
-                    newfil.mol.append(line)
-                else:
-                    Mol = False
-            elif not DoRoute:
-                newfil.tail.append(line)
-    print(newfil.gjf())
-    print(newfil)
+        #Look for Route section
+        lines = filein.readlines()
+        listfil = parsemul(lines, listfil)
+    tmpinp = '._' + gauinp
+    with open(tmpinp, 'w') as fileout:
+        for gjf in listfil:
+            fileout.write(str(gjf))
     if vrb >= 1:
         print(f'Written file tmpinp')
     errore()
     return tmpinp
+#
+def parsemul(lines, listfil):
+    """Parse single Gaussian job"""
+    newfil = gauinput()
+    for nline, line in enumerate(lines):
+        if not line.strip():
+            #Skip unnecessary empty lines at the beginning
+            continue
+        elif re.match(GAUINP['link0'], line.lstrip()):
+            #Link0 line found
+            newfil.link0.append(line.lstrip())
+        elif re.match(GAUINP['route'], line.lstrip()):
+            #Route section found
+            nroute = nline
+            break
+    #Read Route section
+    nstart = nroute + readsection(lines[nroute:], newfil.title)
+    #Possibly read Title and Molecule
+    fullroute = " ".join(newfil.route)
+    if not re.search(GAUINP['allchk'], fullroute):
+        nstart = nstart + readsection(lines[nstart:], newfil.title)
+        nstart = nstart + readsection(lines[nstart:], newfil.mol)
+    #Read Tail
+    lempty = 0
+    for nline, line in enumerate(lines[nstart:]):
+        if re.match(GAUINP['link1'], line.lower()):
+            listfil = parsemul(lines[nline + nstart + 1:], listfil)
+            break
+        newfil.tail.append(line.lstrip())
+        if not line.strip():
+            lempty = lempty + 1
+            if lempty == 2:
+                break
+    listfil = [newfil] + listfil
+    return listfil
+def readsection(lines, toadd):
+    """Read section terminated by empty line"""
+    for nline, line in enumerate(lines):
+        if not line.strip():
+            break
+        toadd.append(line)
+    return nline + 1
 #def pembed(gauinp, keyword: str) -> bool:
 #    """
 #    Check if Route section has PEmbed keyword
@@ -325,13 +358,13 @@ def main():
     da = '<'
     ad = '>'
     # LOOP OVER INPUT FILES ONE BY ONE
-    for num, _gauinp in enumerate(opts.gjf, start=1):
+    for num, gauinp in enumerate(opts.gjf, start=1):
         # CREATE NEW TEMPORARY INPUT FILE
-        gauinp = parsegau(_gauinp, opts.vrb)
+        _gauinp = parsegau(gauinp, opts.vrb)
         if opts.vrb >= 1:
             print(f'Using modified file {gauinp} as input')
         else:
-            gauinp = _gauinp
+            _gauinp = gauinp
         if not os.path.isfile(gauinp):
             errore(f'File {gauinp} not found')
         gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
@@ -345,27 +378,24 @@ def main():
             gaucmd = " ".join([gaucmd, f'-fchk="{gauinp_nam}.fchk"'])
         # SET OUTPUT FILE
         if opts.out is None:
-            if gauinp_nam[0] == '.':
-                _gauinp_nam = gauinp_nam[1:]
-            else:
-                _gauinp_nam = gauinp_nam
-            gauout = _gauinp_nam + '.log'
+            gauout = gauinp_nam + '.log'
         else:
             gauout = opts.out
             if num > 1:
                 # if there are multiple inputs but the output filename is set then append output
                 ad = '>>'
         # RUN COMMAND
-        comando = " ".join([gaucmd, da, gauinp, ad, gauout])
+        comando = " ".join([gaucmd, da, _gauinp, ad, gauout])
         if opts.vrb >= 1:
             print(comando)
-        gaurun = bashrun(comando, env=os.environ)
+        if not opts.dry:
+            gaurun = bashrun(comando, env=os.environ)
+            if opts.vrb >= 1:
+                print(gaurun)
         if _gauinp != gauinp:
-            os.remove(gauinp)
+            os.remove(_gauinp)
             if opts.vrb >=1 :
-                print(f'File {gauinp} removed')
-        if opts.vrb >= 1:
-            print(gaurun)
+                print(f'File {_gauinp} removed')
         # LOG CALCULATION: TOBEDONE
     sys.exit()
 

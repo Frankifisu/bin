@@ -397,7 +397,7 @@ def parsegau(lines, listfil):
         if re.match(GAUINP['link1'], line.lower()):
             listfil = parsegau(lines[nstart + nline + 1:], listfil)
             break
-        newfil.tail.append(line.lstrip())
+        newfil.tail.append(line)
         if not line.strip():
             lempty = lempty + 1
             if lempty == 2:
@@ -457,9 +457,12 @@ def main():
         if opts.vrb >= 1:
             print(comando)
         if not opts.dry:
-            gaurun = bashrun(comando, env=os.environ)
-            if opts.vrb >= 1:
-                print(gaurun)
+            try:
+                gaurun = bashrun(comando, env=os.environ)
+                if opts.vrb >= 1:
+                    print(gaurun)
+            except:
+                print(f'WARNING: Calculation on {gauinp} experienced an error')
         if _gauinp != gauinp:
             print(bashrun(f'cat {_gauinp}', env=os.environ))
             os.remove(_gauinp)

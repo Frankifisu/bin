@@ -13,12 +13,13 @@ import re #Regex
 import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
+import tempfile #Create temporary files
 
 # ==============
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.06.08'
+VERSION = '2020.06.10'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
@@ -28,7 +29,7 @@ PWD = os.getcwd()
 #  DEFAULTS
 # ==========
 BASH = '/bin/bash'
-TEST_TMP = ('/tmp', '/var/tmp', HOME+'/tmp', HOME)
+TEST_TMP = ('/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
 GAUPATH = {
     'a03' : '/opt/gaussian/g16a03',
     'b01' : '/opt/gaussian/g16b01',
@@ -41,14 +42,13 @@ GAUFQ = {
         }
 BASECMD = 'g16'
 INPEXT = frozenset(('.com', '.gjf'))
-GAUINP = {
+REGAUINP = {
         'link0'  : r'%',
         'link1'  : r'--link1--',
         'route'  : r'#(t|n|p)?\s',
         'allchk' : r'geom(=|=\(|\()allch(ec)?k',
         }
 MEM = '1GB'
-CPU = 1
 
 # =========
 #  CLASSES
@@ -66,6 +66,7 @@ class gauinput:
         self.title = title
         self.mol   = mol
         self.tail  = tail
+        # We do it this way because lists are mutable
         if self.link0 is None:
             self.link0 = []
         if self.route is None:
@@ -77,6 +78,7 @@ class gauinput:
         if self.tail is None:
             self.tail = []
     def gjf(self):
+        """Assemble sections into full input line list"""
         gjf = []
         sep = ['\n']
         if self.link0:
@@ -90,49 +92,61 @@ class gauinput:
             gjf = gjf + self.tail + sep
         return gjf
     def default(self):
-        self.link0 = []
-        self.route = ['# HF/3-21G', 'Geom=(ModelA)']
-        self.title = ['Test calculation']
-        self.mol   = ['0 1', ' C O H H ']
+        """Default input file"""
+        self.link0 = ['%NProcShared=1\n', '%Mem=1GB\n']
+        self.route = ['# HF/3-21G\n', 'Geom=(ModelA)\n']
+        self.title = ['Test calculation\n']
+        self.mol   = ['0 1\n', ' C O H H \n']
         self.tail  = []
         return None
     def _srcsec(attr, pattern):
+        """Search attribute for pattern and return
+        the rest of the line after the match
+        until the first comment"""
         for line in attr:
             match = re.search(pattern, line.lower().strip())
             if match:
+                beg = match.end()
                 comment = re.search(r'!', line.lower().strip())
                 if comment is None:
-                    fin = -1
+                    return line[beg:].rstrip()
                 else:
                     fin = comment.start()
-                beg = match.end()
-                return line[beg:fin].rstrip()
+                    if fin > beg:
+                        return line[beg:fin].rstrip()
         return None
     def chk(self):
+        """Return checkpoint file name"""
         checkpoint = gauinput._srcsec(self.link0, r'^%chk=')
         return checkpoint
     def mem(self):
+        """Return memory"""
         memory = gauinput._srcsec(self.link0, r'^%mem=')
         return memory
     def nproc(self):
+        """Return processors"""
         n = gauinput._srcsec(self.link0, r'^%nproc(shared)?=')
         if n is None:
             return 1
         else:
             return int(n)
     def setmem(self, mem: str):
+        """Set memory"""
         self.link0[:] = [x for x in self.link0 if not re.match(r'%mem=', x.lower().lstrip())]
         self.link0.append(f'%Mem={mem}\n')
         return None
     def setnproc(self, nproc: int):
+        """Set processors"""
         self.link0[:] = [x for x in self.link0 if not re.match(r'%nproc(shared)?=', x.lower().lstrip())]
         self.link0.append(f'%NProcShared={nproc}\n')
         return None
     def setcpu(self, cpulist: str):
+        """Set CPU"""
         self.link0[:] = [x for x in self.link0 if not re.match(r'%cpu=', x.lower().lstrip())]
         self.link0.append(f'%CPU={cpulist}\n')
         return None
     def addchk(self, chknam: str):
+        """Add chk file if not already present"""
         if not self.chk():
             self.link0.append(f'%Chk={chknam}\n')
             return True
@@ -151,35 +165,29 @@ def errore(message=None):
     if message != None:
         print(f'ERROR: {str(message)}')
     sys.exit(1)
-def bashrun(comando: str, env=None) -> str:
-    """
-    Run bash subprocess with sensible defaults
-    and return output
-    """
+def bashrun(comando: str, env=None, vrb=0) -> str:
+    """Run bash subprocess with sensible defaults
+    and return output"""
     if env is None:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     output = process.stdout.decode().rstrip()
+    if vrb >= 1:
+        print(output)
     return output
 def check_extension(to_check: str, allowed_ext):
-    """
-    Check file extension
-    """
+    """Check file extension"""
     filnam, filext = os.path.splitext(to_check)
     if filext not in allowed_ext:
         errore(f'Invalid file extension for {to_check}')
 def loginshvar(var: str) -> str :
-    """
-    Get environment variable from the login shell
-    """
+    """Get environment variable from the login shell"""
     comando = " ".join(['env -i', BASH, ' -l -c "printenv', var, '"'])
     out = bashrun(comando)
     return out
 def ncpuavail() -> int :
-    """
-    Find number of processors in the machine
-    """
+    """Find number of processors in the machine"""
     try:
         result = subprocess.run('nproc', stdout=subprocess.PIPE)
         nprocs = result.stdout.decode('utf-8').split()[0]
@@ -187,9 +195,7 @@ def ncpuavail() -> int :
         nprocs = 1
     return int(nprocs)
 def nfreecpu() -> int :
-    """
-    Find number of free processors in the machine
-    """
+    """Find number of free processors in the machine"""
     ntot = ncpuavail()
     vmstat = bashrun('vmstat -w -S M', env=os.environ)
     # r: The number of runnable processes (running or waiting for run time).
@@ -207,9 +213,7 @@ CPUTOT  = ncpuavail()
 #  PARSING OPTIONS
 # =================
 def parseopt():
-    """
-    Parse options
-    """
+    """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
@@ -225,7 +229,7 @@ def parseopt():
         dest='wrkdir', action='store', default=None,
         help='Set working directory path')
     parser.add_argument('-a', '--add', metavar='KEWORDS',
-        dest='add', action='store', type=str, default=None,
+        dest='add', action='append', type=str, default=[],
         help='Add keyword string to input file(s)')
     parser.add_argument('-m', '--mem', metavar='GAUSS_MDEF',
         dest='mem', action='store', default=None,
@@ -264,7 +268,7 @@ def parseopt():
     # Check options
     for fil in opts.gjf:
         check_extension(fil, INPEXT)
-    if opts.fq :
+    if opts.fq:
         opts.wrkdir = GAUFQ['working']
         opts.gauroot = GAUFQ['gauroot']
     if not os.path.isdir(opts.gauscr):
@@ -278,9 +282,9 @@ def parseopt():
     elif opts.nproc in ["half", "hlf"]:
         opts.nproc = max(CPUTOT//2, 1)
     elif opts.nproc in ["free", "rest"]:
-        opts.nproc = CPUFREE
+        opts.nproc = max(CPUFREE, 1)
     elif opts.nproc in ["halfree", "hlfree"]:
-        opts.nproc = CPUFREE//2
+        opts.nproc = max(CPUFREE//2, 1)
     if opts.wrkdir is not None:
         if not os.path.isdir(opts.wrkdir):
              errore(f'Invalid Gaussian working directory {opts.wrkdir}')
@@ -290,9 +294,7 @@ def parseopt():
 #  WORK FUNCTIONS
 # ================
 def gauscr() -> str:
-    """
-    Set Gaussian scratch directory
-    """
+    """Set Gaussian scratch directory"""
     # try a few common paths as temporary directories
     for testdir in TEST_TMP:
         if os.path.isdir(testdir):
@@ -304,9 +306,7 @@ def gauscr() -> str:
         os.makedirs(GAUSS_SCRDIR, exist_ok=True)
     return GAUSS_SCRDIR
 def cleanenv(env):
-    """
-    Get clean environment
-    """
+    """Get clean environment"""
     env.clear()
     # Set basic envvars from current or login shell
     env['USER'] = USER
@@ -314,72 +314,77 @@ def cleanenv(env):
     env['PATH'] = loginshvar('PATH')
     env['PWD']  = PWD
     return env
-def setgaussian(basecmd:str, gauroot: str, gauscr: str, vrb: int=0) -> str:
-    """
-    Set basic Gaussian environment and return Gaussian command
-    """
-    #Check if NBO analysis is available
-    if os.path.isdir(NBO):
-        os.environ['PATH'] = NBO + ':' + os.environ['PATH']
-        os.environ['NO_STOP_MESSAGE'] = '1'
-        if vrb >=2:
-            os.environ['NBODTL'] = 'verbose'
-    # Set Gaussian variables
-    os.environ['g16root'] = gauroot
-    os.environ['GAUSS_SCRDIR'] = gauscr
-    if vrb >= 1:
-        print(f"Gaussian diretory set to {os.getenv('g16root')}")
-        print(f"Gaussian scratch diretory set to {os.getenv('GAUSS_SCRDIR')}")
+def add_source_gauprofile(basecmd:str, gauroot: str) -> str:
+    """Add sourcing of gaussian profile to command"""
     gaucmd = basecmd
     profile = gauroot + "/g16/bsd/g16.profile"
     gaucmd = " ".join(["source", profile, ";", gaucmd])
     return gaucmd
-def gengauinp(gauinp: str, opts) -> str:
-    """
-    Parse Gaussian Input file and generate a revised Input
-    """
-    listfil = []
-    #Parse input file to generate Gaussian input file objects
-    with open(gauinp, 'r') as filein:
-        lines = filein.readlines()
-        listfil = parsegau(lines, listfil)
-    #Write output file
-    tmpinp = '._' + gauinp
-    gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
+def setgauenv(env, gauroot: str, gauscr: str, vrb: int=0) -> str:
+    """Set basic Gaussian environment"""
+    #Check if NBO analysis is available
+    if os.path.isdir(NBO):
+        env['PATH'] = NBO + ':' + env['PATH']
+        env['NO_STOP_MESSAGE'] = '1'
+        if vrb >=2:
+            env['NBODTL'] = 'verbose'
+    # Set Gaussian variables
+    env['g16root'] = gauroot
+    env['GAUSS_SCRDIR'] = gauscr
+    if vrb >= 1:
+        print(f"Gaussian diretory set to {env['g16root']}")
+        print(f"Gaussian scratch diretory set to {env['GAUSS_SCRDIR']}")
+    return env
+def modgaujob(joblist, gauinp_nam, opts):
+    """Modify Gaussian jobs according to options in opts"""
+    #If we want a fchk we need at least one chk
+    if opts.fchk:
+        try:
+            for gjf in joblist:
+                if gjf.chk():
+                    raise Exception
+            opts.chk = True
+        except:
+            pass
+    for gjf in joblist:
+        if opts.chk:
+            gjf.addchk(f'{gauinp_nam}.chk')
+        if opts.nproc:
+            gjf.setnproc(opts.nproc)
+        if opts.procs:
+            gjf.setcpu(opts.procs)
+        if opts.mem:
+            gjf.setmem(opts.mem)
+        for add in opts.add:
+            gjf.route.append(f'{add}\n')
+        if not gjf.mem():
+            gjf.setmem(MEM)
+        if gjf.nproc() > CPUFREE:
+            errore(f'{gjf.nproc} processors requested, but only {CPUFREE} available')
+    return joblist
+def wrtgauinp(joblist, prefix: str, gauinp_nam: str, vrb=0) -> str:
+    """Write list of Gaussian input file objects into file"""
+    tmpinp = prefix + gauinp_nam + '.gjf'
     with open(tmpinp, 'w') as fileout:
-        for n, gjf in enumerate(listfil):
-            if opts.chk:
-                gjf.addchk(f'{gauinp_nam}.chk')
-            if opts.nproc:
-                gjf.setnproc(opts.nproc)
-            if opts.procs:
-                gjf.setcpu(opts.procs)
-            if opts.mem:
-                gjf.setmem(opts.mem)
-            if opts.add:
-                gjf.route.append(f'{opts.add}\n')
-            if not gjf.mem():
-                gjf.setmem(MEM)
-            if gjf.nproc() > CPUFREE:
-                errore(f'{gjf.nproc} processors requeste, but only {CPUFREE} available')
-            if n > 0:
-                fileout.write('--Link1--\n')
+        fileout.write(str(joblist[0]))
+        for gjf in joblist[1:]:
+            fileout.write('--Link1--\n')
             fileout.write(str(gjf))
-    if opts.vrb >= 1:
+    if vrb >= 1:
         print(f'Written file {tmpinp}')
     return tmpinp
-def parsegau(lines, listfil):
+def parsegau(lines, joblist):
     """Parse single Gaussian job"""
-    newfil = gauinput()
+    newjob = gauinput()
     Route = False
     for nline, line in enumerate(lines):
         if not line.strip():
             #Skip unnecessary empty lines at the beginning
             continue
-        elif re.match(GAUINP['link0'], line.lstrip()):
+        elif re.match(REGAUINP['link0'], line.lstrip()):
             #Link0 line found
-            newfil.link0.append(line.lstrip())
-        elif re.match(GAUINP['route'], line.lstrip()):
+            newjob.link0.append(line.lstrip())
+        elif re.match(REGAUINP['route'], line.lstrip()):
             #Route section found
             nroute = nline
             Route = True
@@ -387,26 +392,27 @@ def parsegau(lines, listfil):
     #Read Route section
     if not Route:
         errore('Route section not found')
-    nstart = nroute + readsection(lines[nroute:], newfil.route)
+    nstart = nroute + readsection(lines[nroute:], newjob.route)
     #Possibly read Title and Molecule
-    fullroute = " ".join(newfil.route)
-    if not re.search(GAUINP['allchk'], fullroute):
-        nstart = nstart + readsection(lines[nstart:], newfil.title)
-        nstart = nstart + readsection(lines[nstart:], newfil.mol)
+    fullroute = " ".join(newjob.route)
+    if not re.search(REGAUINP['allchk'], fullroute):
+        nstart = nstart + readsection(lines[nstart:], newjob.title)
+        nstart = nstart + readsection(lines[nstart:], newjob.mol)
     #Read Tail
     lempty = 0
     for nline, line in enumerate(lines[nstart:]):
-        if re.match(GAUINP['link1'], line.lower()):
-            listfil = parsegau(lines[nstart + nline + 1:], listfil)
+        if re.match(REGAUINP['link1'], line.lower()):
+            #Read next job
+            joblist = parsegau(lines[nstart + nline + 1:], joblist)
             break
-        newfil.tail.append(line)
+        newjob.tail.append(line)
         if not line.strip():
             lempty = lempty + 1
             if lempty == 2:
                 break
     #Add newly generated gjf object to list
-    listfil = [newfil] + listfil
-    return listfil
+    joblist = [newjob] + joblist
+    return joblist
 def readsection(lines, toadd):
     """Read section terminated by empty line"""
     for nline, line in enumerate(lines):
@@ -423,11 +429,12 @@ def main():
     opts = parseopt()
     # DEFINE GAUSSIAN ENVIRONMENT AND SUBMISSION COMMAND
     os.environ = cleanenv(os.environ)
-    gaucmd = setgaussian(BASECMD, opts.gauroot, opts.gauscr, opts.vrb)
+    os.environ = setgauenv(os.environ, opts.gauroot, opts.gauscr, opts.vrb)
+    gaucmd = add_source_gauprofile(BASECMD, opts.gauroot)
     # ASSEMBLE GAUSSIAN COMMAND
     if opts.wrkdir is not None:
         # Add {wrkdir} and {wrkdir/exe-dir} to executable paths
-        tmpcmd = setgaussian("echo $GAUSS_EXEDIR", opts.gauroot, opts.gauscr, opts.vrb)
+        tmpcmd = add_source_gauprofile("echo $GAUSS_EXEDIR", opts.gauroot)
         exedir = bashrun(tmpcmd, env=os.environ)
         exedir = ":".join([opts.wrkdir, exedir])
         srcexe = os.path.join(opts.wrkdir, 'exe-dir')
@@ -439,19 +446,23 @@ def main():
     # LOOP OVER INPUT FILES ONE BY ONE
     for num, gauinp in enumerate(opts.gjf, start=1):
         # CREATE NEW TEMPORARY INPUT FILE
+        gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
         if not os.path.isfile(gauinp):
             errore(f'File {gauinp} not found')
-        _gauinp = gengauinp(gauinp, opts)
-        gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
-        # SPECIFY CHECKPOINT FILES
-        if opts.fchk:
-            gaucmd = " ".join([gaucmd, f'-fchk="{gauinp_nam}.fchk"'])
+        joblist = []
+        # Parse input file to generate Gaussian input file objects
+        with open(gauinp, 'r') as filein:
+            lines = filein.readlines()
+            joblist = parsegau(lines, joblist)
+        # Modify jobs according to options and write temporary file
+        joblist = modgaujob(joblist, gauinp_nam, opts)
+        _gauinp = wrtgauinp(joblist, '._', gauinp_nam, opts.vrb)
         # SET OUTPUT FILE
         if opts.out is None:
             gauout = gauinp_nam + '.log'
         else:
             gauout = opts.out
-            if num > 1:
+            if num > 0:
                 # if there are multiple inputs but the output filename is set then append output
                 ad = '>>'
         # RUN COMMAND
@@ -460,11 +471,22 @@ def main():
             print(comando)
         if not opts.dry:
             try:
-                gaurun = bashrun(comando, env=os.environ)
-                if opts.vrb >= 1:
-                    print(gaurun)
+                gaurun = bashrun(comando, env=os.environ, vrb=opts.vrb)
             except:
-                print(f'WARNING: Calculation on {gauinp} experienced an error')
+                print(f'WARNING: Calculation on {gauinp} failed')
+            else:
+                # POSSIBLY GENERATE FORMATTED CHECKPOINT FILE
+                if opts.fchk:
+                    chkset = {}
+                    for gjf in joblist:
+                        chkset.add(gjf.chk)
+                    for chk in chkset:
+                        fchk = os.path.splitext(gauinp)[0] + '.fchk'
+                        formchk = add_source_gauprofile(f"formchk {chk} {fchk}", opts.gauroot)
+                        try:
+                            dofchk = bashrun(formchk, env=os.environ, vrb=opts.vrb)
+                        except:
+                            print(f'WARNING: formchk {chk} {fchk} failed')
         if _gauinp != gauinp:
             os.remove(_gauinp)
             if opts.vrb >=1 :

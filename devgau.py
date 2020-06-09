@@ -90,10 +90,12 @@ class gauinput:
             gjf = gjf + self.tail + sep
         return gjf
     def default(self):
+        self.link0 = []
         self.route = ['# HF/3-21G', 'Geom=(ModelA)']
         self.title = ['Test calculation']
         self.mol   = ['0 1', ' C O H H ']
-        return self
+        self.tail  = []
+        return None
     def _srcsec(attr, pattern):
         for line in attr:
             match = re.search(pattern, line.lower().strip())

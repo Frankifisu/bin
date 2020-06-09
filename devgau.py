@@ -464,7 +464,6 @@ def main():
             except:
                 print(f'WARNING: Calculation on {gauinp} experienced an error')
         if _gauinp != gauinp:
-            print(bashrun(f'cat {_gauinp}', env=os.environ))
             os.remove(_gauinp)
             if opts.vrb >=1 :
                 print(f'File {_gauinp} removed')

@@ -180,15 +180,17 @@ def estrai_atti(ricerca):
             pubblicaz.testo = " ".join(testo.split())
             atti.append(pubblicaz)
     if not trovato:
-        errore('Nessun risultato trovato')
+        #errore('Nessun risultato trovato')
+        raise ValueError
     return atti
-def writepage(atti):
+def writepage(atti, num):
     """
     Esporta atti come documento HTML
     """
     newweb = TEMPLATE
     soup = BeautifulSoup(newweb, 'html.parser')
     bodytag = soup.body
+    outhtml = f'/tmp/concorsi{num}.html'
     for atto in atti:
         #if 'universit' in atto.rubrica.lower() and 'concorso' in atto.tipo.lower():
         if 'concorso' in atto.tipo.lower():
@@ -207,9 +209,9 @@ def writepage(atti):
     for evidenza in EVIDENZE:
         pattern = re.compile(evidenza, re.IGNORECASE)
         sito = pattern.sub('<strong>' + evidenza + '</strong>', sito)
-    with open(OUTFILE, 'w') as concorsi:
+    with open(outhtml, 'w') as concorsi:
         concorsi.write(sito)
-    return 0
+    return outhtml
 
 # ==============
 #  MAIN PROGRAM
@@ -218,13 +220,19 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # FILL WEBSITE FORM AND SUBMIT
-    ricerca = gzform(opts.num, ANNO, opts.find)
-    # PARSE WEBSITE WITH RESULTS
-    atti = estrai_atti(ricerca)
+    for numero in range(opts.num, 0, -1):
+        try:
+            ricerca = gzform(numero, ANNO, opts.find)
+            # PARSE WEBSITE WITH RESULTS
+            atti = estrai_atti(ricerca)
+            break
+        except ValueError:
+            continue
     # CREATE HTML DOCUMENT
-    writepage(atti)
+    outhtml = writepage(atti)
+    errore()
     # OPEN HTML DOCUMENT IN BROWSER
-    filepath = os.path.realpath(OUTFILE)
+    filepath = os.path.realpath(outhtml)
     webbrowser.open('file://' + filepath, new=1)
     sys.exit()
 

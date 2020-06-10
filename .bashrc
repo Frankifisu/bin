@@ -259,6 +259,24 @@
       done; unset testdir
     fi
   done; unset addpath
+  adfq () {
+    for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
+      if [[ -d "${addpath}" ]]; then
+        for testdir in ${addpath}/adf2019.fq; do
+          if [[ -d "${testdir}" ]]; then
+            export ADFVER="${testdir##*adf}"
+            . ${testdir}/adfbashrc.sh
+            if [[ -d "${SCM_TMPDIR}" ]]; then
+              trydir="${SCM_TMPDIR}/${USER}/adf"
+              if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
+              export SCM_TMPDIR="${trydir}"
+            fi
+            break
+          fi
+        done; unset testdir
+      fi
+    done; unset addpath
+  }
 #
 #
 # ------

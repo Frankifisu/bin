@@ -477,11 +477,13 @@ def main():
             else:
                 # POSSIBLY GENERATE FORMATTED CHECKPOINT FILE
                 if opts.fchk:
-                    chkset = {}
+                    chkset = set()
                     for gjf in joblist:
-                        chkset.add(gjf.chk)
+                        chk = gjf.chk()
+                        if chk:
+                            chkset.add(chk)
                     for chk in chkset:
-                        fchk = os.path.splitext(gauinp)[0] + '.fchk'
+                        fchk = os.path.splitext(chk)[0] + '.fchk'
                         formchk = add_source_gauprofile(f"formchk {chk} {fchk}", opts.gauroot)
                         try:
                             dofchk = bashrun(formchk, env=os.environ, vrb=opts.vrb)

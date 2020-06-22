@@ -128,12 +128,12 @@ def fileurl(tipoluogo, desinenza):
 def tipoluogo(luogo, luoghi):
     """Cerca luogo tra regioni e province"""
     urlfil = fileurl(luoghi, 'latest')
-    dataframe = pandas.read_csv(urlfil)
+    dataframe = pandas.read_csv(urlfil, encoding='latin-1')
     trovato = dataframe[GITHEDS[luoghi]].str.contains(luogo, case=False).any()
     return trovato
 def asciiplot(xy):
     """Print pairs as ascii plot"""
-    LX = 80
+    LX = max(80, len(xy))
     LY = 22
     OUTY = LY
     CHARS = [ ' ', '+', '*' ]
@@ -192,7 +192,7 @@ def main():
         urlfil = fileurl(opts.tipo, dt.datetime.strftime(data, FMTNAM))
         # Get data frame and slice it to only get info we care about
         try:
-            dataframe = pandas.read_csv(urlfil)
+            dataframe = pandas.read_csv(urlfil, encoding='latin-1')
         except (HTTPError, URLError, FileNotFoundError):
             data = data + dt.timedelta(days=1)
             continue

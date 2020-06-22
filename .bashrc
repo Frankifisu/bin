@@ -220,6 +220,10 @@
       #ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
     fi
   }
+# Connect to uz
+  unizone () {
+    sconnect -IP "franco" "ssh2.uz.sns.it" ${@}
+  }
 # Connect to diamond
   diamond () {
     if [[ "$( hostname )" == "diamond"* ]]; then echo "ERROR: Already on diamond"; return 1; fi
@@ -259,6 +263,24 @@
       done; unset testdir
     fi
   done; unset addpath
+  adfq () {
+    for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
+      if [[ -d "${addpath}" ]]; then
+        for testdir in ${addpath}/adf2019.fq; do
+          if [[ -d "${testdir}" ]]; then
+            export ADFVER="${testdir##*adf}"
+            . ${testdir}/adfbashrc.sh
+            if [[ -d "${SCM_TMPDIR}" ]]; then
+              trydir="${SCM_TMPDIR}/${USER}/adf"
+              if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
+              export SCM_TMPDIR="${trydir}"
+            fi
+            break
+          fi
+        done; unset testdir
+      fi
+    done; unset addpath
+  }
 #
 #
 # ------
@@ -547,3 +569,4 @@
 #  }
 #
   alias pygior='/home/g.mancini/pkg/python27/bin/python2.7'
+#export FORAY_SKIP_TARGET_LIST='libjson-fortran libftl libdftd3 libdftd4 libgbsa libscm_core libscm_dft libscm_nao libscm_adf libscm_reaxff libscm_gui libscm_analysis libdftb libuff libband libmopac reaxff quild newmm ams brav conductance dirac fcf hfsan mecp negfsurface sgf vcdtools zoraan adf2aim adf2damqt adfnbo basis_utils chargefit cjdensf cpl densf disper dos epr genfit green lfdft lfdft_tdm nmr cifreader cpkf dmpkf fixlic nao pdb2adf pkf runadf testlinalg udmpkf uffdetect normalmodes 

@@ -117,8 +117,7 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
             body = filobj.read()
     except:
         body = msg
-    emsg.set_content(body)
-    emsg.add_alternative(FOOTER, subtype='html')
+    emsg.set_content(body + '\n' + SIGNED)
     #Attachments
     for attfil in att:
         if not os.path.isfile(attfil):

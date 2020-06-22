@@ -13,13 +13,12 @@ import re #Regex
 import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
-import tempfile #Create temporary files
 
 # ==============
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.06.10'
+VERSION = '2020.06.18'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
@@ -477,11 +476,13 @@ def main():
             else:
                 # POSSIBLY GENERATE FORMATTED CHECKPOINT FILE
                 if opts.fchk:
-                    chkset = {}
+                    chkset = set()
                     for gjf in joblist:
-                        chkset.add(gjf.chk)
+                        chk = gjf.chk()
+                        if chk:
+                            chkset.add(chk)
                     for chk in chkset:
-                        fchk = os.path.splitext(gauinp)[0] + '.fchk'
+                        fchk = os.path.splitext(chk)[0] + '.fchk'
                         formchk = add_source_gauprofile(f"formchk {chk} {fchk}", opts.gauroot)
                         try:
                             dofchk = bashrun(formchk, env=os.environ, vrb=opts.vrb)

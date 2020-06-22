@@ -220,6 +220,10 @@
       #ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
     fi
   }
+# Connect to uz
+  unizone () {
+    sconnect -IP "franco" "ssh2.uz.sns.it" ${@}
+  }
 # Connect to diamond
   diamond () {
     if [[ "$( hostname )" == "diamond"* ]]; then echo "ERROR: Already on diamond"; return 1; fi
@@ -245,7 +249,7 @@
 # ---
   for addpath in "/opt/adf" "${HOME}/usr/local/adf"; do
     if [[ -d "${addpath}" ]]; then
-      for testdir in ${addpath}/adf2019.*; do
+      for testdir in ${addpath}/adf2019.FQ-new; do
         if [[ -d "${testdir}" ]]; then
           export ADFVER="${testdir##*adf}"
           . ${testdir}/adfbashrc.sh

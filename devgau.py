@@ -13,13 +13,12 @@ import re #Regex
 import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
-import tempfile #Create temporary files
 
 # ==============
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
-VERSION = '2020.06.10'
+VERSION = '2020.06.18'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')

@@ -220,6 +220,10 @@
       #ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
     fi
   }
+# Connect to uz
+  unizone () {
+    sconnect -IP "franco" "ssh2.uz.sns.it" ${@}
+  }
 # Connect to diamond
   diamond () {
     if [[ "$( hostname )" == "diamond"* ]]; then echo "ERROR: Already on diamond"; return 1; fi

@@ -37,7 +37,8 @@ SMTP_DATA = {
     'PORT'   : 465,
     }
 SIGNED = f'Message from {USER}@{HOSTNAME}'
-FOOTER = f"""
+FOOTER = f"""\
+<!DOCTYPE html>
   <html>
     <head></head>
     <body><TT>

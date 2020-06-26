@@ -145,8 +145,8 @@ def estrai_atti(ricerca):
     """
     # Analizza HTML e cicla sulle voci taggate 'span'
     soup = BeautifulSoup(ricerca, "html.parser")
-    if soup.find_all("li", string=FAIL):
-        errore(FAIL)
+   # if soup.find_all("li", string=FAIL):
+   #     return None
     atti = list()
     trovato = False
     for span in soup.find_all('span'):
@@ -162,9 +162,11 @@ def estrai_atti(ricerca):
             rubrica = span.string.strip()
         elif classe == 'emettitore':
             ente = span.string.strip().title()
-        elif classe == 'risultato_b':
-            pass # Non contiene il termine cercato
-        elif classe == 'risultato':
+       # elif classe == 'risultato_b':
+       #     pass # Non contiene il termine cercato
+        elif classe == 'risultato' or classe == 'risultato_b':
+            if 'ricercatore' not in str(span).lower():
+                continue
             trovato = True
             pubblicaz = atto(rubrica=rubrica, ente=ente)
             # Estrai tipo di documento
@@ -221,15 +223,16 @@ def main():
     opts = parseopt()
     # FILL WEBSITE FORM AND SUBMIT
     for numero in range(opts.num, 0, -1):
+        print(numero)
         try:
             ricerca = gzform(numero, ANNO, opts.find)
             # PARSE WEBSITE WITH RESULTS
             atti = estrai_atti(ricerca)
-            break
+            if atti is not None:
+                outhtml = writepage(atti, numero)
         except ValueError:
             continue
     # CREATE HTML DOCUMENT
-    outhtml = writepage(atti)
     errore()
     # OPEN HTML DOCUMENT IN BROWSER
     filepath = os.path.realpath(outhtml)

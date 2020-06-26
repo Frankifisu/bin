@@ -76,6 +76,9 @@ def parseopt():
     parser.add_argument('luogo', type=str, nargs='?', default='pisa',
         action='store', help='Luogo di cui cercare i dati')
     # Optional arguments
+    parser.add_argument('-media', '-m', '-average', action='store_true',
+        dest='media', default=False,
+        help='Media sulla settimana')
     parser.add_argument('-diff', '-nuovi', '-delta', action='store_true',
         dest='diff', default=False,
         help='Plotta nuovi casi per giorno')
@@ -207,14 +210,20 @@ def main():
         # Go to next day
         data = data + dt.timedelta(days=1)
     # ELABORA
-    nuovicasi = numpy.asarray( [ casi[day+1] - casi[day] for day in range(len(casi)-1) ] )
+    nuovicasi = [ casi[day+1] - casi[day] for day in range(len(casi)-1) ]
+    gstart = 0
+    if opts.media:
+        casi = [ int(sum(casi[i:i+7])/7.) for i in range(len(casi)-6) ]
+        nuovicasi = [ int(sum(nuovicasi[i:i+7])/7.) for i in range(len(nuovicasi)-6) ]
+        gstart = 6
     casi = numpy.asarray(casi)
     gg   = numpy.asarray(gg)
+    nuovicasi = numpy.asarray(nuovicasi)
     # STAMPA GRAFICO
     if opts.diff:
-        casixgiorno = numpy.stack([gg[0:-1], nuovicasi], axis=-1)
+        casixgiorno = numpy.stack([gg[gstart:-1], nuovicasi], axis=-1)
     else:
-        casixgiorno = numpy.stack([gg, casi], axis=-1)
+        casixgiorno = numpy.stack([gg[gstart:], casi], axis=-1)
     asciiplot(casixgiorno)
     sys.exit()
 

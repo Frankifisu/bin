@@ -359,7 +359,7 @@ def modgaujob(joblist, gauinp_nam, opts):
         if not gjf.mem():
             gjf.setmem(MEM)
         if gjf.nproc() > CPUFREE:
-            errore(f'{gjf.nproc} processors requested, but only {CPUFREE} available')
+            errore(f'{gjf.nproc()} processors requested, but only {CPUFREE} available')
     return joblist
 def wrtgauinp(joblist, prefix: str, gauinp_nam: str, vrb=0) -> str:
     """Write list of Gaussian input file objects into file"""

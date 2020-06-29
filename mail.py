@@ -79,7 +79,7 @@ def parseopt():
         dest='sbj', action='store', default=SIGNED,
         help='Mail subject')
     parser.add_argument('-m', '--msg', type=str,
-        dest='msg', action='store', default=" ",
+        dest='msg', action='store', default="",
         help='Email body as string or text file')
     parser.add_argument('-a', '--att', nargs='+',
         dest='att', action='store', default=list(),
@@ -95,6 +95,12 @@ def parseopt():
     for attfil in opts.att:
         if not os.path.isfile(attfil):
             errore(f'File {attfil} not found')
+    for attr in opts.to, opts.cc, opts.bcc, opts.msg, opts.att:
+        if not attr:
+            print(attr)
+    if not opts.to and not opts.cc and not otps.bcc and not opts.msg and not opts.msg and not opts.att:
+        print('afdsaf')
+    errore()
     if SMTP_DATA.get('MAIL') not in opts.to + opts.cc + opts.bcc:
         opts.bcc.append( SMTP_DATA.get('MAIL') )
     return opts

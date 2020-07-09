@@ -95,7 +95,7 @@
 #
   prev () {
     if [[ "${#}" -eq 0 ]]; then echo "Usage: prev command"; return 1 ; fi
-    history | head -n -1 | grep ${1}
+    history | head -n -1 | grep -i ${1}
   }
 #
   getline () {
@@ -266,10 +266,25 @@
   adfq () {
     for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
       if [[ -d "${addpath}" ]]; then
-        for testdir in ${addpath}/adf2019.fq; do
+        for testdir in ${addpath}/adf2019.FQ-new; do
           if [[ -d "${testdir}" ]]; then
             export ADFVER="${testdir##*adf}"
+            if [[ -n "${ADFBIN}" ]]; then
+              if [[ "${PATH}" = *'#'* ]]; then
+                echo 'ERROR: Unable to remove previous Gaussian setup'; return 1
+              else
+                op='#'
+              fi
+#             epurate environment variables from the previous settings
+              PATH="$( echo "${PATH}" | sed s${op}:${ADFBIN}${op}${op}g )"
+              unset op; unset ADFBIN 
+            fi
             . ${testdir}/adfbashrc.sh
+            export NSCM=1
+            alias mkadf='cd "$ADFHOME" && "$ADFBIN"/foray -j 8 ; cd -'
+            if [[ -f "${ADFHOME}/toskip.dat" ]]; then
+              export FORAY_SKIP_TARGET_LIST="$( cat "${ADFHOME}/toskip.dat" )"
+            fi
             if [[ -d "${SCM_TMPDIR}" ]]; then
               trydir="${SCM_TMPDIR}/${USER}/adf"
               if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi

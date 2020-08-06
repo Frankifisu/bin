@@ -137,7 +137,7 @@ def tipoluogo(luogo, luoghi):
 def asciiplot(xy):
     """Print pairs as ascii plot"""
     LX = max(80, len(xy))
-    LY = 22
+    LY = 24
     OUTY = LY
     CHARS = [ ' ', '+', '*' ]
     xmin, ymin = numpy.amin(xy, axis=0)

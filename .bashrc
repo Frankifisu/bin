@@ -95,7 +95,7 @@
 #
   prev () {
     if [[ "${#}" -eq 0 ]]; then echo "Usage: prev command"; return 1 ; fi
-    history | head -n -1 | grep ${1}
+    history | head -n -1 | grep -i ${1}
   }
 #
   getline () {
@@ -266,14 +266,31 @@
   adfq () {
     for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
       if [[ -d "${addpath}" ]]; then
-        for testdir in ${addpath}/adf2019.fq; do
+        for testdir in ${addpath}/adf2019.FQ-new; do
           if [[ -d "${testdir}" ]]; then
             export ADFVER="${testdir##*adf}"
+            if [[ -n "${ADFBIN}" ]]; then
+              if [[ "${PATH}" = *'#'* ]]; then
+                echo 'ERROR: Unable to remove previous setup'; return 1
+              else
+                op='#'
+              fi
+#             epurate environment variables from the previous settings
+              PATH="$( echo "${PATH}" | sed s${op}:${ADFBIN}${op}${op}g )"
+              unset op; unset ADFBIN 
+            fi
+            for trydir in "/scratch" "/tmp"; do
+              if [[ -d "${trydir}" ]]; then
+                trydir="${trydir}/${USER}/adf"
+                if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
+                export SCM_TMPDIR="${trydir}"
+              fi
+            done; unset trydir
             . ${testdir}/adfbashrc.sh
-            if [[ -d "${SCM_TMPDIR}" ]]; then
-              trydir="${SCM_TMPDIR}/${USER}/adf"
-              if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
-              export SCM_TMPDIR="${trydir}"
+            export NSCM=1
+            alias mkadf='cd "$ADFHOME" && "$ADFBIN"/foray -j 8 ; cd -'
+            if [[ -f "${ADFHOME}/toskip.dat" ]]; then
+              export FORAY_SKIP_TARGET_LIST="$( cat "${ADFHOME}/toskip.dat" )"
             fi
             break
           fi
@@ -569,4 +586,3 @@
 #  }
 #
   alias pygior='/home/g.mancini/pkg/python27/bin/python2.7'
-#export FORAY_SKIP_TARGET_LIST='libjson-fortran libftl libdftd3 libdftd4 libgbsa libscm_core libscm_dft libscm_nao libscm_adf libscm_reaxff libscm_gui libscm_analysis libdftb libuff libband libmopac reaxff quild newmm ams brav conductance dirac fcf hfsan mecp negfsurface sgf vcdtools zoraan adf2aim adf2damqt adfnbo basis_utils chargefit cjdensf cpl densf disper dos epr genfit green lfdft lfdft_tdm nmr cifreader cpkf dmpkf fixlic nao pdb2adf pkf runadf testlinalg udmpkf uffdetect normalmodes 

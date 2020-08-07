@@ -222,7 +222,16 @@
   }
 # Connect to uz
   unizone () {
-    sconnect -IP "franco" "ssh2.uz.sns.it" ${@}
+    if ncat -w 0.1 -i 0.1 ssh2.uz.sns.it 22 2>&1 | grep -iq "Idle"; then
+      sconnect -IP "franco" "ssh2.uz.sns.it" ${@}
+    else
+      sconnect -IP "franco" "uz.sns.it" ${@}
+    fi
+  }
+# Connect to trantor
+  trantor () {
+    if [[ "$( hostname )" == "trantor"* ]]; then echo "ERROR: Already on trantor"; return 1; fi
+    sconnect -IP "fegidi" "trantor01.sns.it" ${@}
   }
 # Connect to diamond
   diamond () {

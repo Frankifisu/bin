@@ -222,7 +222,7 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # FILL WEBSITE FORM AND SUBMIT
-    for numero in range(opts.num, 0, -1):
+    for numero in range(opts.num, 44, -1):
         print(numero)
         try:
             ricerca = gzform(numero, ANNO, opts.find)
@@ -230,6 +230,8 @@ def main():
             atti = estrai_atti(ricerca)
             if atti is not None:
                 outhtml = writepage(atti, numero)
+                filepath = os.path.realpath(outhtml)
+                webbrowser.open('file://' + filepath, new=1)
         except ValueError:
             continue
     # CREATE HTML DOCUMENT

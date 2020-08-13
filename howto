@@ -33,6 +33,11 @@
         echo '  Install/configure -b "-o GNU"'
         echo '  $ADFBIN/foray -j 8'
       ;;
+      conda )
+        echo '  conda activate myenv'
+        echo '  conda install numpy matplotlib'
+        echo '  conda deactivate'
+      ;;
       gau )
         echo "DEBUG COMPILATION:"
         echo "  (with setgau) makec l502c"

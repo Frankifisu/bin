@@ -247,22 +247,24 @@
 # ---
 # ADF
 # ---
-  for addpath in "/opt/adf" "${HOME}/usr/local/adf"; do
-    if [[ -d "${addpath}" ]]; then
-      for testdir in ${addpath}/adf2019.FQ-new; do
-        if [[ -d "${testdir}" ]]; then
-          export ADFVER="${testdir##*adf}"
-          . ${testdir}/adfbashrc.sh
-          if [[ -d "${SCM_TMPDIR}" ]]; then
-            trydir="${SCM_TMPDIR}/${USER}/adf"
-            if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
-            export SCM_TMPDIR="${trydir}"
+  if [[ ! -x $( command -v adf ) ]]; then
+    for addpath in "/opt/adf" "${HOME}/usr/local/adf"; do
+      if [[ -d "${addpath}" ]]; then
+        for testdir in ${addpath}/*; do
+          if [[ -d "${testdir}" ]]; then
+            export ADFVER="${testdir##*adf}"
+            . ${testdir}/adfbashrc.sh
+            if [[ -d "${SCM_TMPDIR}" ]]; then
+              trydir="${SCM_TMPDIR}/${USER}/adf"
+              if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
+              export SCM_TMPDIR="${trydir}"
+            fi
+            break
           fi
-          break
-        fi
-      done; unset testdir
-    fi
-  done; unset addpath
+        done; unset testdir
+      fi
+    done; unset addpath
+  fi
   adfq () {
     for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
       if [[ -d "${addpath}" ]]; then
@@ -414,8 +416,11 @@
   }
 # Clean Gaussian Scratch
   cleanscr () {
-    if [[ -z "${GAUSS_SCRDIR}" ]]; then echo "GAUSS_SCRDIR not defined"; return 1; fi
-    for i in "${GAUSS_SCRDIR}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
+    for scrdir in ${GAUSS_SCRDIR} ${SCM_TMPDIR}; do
+      if [[ -d "${scrdir}" ]]; then
+        for i in "${scrdir}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
+      fi
+    done
   }
 ## Generate cube using cubegen
 #  cube () {

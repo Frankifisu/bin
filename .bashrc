@@ -378,8 +378,11 @@
   }
 # Clean Gaussian Scratch
   cleanscr () {
-    if [[ -z "${GAUSS_SCRDIR}" ]]; then echo "GAUSS_SCRDIR not defined"; return 1; fi
-    for i in "${GAUSS_SCRDIR}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
+    for scrdir in ${GAUSS_SCRDIR} ${SCM_TMPDIR}; do
+      if [[ -d "${scrdir}" ]]; then
+        for i in "${scrdir}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
+      fi
+    done
   }
 ## Generate cube using cubegen
 #  cube () {

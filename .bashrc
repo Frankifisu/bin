@@ -213,12 +213,14 @@
     else
       remote_user="franco"
     fi
-    if ncat -w 0.1 -i 0.1 ${officeip} 22 2>&1 | grep -iq "Idle"; then
-      sconnect "${remote_user}" "${officeip}" ${@}
-    else
-      echo 'I need to find some server whence to hop to the office'
-      #ssh -t f.egidi@avogadro.sns.it sconnect "franco" "${officeip}" ${@}
+    if [[ -x $( command -v ncat ) ]]; then
+      if ncat -w 0.1 -i 0.1 ${officeip} 22 2>&1 | grep -iq "Idle"; then
+        :
+      else
+        echo 'I need to find some server whence to hop to the office' ; return 1
+      fi
     fi
+    sconnect "${remote_user}" "${officeip}" ${@}
   }
 # Connect to uz
   unizone () {
@@ -256,57 +258,7 @@
 # ---
 # ADF
 # ---
-  for addpath in "/opt/adf" "${HOME}/usr/local/adf"; do
-    if [[ -d "${addpath}" ]]; then
-      for testdir in ${addpath}/adf2019.FQ-new; do
-        if [[ -d "${testdir}" ]]; then
-          export ADFVER="${testdir##*adf}"
-          . ${testdir}/adfbashrc.sh
-          if [[ -d "${SCM_TMPDIR}" ]]; then
-            trydir="${SCM_TMPDIR}/${USER}/adf"
-            if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
-            export SCM_TMPDIR="${trydir}"
-          fi
-          break
-        fi
-      done; unset testdir
-    fi
-  done; unset addpath
-  adfq () {
-    for addpath in "~f.egidi/usr/local/adf" "${HOME}/usr/local/adf"; do
-      if [[ -d "${addpath}" ]]; then
-        for testdir in ${addpath}/adf2019.FQ-new; do
-          if [[ -d "${testdir}" ]]; then
-            export ADFVER="${testdir##*adf}"
-            if [[ -n "${ADFBIN}" ]]; then
-              if [[ "${PATH}" = *'#'* ]]; then
-                echo 'ERROR: Unable to remove previous setup'; return 1
-              else
-                op='#'
-              fi
-#             epurate environment variables from the previous settings
-              PATH="$( echo "${PATH}" | sed s${op}:${ADFBIN}${op}${op}g )"
-              unset op; unset ADFBIN 
-            fi
-            for trydir in "/scratch" "/tmp"; do
-              if [[ -d "${trydir}" ]]; then
-                trydir="${trydir}/${USER}/adf"
-                if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}"; fi
-                export SCM_TMPDIR="${trydir}"
-              fi
-            done; unset trydir
-            . ${testdir}/adfbashrc.sh
-            export NSCM=1
-            alias mkadf='cd "$ADFHOME" && "$ADFBIN"/foray -j 8 ; cd -'
-            if [[ -f "${ADFHOME}/toskip.dat" ]]; then
-              export FORAY_SKIP_TARGET_LIST="$( cat "${ADFHOME}/toskip.dat" )"
-            fi
-            break
-          fi
-        done; unset testdir
-      fi
-    done; unset addpath
-  }
+  alias setadf=". setadf.sh"
 #
 #
 # ------
@@ -337,16 +289,19 @@
   compile () {
     if [[ ! -x $( command  -v qsub ) ]]; then echo "ERROR: No qsub command"; return 1; fi
     local jobnam="compiling"
+    local queue="q07diamond"
+    local nodes=""
     while [[ -n "${1}" ]]; do
       case "${1}" in
         -q     ) queue="${2}"; shift;;
+        -p     ) nodes="-l nodes=1:ppn=28"; shift;;
         -v     ) vrb="-v";;
         -N     ) jobnam="${2}";;
         *      ) echo "ERROR: unrecognized option ${1}"; return 1;;
       esac; shift
     done
     if [[ -z "${queue}" ]]; then queue="q02zewail"; fi
-    qsub -I -N "${jobnam}" -q ${queue}
+    qsub -I -N "${jobnam}" -q ${queue} ${nodes}
   }
 #  subfq () {
 #    unset chk ; unset coda ; unset working ; unset subarch

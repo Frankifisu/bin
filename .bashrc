@@ -18,7 +18,7 @@
   done; unset addpath
 # LD_LIBRARY_PATH
   for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64" "/usr/lib/x86_64-linux-gnu"; do
-    if [[ -d ${addpath} ]]; then
+    if [[ -d "${addpath}" || -L "${addpath}" ]]; then
       export LD_LIBRARY_PATH="${addpath}:${LD_LIBRARY_PATH}"; fi
   done; unset addpath
 #

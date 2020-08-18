@@ -114,8 +114,8 @@ fi
 # -----------------------------
   ncpuavail=$( nproc )
   partone='cd "$ADFHOME" && "$ADFBIN"/foray'
-  parttwo="-j ${ncpuavail} ; cd -"
-  alias mkadf="${partone} ${parttwo}"
+  parttwo="-j ${ncpuavail} > mkadf.out ; cd -"
+  alias mkadf="${partone} ${parttwo} 2>&1 | tee mkadf.log"
   unset ncpuavail partone parttwo
   if [[ -f "${ADFHOME}/toskip.dat" ]]; then
     export FORAY_SKIP_TARGET_LIST="$( cat "${ADFHOME}/toskip.dat" )"

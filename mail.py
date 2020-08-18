@@ -36,7 +36,7 @@ SMTP_DATA = {
     'SERVER' : 'smtp.gmail.com',
     'PORT'   : 465,
     }
-SIGNED = f'Message from {USER}@{HOSTNAME}'
+SIGNED = f'\nMessage from {USER}@{HOSTNAME}'
 FOOTER = f"""\
 <!DOCTYPE html>
   <html>
@@ -53,21 +53,21 @@ FOOTER = f"""\
 # =================
 def errore(message=None):
     """Error function"""
-    if message != None:
-        print('ERROR: ' + message)
+    if message is not None:
+        print('ERROR: ' + str(message))
     sys.exit(1)
 
 # =================
 #  PARSING OPTIONS
 # =================
-def parseopt():
+def parseopt(args=None):
     """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
     # Optional arguments
     parser.add_argument('-to', '--to', nargs='*',
-        dest='to', action='store', default=[ SMTP_DATA.get('MAIL') ],
+        dest='to', action='store', default=list(),
         help='Specify recepients')
     parser.add_argument('-cc', nargs='*',
         dest='cc', action='store', default=list(),
@@ -76,7 +76,7 @@ def parseopt():
         dest='bcc', action='store', default=list(),
         help='Blind Carbon Copy addresses')
     parser.add_argument('-s', '--subject', type=str,
-        dest='sbj', action='store', default=SIGNED,
+        dest='sbj', action='store', default="",
         help='Mail subject')
     parser.add_argument('-m', '--msg', type=str,
         dest='msg', action='store', default="",
@@ -90,18 +90,20 @@ def parseopt():
     parser.add_argument('--dry',
         dest='dry', action='store_true', default=False,
         help=argparse.SUPPRESS)
-    opts = parser.parse_args()
+    opts = parser.parse_args(args)
     # Check options
     for attfil in opts.att:
         if not os.path.isfile(attfil):
             errore(f'File {attfil} not found')
-    for attr in opts.to, opts.cc, opts.bcc, opts.msg, opts.att:
-        if not attr:
-            print(attr)
-    if not opts.to and not opts.cc and not otps.bcc and not opts.msg and not opts.msg and not opts.att:
-        print('afdsaf')
-    errore()
-    if SMTP_DATA.get('MAIL') not in opts.to + opts.cc + opts.bcc:
+    alladdr = opts.to + opts.cc + opts.bcc
+    if not alladdr and not opts.msg and not opts.att and not opts.sbj:
+        parser.print_help()
+        errore()
+    if not opts.sbj:
+        opts.sbj = SIGNED
+    if not alladdr:
+        opts.to.append( SMTP_DATA.get('MAIL') )
+    elif SMTP_DATA.get('MAIL') not in alladdr:
         opts.bcc.append( SMTP_DATA.get('MAIL') )
     return opts
 
@@ -123,7 +125,10 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
             body = filobj.read()
     except:
         body = msg
-    emsg.set_content(body + '\n' + SIGNED)
+    if sbj != SIGNED:
+        emsg.set_content(body + SIGNED)
+    else:
+        emsg.set_content(body)
     #Attachments
     for attfil in att:
         if not os.path.isfile(attfil):
@@ -147,9 +152,9 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
 # ==============
 #  MAIN PROGRAM
 # ==============
-def main():
-    # PARSE OPTIONS
-    opts = parseopt()
+def main(args=None):
+    # PARSE ARGUMENTS
+    opts = parseopt(args)
     # CREATE MESSAGE
     emsg = emailmsg(sbj=opts.sbj, msg=opts.msg,
                     fro=SMTP_DATA.get('MAIL'), to=opts.to, cc=opts.cc, bcc=opts.bcc,
@@ -157,7 +162,7 @@ def main():
     if opts.vrb >= 1:
         print(emsg)
     if opts.dry:
-        sys.exit()
+        return
     # SEND MESSAGE
     with smtplib.SMTP_SSL(SMTP_DATA.get('SERVER'), SMTP_DATA.get('PORT')) as server:
         server.login(SMTP_DATA.get('MAIL'), SMTP_DATA.get('PASSWD'))

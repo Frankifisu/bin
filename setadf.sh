@@ -68,7 +68,7 @@ fi
 #   crawl through the system searching for the desired ADF directory
     if [[ -z "${ver}" ]]; then echo "ERROR: ADF version not specified"; return 1; fi
     declare findme=""; declare -i depth=0 ; declare -i mxdpt=4
-    downfrom="/home/fegidi/usr/local/adf"
+    downfrom="${HOME}/usr/local/adf"
     while [[ -z "${findme}" && "${depth}" -le "${mxdpt}" ]]; do
 #     Start from / and work your way down by increasing depth
 #     -prune is used to select which files or directories to skip

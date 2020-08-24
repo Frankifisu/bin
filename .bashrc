@@ -75,6 +75,7 @@
   alias ll="ls -lh"
   alias ltrh="ls -ltrah"
   alias grepi="grep -i"
+  alias myip="ip route get 1 | head -n 1 | grab 7"
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
@@ -184,7 +185,7 @@
 #     This function sends the IP into the .bashrc of a remote host
 #     before performing a ssh or scp operation.
 #     It expects the remote host .bashrc to have an office function
-      myIP="$( ip route get 1 | head -n 1 | grab 7 )"
+      myIP="$( myip )"
       local dest_fil=""
       for test_dir in "usr/bin" "bin"; do
         test_fil="${test_dir}/.bashrc"

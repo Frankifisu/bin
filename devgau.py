@@ -48,6 +48,7 @@ REGAUINP = {
         'allchk' : r'geom(=|=\(|\()allch(ec)?k',
         }
 MEM = '1GB'
+TESTGAU = 'test'
 
 # =========
 #  CLASSES
@@ -257,16 +258,14 @@ def parseopt():
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
         help='Set printing level')
-    parser.add_argument('--test',
-        dest='test', action='store_true', default=False,
-        help=argparse.SUPPRESS)
     parser.add_argument('--dry', '-dry',
         dest='dry', action='store_true', default=False,
         help=argparse.SUPPRESS)
     opts = parser.parse_args()
     # Check options
     for fil in opts.gjf:
-        check_extension(fil, INPEXT)
+        if fil != TESTGAU:
+            check_extension(fil, INPEXT)
     if opts.fq:
         opts.wrkdir = GAUFQ['working']
         opts.gauroot = GAUFQ['gauroot']
@@ -394,7 +393,7 @@ def parsegau(lines, joblist):
     nstart = nroute + readsection(lines[nroute:], newjob.route)
     #Possibly read Title and Molecule
     fullroute = " ".join(newjob.route)
-    if not re.search(REGAUINP['allchk'], fullroute):
+    if not re.search(REGAUINP['allchk'], fullroute, flags=re.IGNORECASE):
         nstart = nstart + readsection(lines[nstart:], newjob.title)
         nstart = nstart + readsection(lines[nstart:], newjob.mol)
     #Read Tail
@@ -414,6 +413,7 @@ def parsegau(lines, joblist):
     return joblist
 def readsection(lines, toadd):
     """Read section terminated by empty line"""
+    nline = 0
     for nline, line in enumerate(lines):
         if not line.strip():
             break
@@ -446,13 +446,19 @@ def main():
     for num, gauinp in enumerate(opts.gjf, start=1):
         # CREATE NEW TEMPORARY INPUT FILE
         gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
-        if not os.path.isfile(gauinp):
-            errore(f'File {gauinp} not found')
-        joblist = []
         # Parse input file to generate Gaussian input file objects
-        with open(gauinp, 'r') as filein:
-            lines = filein.readlines()
-            joblist = parsegau(lines, joblist)
+        joblist = []
+        try:
+            with open(gauinp, 'r') as filein:
+                lines = filein.readlines()
+                joblist = parsegau(lines, joblist)
+        except FileNotFoundError:
+            if gauinp_nam == TESTGAU:
+                newjob = gauinput()
+                newjob.default()
+                joblist = [ newjob ] + joblist
+            else:
+               errore(f'File {gauinp} not found')
         # Modify jobs according to options and write temporary file
         joblist = modgaujob(joblist, gauinp_nam, opts)
         _gauinp = wrtgauinp(joblist, '._', gauinp_nam, opts.vrb)

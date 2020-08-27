@@ -13,6 +13,7 @@ import re #Regex
 import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
+import tempfile #To create teporary files
 
 # ==============
 #  PROGRAM DATA
@@ -217,7 +218,7 @@ def parseopt():
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
         description='Command-line option parser')
-    parser.add_argument(dest='gjf', nargs='*', metavar="INPUT",
+    parser.add_argument(dest='gjf', nargs='+', metavar="INPUT",
         help='Input file(s) with .com or .gjf extensions')
     parser.add_argument('-o', '--output', metavar='OUTPUT',
         dest='out', action='store',
@@ -360,17 +361,18 @@ def modgaujob(joblist, gauinp_nam, opts):
         if gjf.nproc() > CPUFREE:
             errore(f'{gjf.nproc()} processors requested, but only {CPUFREE} available')
     return joblist
-def wrtgauinp(joblist, prefix: str, gauinp_nam: str, vrb=0) -> str:
+def wrtgauinp(joblist, scrdir: typing.Optional[str], gauinp: str, vrb=0) -> str:
     """Write list of Gaussian input file objects into file"""
-    tmpinp = prefix + gauinp_nam + '.gjf'
-    with open(tmpinp, 'w') as fileout:
+    gauinp_nam, gauinp_ext = os.path.splitext(gauinp)
+    tmpinp = tempfile.NamedTemporaryFile(mode='w+t', suffix=gauinp_ext, prefix=gauinp_nam, dir=scrdir, delete=False)
+    with tmpinp as fileout:
         fileout.write(str(joblist[0]))
         for gjf in joblist[1:]:
             fileout.write('--Link1--\n')
             fileout.write(str(gjf))
     if vrb >= 1:
-        print(f'Written file {tmpinp}')
-    return tmpinp
+        print(f'Written file {tmpinp.name}')
+    return tmpinp.name
 def parsegau(lines, joblist):
     """Parse single Gaussian job"""
     newjob = gauinput()
@@ -461,13 +463,13 @@ def main():
                errore(f'File {gauinp} not found')
         # Modify jobs according to options and write temporary file
         joblist = modgaujob(joblist, gauinp_nam, opts)
-        _gauinp = wrtgauinp(joblist, '._', gauinp_nam, opts.vrb)
+        _gauinp = wrtgauinp(joblist, opts.gauscr, gauinp, opts.vrb)
         # SET OUTPUT FILE
         if opts.out is None:
             gauout = gauinp_nam + '.log'
         else:
             gauout = opts.out
-            if num > 0:
+            if num > 1:
                 # if there are multiple inputs but the output filename is set then append output
                 ad = '>>'
         # RUN COMMAND

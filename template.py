@@ -30,8 +30,8 @@ SHELL = os.getenv('SHELL')
 # =================
 def errore(message=None):
     """Error function"""
-    if message != None:
-        print(f'ERROR: {message}')
+    if message is not None:
+        print(f'ERROR: {str(message)}')
     sys.exit(1)
 
 # =================

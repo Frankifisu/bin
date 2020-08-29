@@ -163,9 +163,17 @@ class gauinput:
 # =================
 def errore(message=None):
     """Error function"""
-    if message != None:
+    if message is not None:
         print(f'ERROR: {str(message)}')
     sys.exit(1)
+def intorstr(string):
+    if string is None:
+        return None
+    try:
+        toint = int(string)
+        return toint
+    except:
+        return string
 def bashrun(comando: str, env=None, vrb=0) -> str:
     """Run bash subprocess with sensible defaults
     and return output"""
@@ -213,7 +221,7 @@ CPUTOT  = ncpuavail()
 # =================
 #  PARSING OPTIONS
 # =================
-def parseopt():
+def parseopt(args=None):
     """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
@@ -233,7 +241,7 @@ def parseopt():
         dest='add', action='append', type=str, default=[],
         help='Add keyword string to input file(s)')
     parser.add_argument('-m', '--mem', metavar='GAUSS_MDEF',
-        dest='mem', action='store', default=None,
+        dest='mem', action='store', default=None, type=intorstr,
         help='Set memory in Words or Bytes')
     parser.add_argument('-p', '--nproc', metavar='GAUSS_PDEF',
         dest='nproc', default=None,
@@ -262,7 +270,7 @@ def parseopt():
     parser.add_argument('--dry', '-dry',
         dest='dry', action='store_true', default=False,
         help=argparse.SUPPRESS)
-    opts = parser.parse_args()
+    opts = parser.parse_args(args)
     # Check options
     for fil in opts.gjf:
         if fil != TESTGAU:
@@ -284,6 +292,12 @@ def parseopt():
         opts.nproc = max(CPUFREE, 1)
     elif opts.nproc in ["halfree", "hlfree"]:
         opts.nproc = max(CPUFREE//2, 1)
+    if opts.mem:
+        if isinstance(opts.mem, int):
+            if opts.mem <= 128:
+                opts.mem = f'{opts.mem}GB'
+            else:
+                opts.mem = f'{opts.mem}MB'
     if opts.wrkdir is not None:
         if not os.path.isdir(opts.wrkdir):
              errore(f'Invalid Gaussian working directory {opts.wrkdir}')
@@ -425,9 +439,9 @@ def readsection(lines, toadd):
 # ==============
 #  MAIN PROGRAM
 # ==============
-def main():
+def main(args=None):
     # PARSE OPTIONS
-    opts = parseopt()
+    opts = parseopt(args)
     # DEFINE GAUSSIAN ENVIRONMENT AND SUBMISSION COMMAND
     os.environ = cleanenv(os.environ)
     os.environ = setgauenv(os.environ, opts.gauroot, opts.gauscr, opts.vrb)

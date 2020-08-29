@@ -30,7 +30,7 @@
       adf )
         echo 'COMPILING'
         echo '  cd $ADFHOME; source $( find ${ADFHOME} -name adfbashrc.sh )'
-        echo '  Install/configure -b "-o GNU"'
+        echo '  Install/configure -b "myconfig -o GNU -p openmpi -staticmkl"'
         echo '  $ADFBIN/foray -j 8'
       ;;
       conda )

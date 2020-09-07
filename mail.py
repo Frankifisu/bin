@@ -36,7 +36,7 @@ SMTP_DATA = {
     'SERVER' : 'smtp.gmail.com',
     'PORT'   : 465,
     }
-SIGNED = f'\nMessage from {USER}@{HOSTNAME}'
+SIGNED = f'Message from {USER}@{HOSTNAME}'
 FOOTER = f"""\
 <!DOCTYPE html>
   <html>
@@ -126,7 +126,7 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
     except:
         body = msg
     if sbj != SIGNED:
-        emsg.set_content(body + SIGNED)
+        emsg.set_content(body + '\n' +  SIGNED)
     else:
         emsg.set_content(body)
     #Attachments

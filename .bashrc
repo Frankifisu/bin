@@ -359,7 +359,7 @@
 #    unset revert
 #    if [ `shopt -q extglob | echo $?` -eq 1 ]; then revert=1 ; fi
 #    shopt -s extglob
-    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' )
+    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' 'fort.7')
     for targetrm in ${listrm[*]}; do
       if [[ ! -f "${targetrm}" ]]; then continue; fi
       if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi

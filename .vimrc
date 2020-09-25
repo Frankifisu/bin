@@ -39,3 +39,4 @@ endif
 "Automatically execute commands for certain file types"
 autocmd FileType python setlocal shiftwidth=4 softtabstop=4
 autocmd BufEnter,BufNew *.f90 setlocal shiftwidth=3 softtabstop=3
+autocmd BufEnter,BufNew *.run set syntax=sh

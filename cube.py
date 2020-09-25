@@ -7,13 +7,13 @@ import argparse #Commandline argument parsers
 import socket #Module for the fully qualified named of the headnode
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #To add typing to functions
+from feutils import * #My generic functions
 
 # ================
 #   PROGRAM DATA
 # ================
-AUTHOR = "FRANCO EGIDI (franco.egidi@sns.it)"
-VERSION = "2019.01.03"
-# Program name is generated from commandline
+AUTHOR = "FRANCO EGIDI (franco.egidi@gmail.it)"
+VERSION = "2020.09.20"
 PROGNAME = os.path.basename(sys.argv[0])
 
 # ============
@@ -25,11 +25,6 @@ CUBCMD = 'cubegen'
 # =================
 #  BASIC FUNCTIONS
 # =================
-def cuberr(message=None) :
-    # ERROR FUNCTION
-    if message != None:
-        print('ERROR: ' + message)
-    sys.exit(1)
 
 # ===================
 #   PARSING OPTIONS
@@ -49,10 +44,10 @@ def cubeparse():
         dest='cub',
         help='Set cube file name')
     parser.add_argument('-p', '--npts',
-        dest='npts', default=0, metavar='NPTS', type=str,
+        dest='npts', default=0, metavar='NPTS', type=intorstr,
         help='Set number of points')
-    parser.add_argument('-v', '--iprint',
-        dest='iprint', action='count', default=0,
+    parser.add_argument('-v', '--verbose',
+        dest='vrb', action='count', default=0,
         help='Set printing level')
     parser.add_argument('-f', '--format',
         dest='cbfmt', default='h',
@@ -72,53 +67,42 @@ def cubeparse():
 #   OPTION PARSING
     opts = parser.parse_args()
 #   CONSISTENCY CHECKS
-    chknam, chkext = os.path.splitext(opts.fchk)
-    if ( chkext != '.fchk') :
-        cuberr('File {} does not have a .fchk extension'.format(chknam))
+    check_extension(opts.fchk, ['.fchk'])
 #   CHECK FILE EXTENSIONS
-    if opts.cub == None or opts.cub == '':
+    if opts.cub is None or opts.cub == '':
         opts.cub = chknam + CUBEXT
 #   CHECK NUMBER OF POINTS
-    opts.npts = str.lower(str(opts.npts))
-    if opts.npts[:3] == 'coa':
-        opts.npts = '-2'
-    elif opts.npts[:3] == 'med':
-        opts.npts = '-3'
-    elif opts.npts[:3] == 'fin':
-        opts.npts = '-4'
-    elif opts.npts[:3] == 'ult':
-        opts.npts = '-22'
-    else :
-        try:
-            int(opts.npts)
-        except ValueError:
-            cuberr('Invalid number of points "{}"'.format(opts.npts))
+    if not isinstance(opts.npts, int):
+        testr = str(opts.npts)
+        if testr[:3] == 'coa':
+            opts.npts = '-2'
+        elif testr[:3] == 'med':
+            opts.npts = '-3'
+        elif testr[:3] == 'fin':
+            opts.npts = '-4'
+        elif testr[:3] == 'ult':
+            opts.npts = '-22'
+        else :
+            errore('Invalid number of points "{}"'.format(opts.npts))
 #   CHECK PROCESSORS
     opts.nproc = str.lower(str(opts.nproc))
     if opts.nproc in ["all", "max"]:
-        opts.nproc = ncpuavail()
+        opts.nproc = CPUTOT
     elif opts.nproc in ["half", "hlf"]:
-        opts.nproc = max(ncpuavail()//2, 1)
+        opts.nproc = max(CPUTOT//2, 1)
     return opts
 
 # =============
 #   FUNCTIONS
 # =============
-def ncpuavail() -> int :
-    # NUMBER OF AVAILABLE PROCESSORS
-    try:
-        result = subprocess.run('nproc', stdout=subprocess.PIPE)
-        nprocs = result.stdout.decode('utf-8').split()[0]
-    except:
-        nprocs = 1
-    return int(nprocs)
-def gencubomand(opts):
+def gencubomando(opts):
      # ASSEMBLE CUBEGEN COMMAND
      # cubegen nprocs  kind  fchkfile  cubefile  npts  format cubefile2 iprint [bonus]
      cubomando = CUBCMD
      cubomando = opts.wrkdir + cubomando
-     for word in opts.nproc, opts.kind, opts.fchk, opts.cub, opts.npts, opts.cbfmt, opts.cub2, opts.iprint, opts.bonus, opts.denfil:
-         cubomando = cubomando + ' ' + str(word)
+     for word in opts.nproc, opts.kind, opts.fchk, opts.cub, opts.npts, opts.cbfmt, opts.cub2, opts.vrb, opts.bonus, opts.denfil:
+         if word is not None:
+             cubomando = cubomando + ' ' + str(word)
      return cubomando
 
 # ================
@@ -128,10 +112,9 @@ def main():
     # Option parsing
     opts = cubeparse()
     # Generate cubegen command
-    cubomando = gencubomand(opts)
+    cubomando = gencubomando(opts)
     # Execute command
-    print(cubomando)
-    subprocess.run(cubomando, shell=True, executable='/bin/bash')
+    bashrun(comando, opts.vrb)
 
 # =============
 #   MAIN CALL

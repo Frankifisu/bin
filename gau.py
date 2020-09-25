@@ -176,11 +176,9 @@ class gauinput:
 # =================
 #  PARSING OPTIONS
 # =================
-def parseopt(args=None):
-    """Parse options"""
-    # Create parser
-    parser = argparse.ArgumentParser(prog=PROGNAME,
-        description='Command-line option parser')
+def gauparser(parser):
+    """Create parsers for Gaussian command"""
+    # Add options
     parser.add_argument(dest='gjf', nargs='+', metavar="INPUT",
         help='Input file(s) with .com or .gjf extensions')
     parser.add_argument('-o', '--output', metavar='OUTPUT',
@@ -188,7 +186,7 @@ def parseopt(args=None):
         help='Set output file name')
     parser.add_argument('-g', '--gauroot', metavar='GAUROOT',
         dest='gauroot', action='store', default=exepath(GAUDIR['c01']),
-        help='Set output file name')
+        help='Set path to Gaussian16')
     parser.add_argument('-w', '--working', metavar='WRKDIR',
         dest='wrkdir', action='store', default=None,
         help='Set working directory path')
@@ -203,7 +201,7 @@ def parseopt(args=None):
         help='Set number of processors')
     parser.add_argument('-c', '--cpulist', metavar='GAUSS_CDEF',
         dest='procs', default=None,
-        help='Set list of processors, overrides --nproc')
+        help=argparse.SUPPRESS)
     parser.add_argument('-t', '--tmp', metavar='GAUSS_SCRDIR',
         dest='gauscr', action='store', default=gauscr(),
         help='Set scratch directory')
@@ -225,6 +223,13 @@ def parseopt(args=None):
     parser.add_argument('--dry', '-dry',
         dest='dry', action='store_true', default=False,
         help=argparse.SUPPRESS)
+    return parser
+def parseopt(args=None):
+    """Parse options"""
+    # Create parser
+    parser = argparse.ArgumentParser(prog=PROGNAME,
+        description='Command-line option parser')
+    parser = gauparser(parser)
     opts = parser.parse_args(args)
     # Check options
     for fil in opts.gjf:
@@ -462,8 +467,8 @@ def gaurun(opts):
 #  MAIN PROGRAM
 # ==============
 def main(args=None):
-    # CHANGE DIRECTORY ON PBS SUBMISSION
-    if os.getenv('PBS_O_WORKDIR', default=""):
+    # CHANGE DIRECTORY UPON PBS BATCH SUBMISSION
+    if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
         goto = os.getenv('PBS_O_WORKDIR')
     else:
         goto = os.getcwd()

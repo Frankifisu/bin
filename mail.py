@@ -15,16 +15,14 @@ import typing #Support for type hints
 import smtplib #To send emails
 import email #To send emails
 import mimetypes #Handle file types over Internet
+from feutils import * #My generic functions
 
 # ==============
 #  PROGRAM DATA
 # ==============
 AUTHOR = 'Franco Egidi (franco.egidi@gmail.it)'
-VERSION = '2020.15.05'
+VERSION = "2020.09.20"
 PROGNAME = os.path.basename(sys.argv[0])
-USER = os.getenv('USER')
-HOME = os.getenv('HOME')
-SHELL = os.getenv('SHELL')
 HOSTNAME = platform.node()
 
 # ==========
@@ -51,11 +49,6 @@ FOOTER = f"""\
 # =================
 #  BASIC FUNCTIONS
 # =================
-def errore(message=None):
-    """Error function"""
-    if message is not None:
-        print('ERROR: ' + str(message))
-    sys.exit(1)
 
 # =================
 #  PARSING OPTIONS
@@ -110,16 +103,22 @@ def parseopt(args=None):
 # ================
 #  WORK FUNCTIONS
 # ================
-def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
+def emailmsg( sbj='', msg='', fro='', to=None, cc=None, bcc=None, att=None ):
     """Create email message object"""
+    # Restore defaults to mutable empty lists
+    if  to is None:  to = []
+    if  cc is None:  cc = []
+    if bcc is None: bcc = []
+    if att is None: att = []
+    # Create message object
     emsg = email.message.EmailMessage()
-    #Fields
+    # Assign fields
     emsg['Subject'] = sbj
     emsg['To'] = ', '.join(to)
     emsg['From'] = fro
     emsg['Cc'] = ', '.join(cc)
     emsg['Bcc'] = ', '.join(bcc)
-    #Body
+    # Body
     try:
         with open(msg, 'r') as filobj:
             body = filobj.read()
@@ -129,7 +128,7 @@ def emailmsg( sbj='', msg='', fro='', to=[], cc=[], bcc=[], att=[] ):
         emsg.set_content(body + '\n' +  SIGNED)
     else:
         emsg.set_content(body)
-    #Attachments
+    # Attachments
     for attfil in att:
         if not os.path.isfile(attfil):
             continue
@@ -168,8 +167,7 @@ def main(args=None):
         server.login(SMTP_DATA.get('MAIL'), SMTP_DATA.get('PASSWD'))
         try:
             server.send_message(emsg)
-            if opts.vrb >= 1:
-               print('Message successfully sent')
+            if opts.vrb >= 1: print('Message successfully sent')
         except:
             errore('Failed to send message')
     sys.exit()

@@ -12,7 +12,7 @@ import argparse # commandline argument parsers
 import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Support for type hints
-import devgau
+import gau #Gaussian script
 from feutils import *
 
 # ==============
@@ -30,37 +30,60 @@ QSUB = 'qsub -r n -V'
 # =================
 #  BASIC FUNCTIONS
 # =================
+class Gaussian(Exception):
+    pass
 
 # =================
 #  PARSING OPTIONS
 # =================
+def queueparser(parser):
+    """Create parsers for qsub command"""
+    # Optional arguments
+    parser.add_argument('-q', '--queue', metavar='QUEUE',
+        dest='queue', action='store', default='q07diamond', type=str,
+        help='Select queue')
+    parser.add_argument('-j', '--job', metavar='JOB',
+        dest='job', action='store', default='job', type=str,
+        help='Set job name')
+    parser.add_argument('-m', '--mem', metavar='MEM',
+        dest='mem', action='store', default=64, type=intorstr,
+        help='Set RAM')
+    parser.add_argument('-p', '--nproc', metavar='PROC',
+        dest='ppn', default=28,
+        help='Set number of processors')
+    parser.add_argument('-mpi',
+        dest='mpi', default=False, action='store_true',
+        help='Request MPI parallelization')
+    parser.add_argument('-v', '--verbose',
+        dest='vrb', action='count', default=0,
+        help='Set printing level')
+    parser.add_argument('-h', '--help',
+        dest='hlp', action='store_true', default=False,
+        help='Print help message and exit')
+    return parser
 def parseopt(args=None):
     """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
+        add_help=False,
         description='Command-line option parser')
-    queue = parser.add_argument_group('queue options')
-    # Optional arguments
-    queue.add_argument('-q', '--queue', metavar='QUEUE',
-        dest='queue', action='store', default='q07diamond', type=str,
-        help='Select queue')
-    queue.add_argument('-j', '--job', metavar='JOB',
-        dest='job', action='store', default='job', type=str,
-        help='Set job name')
-    #queue.add_argument('-P', '--project', metavar='PROJ',
-    #    dest='project', default=None,
-    #    help='Defines the project to run the calculation')
-    queue.add_argument('-m', '--mem', metavar='MEM',
-        dest='mem', action='store', default=64, type=intorstr,
-        help='Set RAM')
-    queue.add_argument('-p', '--nproc', metavar='PROC',
-        dest='ppn', default=28,
-        help='Set number of processors')
-    queue.add_argument('-v', '--iprint',
-        dest='vrb', action='count', default=0,
-        help='Set printing level')
+    helparser = argparse.ArgumentParser(prog=PROGNAME,
+        formatter_class=wide_help(argparse.HelpFormatter, w=140, h=40),
+        add_help=False, conflict_handler='resolve',
+        description='Command-line option parser')
+    # G16 parser
+    gaussian = helparser.add_argument_group('g16 options')
+    gaussian = gau.gauparser(gaussian)
+    # qsub parser
+    queue = helparser.add_argument_group('queue options')
+    queue = queueparser(queue)
+    parser = queueparser(parser)
     opts, other = parser.parse_known_args(args)
+    if not other or opts.hlp:
+        helparser.print_help()
+        sys.exit()
     if opts.mem:
+        # If memory is given as an integer, try to guess if it's MB or GB
         if isinstance(opts.mem, int):
             if opts.mem <= 128:
                 opts.mem = f'{opts.mem}G'
@@ -81,18 +104,23 @@ def main():
     opts, other = parseopt()
     qsub = f'{QSUB}'
     qsubl = f'-l select=1:ncpus={opts.ppn}:mem={opts.mem}'
+    if opts.mpi:
+        qsubl = qsubl + f':mpiprocs={opts.ppn} -l place=pack'
     qsubN = f'-N {opts.job}'
     #qsubo = f'-o {opts.job}.o -e {opts.job}.e'
     qsubq = f'-q {opts.queue}'
     qsub = ' '.join([ qsub, qsubl, qsubN, qsubq ])
     try:
         # Submission of generic script
-        for therest in other:
+        for n, therest in enumerate(other):
             filnam, filext = os.path.splitext(therest)
             if filext in {'.com', '.gjf'}:
-                raise Exception
-        qsub = ' -- '.join([qsub] + other)
-    except:
+                raise Gaussian
+            elif os.path.isfile(therest) and os.access(therest, os.X_OK):
+                other[n] = os.path.abspath(therest)
+        qsub = qsub + ' --'
+        qsub = ' '.join([qsub] + other)
+    except Gaussian:
         # Submission of Gaussian
         progr = shutil.which('gau.py')
         if progr is None:
@@ -113,8 +141,7 @@ def main():
             other = other + ['-v']
         qsub = ' '.join([qsub] + other)
     try:
-        if opts.vrb > 0:
-            print(qsub)
+        if opts.vrb > 0: print(qsub)
         qsubrun = bashrun(qsub, env=os.environ, vrb=opts.vrb)
     except:
         errore(f'Submission failed')

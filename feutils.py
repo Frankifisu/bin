@@ -16,7 +16,7 @@ import typing #Explicit typing of arguments
 # ==============
 #  PROGRAM DATA
 # ==============
-AUTHOR = 'Franco Egidi (franco.egidi@sns.it)'
+AUTHOR = 'Franco Egidi (franco.egidi@gmail.it)'
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
 PWD = os.getcwd()
@@ -44,10 +44,21 @@ class cd:
 # =================
 #  BASIC FUNCTIONS
 # =================
+def wide_help(formatter, w=120, h=36):
+    """Return a wider HelpFormatter, if possible."""
+    try:
+        # https://stackoverflow.com/a/5464440
+        # beware: "Only the name of this class is considered a public API."
+        kwargs = {'width': w, 'max_help_position': h}
+        formatter(None, **kwargs)
+        return lambda prog: formatter(prog, **kwargs)
+    except TypeError:
+        print("argparse help formatter failed, falling back.")
+        return formatter
 def errore(message=None):
     """Error function"""
     if message is not None:
-        print(f'ERROR: {str(message)}')
+        print(f'ERROR: {str(message)}', file=sys.stderr)
     sys.exit(1)
 def intorstr(string):
     """Check if string could be integer"""
@@ -73,7 +84,7 @@ def check_extension(to_check: str, allowed_ext):
     """Check file extension"""
     filnam, filext = os.path.splitext(to_check)
     if filext not in allowed_ext:
-        errore(f'Invalid file extension for {to_check}')
+        raise ValueError
 def loginshvar(var: str) -> str :
     """Get environment variable from the login shell"""
     comando = " ".join(['env -i', BASH, ' -l -c "printenv', var, '"'])

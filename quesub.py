@@ -26,6 +26,19 @@ PROGNAME = os.path.basename(sys.argv[0])
 #  DEFAULTS
 # ==========
 QSUB = 'qsub -r n -V'
+DESCRIPTION="""
+This script allows one to easily submit any command through the PBS system
+"""
+EPILOG="""
+Examples:
+
+    Gaussian calculations:
+        quesub.py -v -q q14diamond -w $HOME/myworking gaussian.com
+        quesub.py -v -chk -p 16 -m 8 -a NoSymm gaussian.com
+
+    Script submissions:
+        quesub.py -v -p 1 -m 16 -mpi myscript.sh
+"""
 
 # =================
 #  BASIC FUNCTIONS
@@ -64,13 +77,12 @@ def queueparser(parser):
 def parseopt(args=None):
     """Parse options"""
     # Create parser
-    parser = argparse.ArgumentParser(prog=PROGNAME,
-        add_help=False,
-        description='Command-line option parser')
+    parser = argparse.ArgumentParser(prog=PROGNAME, add_help=False)
     helparser = argparse.ArgumentParser(prog=PROGNAME,
-        formatter_class=wide_help(argparse.HelpFormatter, w=140, h=40),
-        add_help=False, conflict_handler='resolve',
-        description='Command-line option parser')
+        formatter_class=wide_help(argparse.RawDescriptionHelpFormatter, w=140, h=40),
+        usage="quesub.py [OPTIONS] [SCRIPT or G16_INP]",
+        description=DESCRIPTION, epilog=EPILOG,
+        add_help=False, conflict_handler='resolve')
     # G16 parser
     gaussian = helparser.add_argument_group('g16 options')
     gaussian = gau.gauparser(gaussian)

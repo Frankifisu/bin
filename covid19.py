@@ -53,6 +53,7 @@ GITHEDS = {
     }
 PRIMOGIORNO = dt.datetime.strptime('20200224', FMTNAM)
 CAPODANNO   = dt.datetime.strptime('20200101', FMTNAM)
+TOSEARCH = 'totale_casi'
 
 # =================
 #  BASIC FUNCTIONS
@@ -82,6 +83,9 @@ def parseopt():
     parser.add_argument('-diff', '-nuovi', '-delta', action='store_true',
         dest='diff', default=False,
         help='Plotta nuovi casi per giorno')
+    parser.add_argument('-s', '--search', type=str, default=TOSEARCH,
+        dest='src', action='store',
+        help='Cosa cercare')
     parser.add_argument('-t', '--type', choices=GITNAMS.keys(),
         dest='tipo', help=argparse.SUPPRESS)
     parser.add_argument('-v', '--iprint',
@@ -151,7 +155,7 @@ def asciiplot(xy):
             outline = '^'
         else:
             outline = '|'
-        for IX in range(LX):
+        for IX in range(0, LX, 2):
             toprt = ' '
             addnum = False
             for nxy, coppia in enumerate(XY[:]):
@@ -172,12 +176,12 @@ def asciiplot(xy):
             if addnum:
                 outline = outline + ' ' + str(xy[-1, 1])
         print(outline)
-    print('+' + '-'*(LX - 2) + '>')
+    print('+' + '-'*((LX - 2)//2) + '>')
     FMTDAT = '%d %b'
     startx = dt.datetime.strftime(PRIMOGIORNO, FMTDAT)
     deltax = int(xmax - xmin)
     endx   = dt.datetime.strftime(PRIMOGIORNO + dt.timedelta(days=deltax), FMTDAT )
-    print(startx + ' '*(LX-len(startx)-len(endx)) + endx)
+    print(startx + ' '*((LX-len(startx)-len(endx))//2) + endx)
 
 # ==============
 #  MAIN PROGRAM
@@ -199,11 +203,11 @@ def main():
         except (HTTPError, URLError, FileNotFoundError):
             data = data + dt.timedelta(days=1)
             continue
-        dataframe = dataframe.loc[:, ['data', GITHEDS[opts.tipo], 'totale_casi']]
+        dataframe = dataframe.loc[:, ['data', GITHEDS[opts.tipo], opts.src]]
         # Slice data frame so we only get the location we care about
         if opts.tipo != 'nazione':
             dataframe = dataframe[dataframe[GITHEDS[opts.tipo]].str.contains(opts.luogo, case=False)]
-        dataframe = dataframe.loc[:, ['data', 'totale_casi']]
+        dataframe = dataframe.loc[:, ['data', opts.src]]
         # Get date and cases
         gg   = gg   + [ (dt.datetime.strptime(dataframe.iloc[0, 0], FMTFIL) - CAPODANNO ).days ]
         casi = casi + [ int(dataframe.iloc[0, 1]) ]

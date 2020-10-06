@@ -77,8 +77,7 @@ def bashrun(comando: str, env=None, vrb=0) -> str:
     else:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     output = process.stdout.decode().rstrip()
-    if vrb >= 1:
-        print(output)
+    if vrb >= 1: print(output)
     return output
 def check_extension(to_check: str, allowed_ext):
     """Check file extension"""

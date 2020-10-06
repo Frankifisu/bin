@@ -77,29 +77,20 @@ class gauinput:
         self.mol   = mol
         self.tail  = tail
         # We do it this way because lists are mutable
-        if self.link0 is None:
-            self.link0 = []
-        if self.route is None:
-            self.route = []
-        if self.title is None:
-            self.title = []
-        if self.mol is None:
-            self.mol = []
-        if self.tail is None:
-            self.tail = []
+        if self.link0 is None: self.link0 = []
+        if self.route is None: self.route = []
+        if self.title is None: self.title = []
+        if self.mol   is None: self.mol = []
+        if self.tail  is None: self.tail = []
     def gjf(self):
         """Assemble sections into full input line list"""
         gjf = []
         sep = ['\n']
-        if self.link0:
-            gjf = gjf + self.link0
+        if self.link0: gjf = gjf + self.link0
         gjf = gjf + self.route + sep
-        if self.title:
-            gjf = gjf + self.title + sep
-        if self.mol:
-            gjf = gjf + self.mol + sep
-        if self.tail:
-            gjf = gjf + self.tail + sep
+        if self.title: gjf = gjf + self.title + sep
+        if self.mol:   gjf = gjf + self.mol + sep
+        if self.tail:  gjf = gjf + self.tail + sep
         return gjf
     def default(self):
         """Default input file"""
@@ -290,8 +281,7 @@ def setgauenv(env, gauroot: str, gauscr: str, vrb: int=0) -> str:
     if os.path.isdir(NBO):
         env['PATH'] = NBO + ':' + env['PATH']
         env['NO_STOP_MESSAGE'] = '1'
-        if vrb >=2:
-            env['NBODTL'] = 'verbose'
+        if vrb >=1: env['NBODTL'] = 'verbose'
     # Set Gaussian variables
     env['g16root'] = gauroot
     env['GAUSS_SCRDIR'] = gauscr
@@ -335,8 +325,7 @@ def wrtgauinp(joblist, scrdir: typing.Optional[str], gauinp: str, vrb=0) -> str:
         for gjf in joblist[1:]:
             fileout.write('--Link1--\n')
             fileout.write(str(gjf))
-    if vrb >= 1:
-        print(f'Written file {tmpinp.name}')
+    if vrb >= 1: print(f'Written file {tmpinp.name}')
     return tmpinp.name
 def parsegau(lines, joblist):
     """Parse single Gaussian job"""
@@ -434,8 +423,7 @@ def gaurun(opts):
                 ad = '>>'
         # RUN COMMAND
         comando = " ".join([gaucmd, da, _gauinp, ad, gauout])
-        if opts.vrb >= 1:
-            print(comando)
+        if opts.vrb >= 1 : print(comando)
         if not opts.dry:
             try:
                 gaurun = bashrun(comando, env=os.environ, vrb=opts.vrb)
@@ -458,8 +446,7 @@ def gaurun(opts):
                             print(f'WARNING: formchk {chk} {fchk} failed')
         if _gauinp != gauinp:
             os.remove(_gauinp)
-            if opts.vrb >=1 :
-                print(f'File {_gauinp} removed')
+            if opts.vrb >=1 : print(f'File {_gauinp} removed')
         # LOG CALCULATION: TOBEDONE
     return None
 

@@ -289,7 +289,7 @@
   }
   compile () {
     if [[ ! -x $( command  -v qsub ) ]]; then echo "ERROR: No qsub command"; return 1; fi
-    local jobnam="compiling"
+    local jobnam="interactive"
     local queue="q07diamond"
     local nodes=""
     while [[ -n "${1}" ]]; do

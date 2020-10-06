@@ -43,12 +43,7 @@
 # -------------
   unset gauroot ; unset ver ; unset vrb ; unset tags
 # check for architecture type via hostname
-  case "${HOSTNAME:0:3}" in
-    Pop             ) mac='amd64-bulldozer';;
-    Cur | Hof | Lee ) mac='intel64-sandybridge';;
-    Koh | Nat | Zew ) mac='intel64-nehalem';;
-    *               ) mac='intel64-nehalem';;
-  esac
+  mac='intel64-nehalem'
   while [[ -n "${1}" ]]; do
     case "${1}" in
       -g | --gau  ) gauroot="${2}"; shift;;

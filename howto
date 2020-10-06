@@ -224,6 +224,10 @@
         echo "sbatch job_script.sh (submit job)"
         echo "scancel job_ID (Cancel Job)"
       ;;
+      svn )
+        echo "svn checkout svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/FQ-dev adf2019.new"
+        echo "svn "
+      ;;
       tags | ctags )
         echo 'SETUP TAGS FILE:'
         echo '  ctags -R $directory'

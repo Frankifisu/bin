@@ -169,9 +169,12 @@ def asciiplot(xy):
                     if X == LX-2:
                         addnum = True
                     weekday = (CAPODANNO + dt.timedelta(days=int(xy[nxy, 0] + 1))).weekday()
-                    toprt = chr(UCWD[weekday])
-                    toprt = str(weekday)
-                    toprt = ITWD[weekday]
+                    #toprt = chr(UCWD[weekday])
+                    #toprt = str(weekday)
+                    #toprt = ITWD[weekday]
+                    toprt = 'X'
+                    if IX >= LX-1:
+                        toprt = toprt + '?'
             outline = outline + toprt
             if addnum:
                 outline = outline + ' ' + str(xy[-1, 1])

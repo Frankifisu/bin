@@ -83,12 +83,17 @@
 #     -prune is used to select which files or directories to skip
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
+      for trydir in "/home/fegidi/usr/local/gaussian" "/home/franco/usr/local/gaussian" "/"; do
+        if [[ -d ${trydir} ]]; then
+          downfrom="${trydir}"; break
+        fi
+      done; unset trydir
       exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /test_ocean -o -path /home -o -path /beegfs"
       gauname="-iname gdv*${ver} -o -iname g16*${ver} -o -iname ${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
+        findgau="$( find ${downfrom} -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then
-        findgau="$( find / -maxdepth "${depth}" -a \( ${exclude} -o ! -perm -g+rx                \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
+        findgau="$( find ${downfrom} -maxdepth "${depth}" -a \( ${exclude} -o ! -perm -g+rx                \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       else
         echo "ERROR: Unsupported operating system $( uname )" ; return 0
       fi
@@ -171,7 +176,8 @@ if [[ ! -x $( command -v pgf77 ) ]]; then
       sed -i '' "s/-Bstatic_pgi/-Bstatic_pgi\ -Wl,-z,muldefs/" mkgau.tmp
       sed -i '' "s/make/make\ INCDIR='-I. -I..'/" mkgau.tmp
     fi
-    alias mk="$( cat mkgau.tmp ) |& tee mk.log; chmod o-rwx */*.o */*.exe; chgrp gaussian */*.o */*.exe; date +'%a %d %b %Y %R' &>> mk.log"
+    if [[ $( getent group gaussian ) ]]; then grpgau="chgrp gaussian */*.o */*.exe;"; else grpgau=""; fi
+    alias mk="$( cat mkgau.tmp ) |& tee mk.log; chmod o-rwx */*.o */*.exe; ${grpgau} date +'%a %d %b %Y %R' &>> mk.log"
     alias makec="$( cat mkgau.tmp )"
     rm -- mkgau.tmp
     if [ "${vrb}" = '-v' ]; then alias "mk"; fi

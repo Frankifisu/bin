@@ -14,6 +14,7 @@ import argparse # commandline argument parsers
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import tempfile #To create teporary files
+import socket #Just to get hostname
 from feutils import * #My generic functions
 
 # ==============
@@ -28,7 +29,7 @@ HOME = os.getenv('HOME')
 # ==========
 #  DEFAULTS
 # ==========
-TEST_TMP = ('/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
+TEST_TMP = ('/scratch', '/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
 PREFIXES = ('/opt/gaussian/', '/home/fegidi/usr/local/gaussian/')
 GAUDIR = {
     'a03' : 'g16a03',
@@ -219,7 +220,8 @@ def parseopt(args=None):
     """Parse options"""
     # Create parser
     parser = argparse.ArgumentParser(prog=PROGNAME,
-        description='Command-line option parser')
+        formatter_class=wide_help(argparse.HelpFormatter, w=140, h=40),
+        description='Gaussian16 easy calculation script')
     parser = gauparser(parser)
     opts = parser.parse_args(args)
     # Check options
@@ -262,13 +264,14 @@ def gauscr() -> str:
     # try a few common paths as temporary directories
     for testdir in TEST_TMP:
         if os.path.isdir(testdir):
-            tmpdir = testdir
-            break
-    # create and set a user scratch subdirectory
-    GAUSS_SCRDIR = os.path.join(tmpdir, USER, 'gaussian')
-    if not os.path.isdir(GAUSS_SCRDIR):
-        os.makedirs(GAUSS_SCRDIR, exist_ok=True)
-    return GAUSS_SCRDIR
+            # create and set a user scratch subdirectory
+            GAUSS_SCRDIR = os.path.join(testdir, USER, 'gaussian')
+            try:
+                os.makedirs(GAUSS_SCRDIR, exist_ok=True)
+                return GAUSS_SCRDIR
+            except:
+                continue
+    return None
 def add_source_gauprofile(basecmd:str, gauroot: str) -> str:
     """Add sourcing of gaussian profile to command"""
     gaucmd = basecmd
@@ -456,6 +459,7 @@ def gaurun(opts):
 def main(args=None):
     # CHANGE DIRECTORY UPON PBS BATCH SUBMISSION
     if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
+        print(f'On {socket.gethostname()}')
         goto = os.getenv('PBS_O_WORKDIR')
     else:
         goto = os.getcwd()

@@ -54,6 +54,7 @@ GITHEDS = {
 PRIMOGIORNO = dt.datetime.strptime('20200224', FMTNAM)
 CAPODANNO   = dt.datetime.strptime('20200101', FMTNAM)
 TOSEARCH = 'totale_casi'
+TEST0 = 1.e-16
 
 # =================
 #  BASIC FUNCTIONS
@@ -80,6 +81,9 @@ def parseopt():
     parser.add_argument('-media', '-m', '-average', action='store_true',
         dest='media', default=False,
         help='Media sulla settimana')
+    parser.add_argument('-log', action='store_true',
+        dest='log', default=False,
+        help='Plotta scala logaritmica')
     parser.add_argument('-diff', '-nuovi', '-delta', action='store_true',
         dest='diff', default=False,
         help='Plotta nuovi casi per giorno')
@@ -138,53 +142,41 @@ def tipoluogo(luogo, luoghi):
     dataframe = pandas.read_csv(urlfil, encoding='latin-1')
     trovato = dataframe[GITHEDS[luoghi]].str.contains(luogo, case=False).any()
     return trovato
-def asciiplot(xy):
+def discretize(z, zmax, zmin, LZ, action=None):
+    """Find value placement in discretized axis"""
+    if action == 'log':
+        if zmin < 0.0 or zmax < 0.0 or z < 0.0: errore('Log scale with negative values')
+        if (z - zmin) <= TEST0:
+            zrel = 0.0
+        else:
+            zrel = ( math.log10(z - zmin) ) / ( math.log10(zmax - zmin) )
+    else:
+        zrel = ( z - zmin ) / ( zmax - zmin )
+    Z = float(LZ) * zrel
+    return int(Z)
+def newasciiplot(xy, marker='X', xmod=None, ymod=None, LX=84, LY=22, action=None):
     """Print pairs as ascii plot"""
-    LX = max(80, len(xy))
-    LY = 24
-    OUTY = LY
-    CHARS = [ ' ', '+', '*' ]
+    # Find max and min values for both coords
     xmin, ymin = numpy.amin(xy, axis=0)
     xmax, ymax = numpy.amax(xy, axis=0)
-    def discretize(z, zmax, zmin, LZ):
-        Z = float(LZ) * ( z - zmin ) / ( zmax - zmin )
-        return int(Z)
-    XY = [ (discretize(x, xmax, xmin, LX), discretize(y, ymax, ymin, LY)) for x, y in xy[:] ]
-    for IY in range(LY, -1, -1):
-        if IY == LY:
-            outline = '^'
-        else:
-            outline = '|'
-        for IX in range(0, LX, 2):
-            toprt = ' '
-            addnum = False
-            for nxy, coppia in enumerate(XY[:]):
-                X = coppia[0]
-                Y = coppia[1]
-                if X < IX:
-                    continue
-                elif X > IX:
-                    break
-                if Y == IY:
-                    if X == LX-2:
-                        addnum = True
-                    weekday = (CAPODANNO + dt.timedelta(days=int(xy[nxy, 0] + 1))).weekday()
-                    #toprt = chr(UCWD[weekday])
-                    #toprt = str(weekday)
-                    #toprt = ITWD[weekday]
-                    toprt = 'X'
-                    if IX >= LX-1:
-                        toprt = toprt + '?'
-            outline = outline + toprt
-            if addnum:
-                outline = outline + ' ' + str(xy[-1, 1])
-        print(outline)
-    print('+' + '-'*((LX - 2)//2) + '>')
+    # Prepare empty image
+    XY = numpy.full((LY+1, LX+1), ' ')
+    # Fill image with points
+    for x, y in xy[:]:
+        X = discretize(x, xmax, xmin, LX)
+        Y = discretize(y, ymax, ymin, LY, action)
+        XY[Y, X] = marker[0]
+    # Print image
+    space = len(f'{ymax}')
+    print(f'{ymax} ^{"".join(XY[LY])}')
+    for Y in range(LY, -1, -1):
+        print(f'{space*" "} |{"".join(XY[Y])}')
+    print(f'{str(ymin).rjust(space)} +{LX*"-"}->')
     FMTDAT = '%d %b'
-    startx = dt.datetime.strftime(PRIMOGIORNO, FMTDAT)
+    startx = dt.datetime.strftime(INIZIO, FMTDAT)
     deltax = int(xmax - xmin)
-    endx   = dt.datetime.strftime(PRIMOGIORNO + dt.timedelta(days=deltax), FMTDAT )
-    print(startx + ' '*((LX-len(startx)-len(endx))//2) + endx)
+    endx   = dt.datetime.strftime(INIZIO + dt.timedelta(days=deltax), FMTDAT )
+    print(' '*(space+1) + startx + ' '*(LX+2-len(startx)-len(endx)) + endx)
 
 # ==============
 #  MAIN PROGRAM
@@ -227,11 +219,17 @@ def main():
     gg   = numpy.asarray(gg)
     nuovicasi = numpy.asarray(nuovicasi)
     # STAMPA GRAFICO
+    global INIZIO
     if opts.diff:
         casixgiorno = numpy.stack([gg[gstart:-1], nuovicasi], axis=-1)
+        INIZIO = PRIMOGIORNO + dt.timedelta(days=7)
     else:
         casixgiorno = numpy.stack([gg[gstart:], casi], axis=-1)
-    asciiplot(casixgiorno)
+        INIZIO = PRIMOGIORNO
+    #asciiplot(casixgiorno)
+    if opts.log: action = 'log'
+    else: action = None
+    newasciiplot(casixgiorno, action=action)
     sys.exit()
 
 # ===========

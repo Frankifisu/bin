@@ -29,8 +29,8 @@
     case ${input} in
       adf )
         echo 'COMPILING'
-        echo '  cd $ADFHOME; source $( find ${ADFHOME} -name adfbashrc.sh )'
-        echo '  Install/configure -b "myconfig -o GNU -p openmpi -staticmkl"'
+        echo '  cd $ADFHOME; source $( find ${ADFHOME} -maxdepth 1 -name adfbashrc.sh )'
+        echo '  Install/configure -b "myconfig -o GNU -p intelmpi -staticmkl"'
         echo '  $ADFBIN/foray -j 8'
       ;;
       conda )
@@ -226,7 +226,7 @@
       ;;
       svn )
         echo "svn checkout svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/FQ-dev adf2019.new"
-        echo "svn "
+        echo "svn commit -m "My message""
       ;;
       tags | ctags )
         echo 'SETUP TAGS FILE:'

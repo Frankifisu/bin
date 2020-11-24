@@ -102,10 +102,17 @@ fi
 # ------------------------
 # DEFINE SCRATCH DIRECTORY
 # ------------------------
-  for trydir in "/tmp" "/scratch" "${HOME}/tmp" "${HOME}"; do
-    if [[ -d "${trydir}" && -w "${trydir}" ]]; then
+  for trydir in "/scratch" "/tmp" "${HOME}/tmp" "${HOME}"; do
+    if [[ -d "${trydir}" ]]; then
+      if [[ -d "${trydir}/${USER}" && -w "${trydir}/${USER}" ]]; then
+        :
+      elif [[ -w "${trydir}" ]]; then
+        :
+      else
+        continue
+      fi
       trydir="${trydir}/${USER}/adf"
-      if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}" || continue; fi
+      if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}" || continue ; fi
       export SCM_TMPDIR="${trydir}"
       break
     fi

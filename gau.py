@@ -364,9 +364,12 @@ def parsegau(lines, joblist):
             break
         newjob.tail.append(line)
         if not line.strip():
+            #Gaussian reads nothing after two consecutive empty lines
             lempty = lempty + 1
             if lempty == 2:
                 break
+        else:
+            lempty = 0
     #Add newly generated gjf object to list
     joblist = [newjob] + joblist
     return joblist

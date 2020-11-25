@@ -77,7 +77,7 @@ fi
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
       exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /test_ocean -o -path /home -o -path /beegfs"
-      gauname="-iname adf2019.*${ver} -o -iname adf*${ver}"
+      gauname="-iname adf20*.*${ver} -o -iname adf*${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
         findme="$( find "${downfrom}" -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then

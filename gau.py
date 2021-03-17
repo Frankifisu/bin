@@ -45,7 +45,7 @@ def exepath(ver: str):
         if os.path.isdir(testdir):
             return testdir
     return None
-NBO = '/opt/nbo7/bin'
+NBO = '/home/fegidi/usr/local/nbo7/bin'
 GAUFQ = {
         'working' : exepath('working/g16a03_fq'),
         'gauroot' : exepath(GAUDIR['a03']),
@@ -450,6 +450,12 @@ def gaurun(opts):
                             dofchk = bashrun(formchk, env=os.environ, vrb=opts.vrb)
                         except:
                             print(f'WARNING: formchk {chk} {fchk} failed')
+        # This is the patch for the fluorescence calculations
+        if os.path.isfile('fluo.com'):
+            print('File fluo.com is here')
+            if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
+                import shutil
+                shutil.copyfile('fluo.com', f'{PBS_O_WORKDIR}/fluo.com')
         if _gauinp != gauinp:
             os.remove(_gauinp)
             if opts.vrb >=1 : print(f'File {_gauinp} removed')

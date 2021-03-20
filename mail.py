@@ -132,6 +132,12 @@ def emailmsg( sbj='', msg='', fro='', to=None, cc=None, bcc=None, att=None ):
     for attfil in att:
         if not os.path.isfile(attfil):
             continue
+        filnam, filext = os.path.splitext(attfil)
+        if filext == '.com':
+            import shutil
+            renamed = f'{filnam}.gjf'
+            shutil.copy(attfil, renamed)
+            attfil = renamed
         # Guess the content type based on the file's extension.  Encoding
         # will be ignored, although we should check for simple things like
         # gzip'd or compressed files.

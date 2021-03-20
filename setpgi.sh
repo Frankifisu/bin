@@ -57,7 +57,7 @@
     shift
   done
 # Set PGI directory
-if [[ $( hostname ) == "trantor01" || $( hostname ) == "diamond"* ]]; then
+  if [[ $( hostname ) == "trantor01"* || $( hostname ) == "diamond"* ]]; then
     for trypgi in "/home/fegidi/usr/local" "/cm/shared/apps/" "/opt" "/usr" "/opt/devel"; do
       if [[ -d "${trypgi}/pgi" ]]; then export PGI="${trypgi}/pgi"; break; fi
     done

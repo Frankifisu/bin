@@ -45,7 +45,7 @@ def exepath(ver: str):
         if os.path.isdir(testdir):
             return testdir
     return None
-NBO = '/opt/nbo7/bin'
+NBO = '/home/fegidi/usr/local/nbo7/bin'
 GAUFQ = {
         'working' : exepath('working/g16a03_fq'),
         'gauroot' : exepath(GAUDIR['a03']),
@@ -57,6 +57,9 @@ REGAUINP = {
         'link1'  : r'--link1--',
         'route'  : r'#(t|n|p)?\s',
         'allchk' : r'geom(=|=\(|\()allch(ec)?k',
+        'atom'   : r'(?P<El>[A-Z][a-z]?)[0-9]{0,4}(-(?P<Type>\w+)(-(?P<Chrg>[+-]?[0-9.]+))?)?(-\((?P<Flags>(\w+=\w+,?)+)\))?',
+        'frag'   : r'fragment=(?P<frag>\d+)',
+        'pembed' : r'pembed(=|=\(|\()',
         }
 MEM = '1GB'
 TESTGAU = 'test'
@@ -156,6 +159,54 @@ class gauinput:
             return True
         else:
             return False
+    def pembed(self):
+        """Check if Route has PEmbed"""
+        fullroute = " ".join(self.route)
+        if re.search(REGAUINP['pembed'], fullroute, flags=re.IGNORECASE):
+            return True
+        else:
+            return False
+    def molecule(self):
+        """Get molecule object from input file"""
+        if len(self.mol) < 2: errore('No atoms found')
+        # Get charge and multiplicity
+        charge, spinmul = map(int, self.mol[0].split())
+        newmol = molecule(charge=charge, spinmul=spinmul)
+        for line in self.mol[1:]:
+            # Loop over atoms
+            words = line.split()
+            nwords = len(words)
+            # Match atom label and properties
+            # generating groups 'El', 'Type', 'Chrg', 'Flags'
+            atomprops = dict()
+            try:
+                atnumber = int(words[0])
+                element = Z2SYMB[atnumber]
+            except:
+                elabel = re.match(REGAUINP['atom'], words[0], flags=re.ASCII)
+                element = elabel.group('El')
+                if elabel.group('Type'):
+                    atomprops['type'] = elabel.group('Type')
+                try:
+                    fragsrc = re.search(REGAUINP['frag'], elabel.group('Flags'), flags= re.ASCII | re.IGNORECASE)
+                    if fragsrc.group('frag'):
+                        atomprops['frag'] = fragsrc.group('frag')
+                except:
+                    pass
+            # Extract coordinates
+            idcoord = 1
+            if re.match(r'(-?\d?(?!.))', words[1], flags=re.ASCII):
+                idcoord = idcoord + 1
+            if nwords < idcoord + 3: errore('Unspecified Cartesian coordinates')
+            coord = words[idcoord: idcoord+3]
+            # Extract additional info such as layer
+            if len(words) > idcoord + 3:
+                atomprops['layer'] = words[idcoord + 3]
+            else:
+                atomprops['layer'] = None
+            newatom = atom(element, coord=coord, props=atomprops)
+            newmol.add_atom(newatom)
+        return newmol
     def __str__(self):
         string = "".join(self.gjf())
         return string
@@ -450,6 +501,12 @@ def gaurun(opts):
                             dofchk = bashrun(formchk, env=os.environ, vrb=opts.vrb)
                         except:
                             print(f'WARNING: formchk {chk} {fchk} failed')
+        # This is the patch for the fluorescence calculations
+        if os.path.isfile('fluo.com'):
+            print('File fluo.com is here')
+            if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
+                import shutil
+                shutil.copyfile('fluo.com', f'{PBS_O_WORKDIR}/fluo.com')
         if _gauinp != gauinp:
             os.remove(_gauinp)
             if opts.vrb >=1 : print(f'File {_gauinp} removed')

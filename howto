@@ -225,8 +225,15 @@
         echo "scancel job_ID (Cancel Job)"
       ;;
       svn )
-        echo "svn checkout svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/FQ-dev adf2019.new"
-        echo "svn commit -m "My message""
+        echo "svn info   #Print information about repository"
+        echo "svn status #Print information about changes"
+        echo ""
+        echo "svn ls svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch"
+        echo "svn checkout svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch ams2020.new"
+        echo "svn copy -r NUMBER svn+ssh://dev@svn.scm.com/home/svn/src/trunk svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch -m MESSAGE"
+        echo "svn switch svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch"
+        echo "svn add/delete file"
+        echo "svn commit -m \"My message\""
       ;;
       tags | ctags )
         echo 'SETUP TAGS FILE:'

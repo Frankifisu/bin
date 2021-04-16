@@ -13,7 +13,10 @@ import re #Regex
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import collections
-import numpy
+try:
+    import numpy
+except:
+    pass
 
 # ==============
 #  PROGRAM DATA
@@ -112,7 +115,13 @@ class atom:
                  coord = None,
                  props = dict()):
         self.symbol = symbol
-        self.coord = numpy.array([ float(x) for x in coord ])
+        if coord is not None:
+            try:
+                self.coord = numpy.array([ float(x) for x in coord ])
+            except:
+                self.coord = [ float(x) for x in coord ]
+        else:
+            self.coord = None
         self.props = props
     def prtxyz(self, fmtxyz=' 11.6f'):
         return f'{self.symbol.ljust(2)} {self.coord[0]:{fmtxyz}} {self.coord[1]:{fmtxyz}} {self.coord[2]:{fmtxyz}}'

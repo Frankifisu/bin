@@ -105,7 +105,7 @@
       ;;
       pdf )
         echo "pdfunite file1.pdf file2.pdf filemerge.pdf"
-        echo "pdfseparate file1.pdf file2.pdf filemerge.pdf"
+        echo "pdfseparate [-f 2 -l 5] file.pdf file%d.pdf"
         echo 'pdftocairo -svg ${file} ${file%.pdf}.svg' 
       ;;
       pgi )

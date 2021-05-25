@@ -38,6 +38,26 @@
         echo '  conda install numpy matplotlib'
         echo '  conda deactivate'
       ;;
+      fq )
+        echo 'Rick:'
+        echo '    O'
+        echo '      CHI 0.116859'
+        echo '      ETA 0.584852'
+        echo '    SUBEND'
+        echo '    H'
+        echo '      CHI 0.000001'
+        echo '      ETA 0.625010'
+        echo '    SUBEND'
+        echo 'Giovannini:'
+        echo '    O'
+        echo '      CHI 0.189194'
+        echo '      ETA 0.523700'
+        echo '    SUBEND'
+        echo '    H'
+        echo '      CHI 0.012767'
+        echo '      ETA 0.537512'
+        echo '    SUBEND'
+      ;;
       gau )
         echo "DEBUG COMPILATION:"
         echo "  (with setgau) makec l502c"

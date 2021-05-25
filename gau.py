@@ -502,11 +502,12 @@ def gaurun(opts):
                         except:
                             print(f'WARNING: formchk {chk} {fchk} failed')
         # This is the patch for the fluorescence calculations
-        if os.path.isfile('fluo.com'):
-            print('File fluo.com is here')
-            if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
-                import shutil
-                shutil.copyfile('fluo.com', f'{PBS_O_WORKDIR}/fluo.com')
+        for tocopy in {'fluo.com', 'points.off'}:
+            if os.path.isfile(f'{tocopy}'):
+                print(f'File {tocopy} is here')
+                if os.getenv('PBS_ENVIRONMENT') == 'PBS_BATCH' and os.getenv('PBS_O_WORKDIR', default=""):
+                    import shutil
+                    shutil.copyfile(f'{tocopy}', f'{PBS_O_WORKDIR}/{tocopy}')
         if _gauinp != gauinp:
             os.remove(_gauinp)
             if opts.vrb >=1 : print(f'File {_gauinp} removed')

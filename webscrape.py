@@ -222,7 +222,7 @@ def main():
     # PARSE OPTIONS
     opts = parseopt()
     # FILL WEBSITE FORM AND SUBMIT
-    for numero in range(opts.num, 59, -1):
+    for numero in range(opts.num, 79, -1):
         print(numero)
         try:
             ricerca = gzform(numero, ANNO, opts.find)

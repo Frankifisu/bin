@@ -254,12 +254,15 @@ def ncpuavail() -> int :
 def nfreecpu() -> int :
     """Find number of free processors in the machine"""
     ntot = ncpuavail()
-    vmstat = bashrun('vmstat -w -S M', env=os.environ)
-    # r: The number of runnable processes (running or waiting for run time).
-    # b: The number of processes in uninterruptible sleep.
-    info = vmstat.split('\n')[2].split()[0:2]
-    r, b = map(int, info)
-    nfree = max(ntot - r - b, 0)
+    try:
+        vmstat = bashrun('vmstat -w -S M', env=os.environ)
+        # r: The number of runnable processes (running or waiting for run time).
+        # b: The number of processes in uninterruptible sleep.
+        info = vmstat.split('\n')[2].split()[0:2]
+        r, b = map(int, info)
+        nfree = max(ntot - r - b, 0)
+    except Exception:
+        nfree = ntot
     return nfree
 def cleanenv(env):
     """Get clean environment"""
@@ -270,6 +273,5 @@ def cleanenv(env):
     env['PATH'] = loginshvar('PATH')
     env['PWD']  = PWD
     return env
-CPUFREE = nfreecpu()
 CPUTOT  = ncpuavail()
 

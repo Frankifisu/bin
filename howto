@@ -27,11 +27,11 @@
 # Now do the work
   for input in ${@}; do
     case ${input} in
-      adf )
+      ams )
         echo 'COMPILING'
-        echo '  cd $ADFHOME; source $( find ${ADFHOME} -maxdepth 1 -name adfbashrc.sh )'
+        echo '  cd $AMSHOME; source $( find ${AMSHOME} -maxdepth 1 -name amsbashrc.sh )'
         echo '  Install/configure -b "myconfig -o GNU -p intelmpi -staticmkl"'
-        echo '  $ADFBIN/foray -j 8'
+        echo '  $AMSBIN/foray -j 8'
       ;;
       conda )
         echo '  conda activate myenv'

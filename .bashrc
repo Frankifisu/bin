@@ -262,9 +262,9 @@
   }
 #
 # ---
-# ADF
+# AMS
 # ---
-  alias setadf=". setadf.sh"
+  alias setams=". setans.sh"
 #
 #
 # ------

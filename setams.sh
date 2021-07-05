@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# * SET ADF ENVIRONMENT *
+# * SET AMS ENVIRONMENT *
 #
 # This script must be sourced to export environment variables
 # so we must return instead of exit
-if [[ "$(basename -- "$0")" == "setadf.sh" ]]; then
+if [[ "$(basename -- "$0")" == "setams.sh" ]]; then
   echo "Don't run $0, source it" >&2; exit 1
 fi
 #
   function usage {
-    echo "Usage: . setadf.sh [version, e.g. 301]"
-    echo '       -a adf : use ADF directory in path adf'
+    echo "Usage: . setams.sh [version, e.g. 301]"
+    echo '       -a ams : use AMS directory in path ams'
     echo '       -t     : generate ctags file $HOME/.tags (NYI)'
     echo '       -p PRC : use PRC processors'
     echo '       -v     : verbose mode'
@@ -22,34 +22,34 @@ fi
 # --------------------------
 # CLEAN PREVIOUS ENVIRONMENT
 # --------------------------
-# check whether ADF is already set
-  if [[ -n "${ADFHOME}" || -n "${AMSHOME}" ]] ; then
+# check whether AMS is already set
+  if [[ -n "${AMSHOME}" || -n "${AMSHOME}" ]] ; then
     if [[ "${PATH}" = *'#'* ]] || [[ "${LD_LIBRARY_PATH}" = *'#'* ]]; then
-      echo 'ERROR: Unable to remove previous ADF setup'; return 1
+      echo 'ERROR: Unable to remove previous AMS setup'; return 1
     else
       op='#'
     fi
-#   epurate environment variables from the previous ADF settings
+#   epurate environment variables from the previous AMS settings
     if [[ -n "${AMSBIN}" ]]; then
       PATH="$( echo "${PATH}" | sed s${op}:${AMSBIN}${op}${op}g )"
       LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${AMSBIN}:${op}${op}" )"
     fi
-    if [[ -n "${ADFBIN}" ]]; then
-      PATH="$( echo "${PATH}" | sed s${op}:${ADFBIN}${op}${op}g )"
-      LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${ADFBIN}:${op}${op}" )"
+    if [[ -n "${AMSBIN}" ]]; then
+      PATH="$( echo "${PATH}" | sed s${op}:${AMSBIN}${op}${op}g )"
+      LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${AMSBIN}:${op}${op}" )"
     fi
-    unset op; unset ADFHOME ; unset ADFBIN ; unset ADFVER ; unset ADFRESOURCES ; unset SCMLICENSE ; unset SCM_TMPDIR ; unset AMSVER ; unset AMSBIN ; unset AMSHOME
+    unset op; unset AMSHOME ; unset AMSBIN ; unset AMSVER ; unset AMSRESOURCES ; unset SCMLICENSE ; unset SCM_TMPDIR ; unset AMSVER ; unset AMSBIN ; unset AMSHOME
   fi
 #
 # -------------
 # PARSE OPTIONS
 # -------------
-  unset ADFHOME vrb tags prc
+  unset AMSHOME vrb tags prc
   ver="301"
 # check for architecture type via hostname
   while [[ -n "${1}" ]]; do
     case "${1}" in
-      -a | --adf  ) ADFHOME="${2}"; AMSHOME="${2}"; shift;;
+      -a | --ams  ) AMSHOME="${2}"; shift;;
       -t | --tags ) tags="tags"; usage ;;
       -p | --ppn  ) ppn='-p';;
       -v | --vrb  ) vrb='-v';;
@@ -61,21 +61,20 @@ fi
   unset -f usage
 #
 # --------------------
-# DEFINE ADF DIRECTORY
+# DEFINE AMS DIRECTORY
 # --------------------
 # check whether a specific version has been requested
-  if [[ -n "${ADFHOME}" || -n "${AMSHOME}" ]]; then
+  if [[ -n "${AMSHOME}" ]]; then
     if [[ "$( uname )" = "Linux" ]]; then
-      ADFHOME="$( readlink ${vrb} -e "${ADFHOME}" )"
       AMSHOME="$( readlink ${vrb} -e "${AMSHOME}" )"
     fi
-    if [[ ! -d ${ADFHOME} ]]; then echo "ERROR: ${ADFHOME} directory not found"; return 1; fi
+    if [[ ! -d ${AMSHOME} ]]; then echo "ERROR: ${AMSHOME} directory not found"; return 1; fi
     found="${AMSHOME}"
   else
-#   crawl through the system searching for the desired ADF directory
-    if [[ -z "${ver}" ]]; then echo "ERROR: ADF version not specified"; return 1; fi
+#   crawl through the system searching for the desired AMS directory
+    if [[ -z "${ver}" ]]; then echo "ERROR: AMS version not specified"; return 1; fi
     declare findme=""; declare -i depth=0 ; declare -i mxdpt=4
-    for trydir in "/home/fegidi/usr/local/adf" "/home/franco/usr/local/adf" "${HOME}/usr/local/adf" "${HOME}"; do
+    for trydir in "/home/egidi/usr/local/ams" "/home/fegidi/usr/local/ams" "/home/franco/usr/local/ams" "${HOME}/usr/local/ams" "${HOME}"; do
       if [[ -d ${trydir} ]]; then downfrom="${trydir}"; break; fi
     done; unset trydir
     while [[ -z "${findme}" && "${depth}" -le "${mxdpt}" ]]; do
@@ -84,27 +83,27 @@ fi
 #     -print prints only the matching results and -quit prints only the first one
 #     -o is the logical or and everything else has an implicit logical -a and
       exclude="-path /mnt -o -path /proc -o -path /private -o -path /bigdata -o -path /test_ocean -o -path /home -o -path /beegfs"
-      gauname="-iname adf20*.*${ver} -o -iname adf*${ver}"
+      amsname="-iname ams20*.*${ver} -o -iname ams*${ver}"
       if [[ "$( uname )" = "Linux" ]]; then
-        findme="$( find "${downfrom}" -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
+        findme="$( find "${downfrom}" -maxdepth "${depth}" -a \( ${exclude} -o ! -readable -o ! -executable \) -prune -o -type d -a \( ${amsname} \) -print -quit )"
       elif  [[ "$( uname )" = "Darwin" ]]; then
-        findme="$( find "${downfrom}" -maxdepth "${depth}" -a \( ${exclude} -o ! -perm -g+rx                \) -prune -o -type d -a \( ${gauname} \) -print -quit )"
+        findme="$( find "${downfrom}" -maxdepth "${depth}" -a \( ${exclude} -o ! -perm -g+rx                \) -prune -o -type d -a \( ${amsname} \) -print -quit )"
       else
         echo "ERROR: Unsupported operating system $( uname )" ; return 0
       fi
       depth=$[${depth}+1]
     done
     unset depth; unset mxdpt; unset ver
-    if [[ -z "${findme}" ]]; then echo "${findme}" "ERROR: Could not find ADF directory"; return 1; fi
+    if [[ -z "${findme}" ]]; then echo "${findme}" "ERROR: Could not find AMS directory"; return 1; fi
     if [ "${vrb}" = '-v' ]; then echo "Found directory ${findme}"; fi
     found="${findme}"
   fi
-# Source ADF shell file
-  export ADFVER="${found##*adf}"
-  . ${found}/adfbashrc.sh
-# check whether the ADF executable is there
-  if [[ ! -x "${ADFBIN}/adf" ]]; then echo "WARNING: adf executable not found!"; fi
-  if [ "${vrb}" = '-v' ]; then echo "Using ADF tree in ${ADFHOME}"; fi
+# Source AMS shell file
+  export AMSVER="${found##*ams}"
+  . ${found}/amsbashrc.sh
+# check whether the AMS executable is there
+  if [[ ! -x "${AMSBIN}/ams" ]]; then echo "WARNING: ams executable not found!"; fi
+  if [ "${vrb}" = '-v' ]; then echo "Using AMS tree in ${AMSHOME}"; fi
   if [[ -d ${AMSHOME}/bin/python3.6 ]]; then
     export SCM_PYTHONDIR="${AMSHOME}/bin/python3.6/"
   fi
@@ -121,7 +120,7 @@ fi
       else
         continue
       fi
-      trydir="${trydir}/${USER}/adf"
+      trydir="${trydir}/${USER}/ams"
       if [[ ! -d "${trydir}" ]]; then mkdir -p -- "${trydir}" || continue ; fi
       export SCM_TMPDIR="${trydir}"
       break
@@ -132,12 +131,13 @@ fi
 # BUILD THE COMPILATION COMMAND
 # -----------------------------
   ncpuavail=$( nproc )
+  if [[ "${ncpuavail}" > 8 ]]; then ncpuavail="8"; fi
   partone='cd "$AMSHOME" && "$AMSBIN"/foray'
-  parttwo="-j ${ncpuavail} 2>&1 | tee mkadf.out ; cd -"
-  alias mkadf="${partone} ${parttwo}"
+  parttwo="-j ${ncpuavail} 2>&1 | tee mkams.out ; cd -"
+  alias mkams="${partone} ${parttwo}"
   unset ncpuavail partone parttwo
   if [[ -f "${AMSHOME}/toskip.dat" ]]; then
-    export FORAY_SKIP_TARGET_LIST="$( cat "${ADFHOME}/toskip.dat" )"
+    export FORAY_SKIP_TARGET_LIST="$( cat "${AMSHOME}/toskip.dat" )"
   fi
   if [[ -n "${ppn}" ]]; then
     export NSCM="${ppn}"
@@ -151,9 +151,9 @@ fi
     if [[ ! -x "$( command -v ctags )" ]]; then echo "ERROR: ctags command not found"; return 1; fi
     if [[ -f "${HOME}/.tags" ]]; then echo "WARNING: overwriting ${HOME}/.tags file"; fi
     if [[ "${vrb}" == '-v' ]]; then
-      ctags -V -R -f "${HOME}/.tags" ${ADFHOME}
+      ctags -V -R -f "${HOME}/.tags" ${AMSHOME}
     else
-      ctags    -R -f "${HOME}/.tags" ${ADFHOME}
+      ctags    -R -f "${HOME}/.tags" ${AMSHOME}
     fi
     if ! grep -q tags ${HOME}/.vimrc; then echo "WARNING: remember to reference ${HOME}/.tags file in .vimrc"; fi
   fi

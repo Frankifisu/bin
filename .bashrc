@@ -223,6 +223,11 @@
     fi
     sconnect "${remote_user}" "${officeip}" ${@}
   }
+# Connect to master
+  master () {
+    if [[ "$( hostname )" == "master.sns.com" ]]; then echo "ERROR: Already on master"; return 1; fi
+    sconnect -IP "egidi" "master.sns.com" ${@}
+  }
 # Connect to uz
   unizone () {
     if ncat -w 0.1 -i 0.1 ssh2.uz.sns.it 22 2>&1 | grep -iq "Idle"; then

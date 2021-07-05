@@ -8,6 +8,7 @@ cd usr/bin || exit 1
 sudo apt -y install git
 git config --global user.name "Franco Egidi"
 git config --global user.email "franco.egidi@gmail.com"
+git remote set-url origin git@github.com:Frankifisu/bin.git
 git config --list
 sudo apt install openssh-server
 # ssh-keygen -t rsa

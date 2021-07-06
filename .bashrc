@@ -225,8 +225,8 @@
   }
 # Connect to master
   master () {
-    if [[ "$( hostname )" == "master.sns.com" ]]; then echo "ERROR: Already on master"; return 1; fi
-    sconnect -IP "egidi" "master.sns.com" ${@}
+    if [[ "$( hostname )" == "master.scm.com" ]]; then echo "ERROR: Already on master"; return 1; fi
+    sconnect -IP "egidi" "master.scm.com" ${@}
   }
 # Connect to uz
   unizone () {

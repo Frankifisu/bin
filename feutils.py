@@ -15,7 +15,7 @@ import typing #Explicit typing of arguments
 import collections
 try:
     import numpy
-except:
+except Exception:
     pass
 
 # ==============

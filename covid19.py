@@ -145,7 +145,7 @@ def tipoluogo(luogo, luoghi):
 def discretize(z, zmax, zmin, LZ, action=None):
     """Find value placement in discretized axis"""
     if action == 'log':
-        print(f'{zmin} {zmax} {z}')
+        #print(f'{zmin} {zmax} {z}')
         if zmin < 0.0 or zmax < 0.0 or z < 0.0: errore('Log scale with negative values')
         if (z - zmin) <= TEST0:
             zrel = 0.0

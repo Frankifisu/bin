@@ -264,7 +264,7 @@
 # ---
 # AMS
 # ---
-  alias setams=". setans.sh"
+  alias setams=". setams.sh"
 #
 #
 # ------

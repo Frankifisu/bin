@@ -14,7 +14,7 @@
 # PATH
   for addpath in "${HOME}/bin" "${HOME}/usr/bin"; do
     if [[ -d "${addpath}" ]]; then
-      export PATH="${addpath}:${PATH}"; fi
+      export PATH="${addpath}:${PATH}"; export PYTHONPATH="${addpath}:${PYTHONPATH}"; fi
   done; unset addpath
 # LD_LIBRARY_PATH
   for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64" "/usr/lib/x86_64-linux-gnu"; do
@@ -79,8 +79,8 @@
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
-  if [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
-  if [[ -x $( command -v squeue ) ]]; then alias qme="squeue -A IscrC_SEISMS"; fi
+  if   [[ -x $( command -v squeue ) ]]; then alias qme="squeue -u egidi";
+  elif [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
   if [[ -d "/bigdata/${USER}" ]]; then export BIGDATA="/bigdata/${USER}"; fi
 # functions
@@ -364,12 +364,13 @@
 #    unset revert
 #    if [ `shopt -q extglob | echo $?` -eq 1 ]; then revert=1 ; fi
 #    shopt -s extglob
-    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' 'fort.7')
+    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' 'fort.7' 't21.*.[A-Z]*' 'CreateAtoms.out' 'ams.kid[0-9]*.out' 'ams.log' )
     for targetrm in ${listrm[*]}; do
       if [[ ! -f "${targetrm}" ]]; then continue; fi
       if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi
       rm -- "${targetrm}"
     done
+    if [[ -d 'ams.results' ]]; then rm -r -- 'ams.results' ; fi
     unset targetrm
 #    if [ ${revert} -eq 1 ]; then shopt -u extglob; fi
   }

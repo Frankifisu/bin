@@ -107,6 +107,7 @@ fi
   if [[ -d ${AMSHOME}/bin/python3.6 ]]; then
     export SCM_PYTHONDIR="${AMSHOME}/bin/python3.6/"
   fi
+  export PYTHONPATH="${AMSHOME}/scripting":"${SCM_PYTHONDIR}":"${AMSHOME}/bin/python3.6/":${PYTHONPATH}
 #
 # ------------------------
 # DEFINE SCRATCH DIRECTORY

@@ -13,6 +13,7 @@ import re #Regex
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import collections
+import socket
 try:
     import numpy
 except Exception:
@@ -24,6 +25,7 @@ except Exception:
 AUTHOR = 'Franco Egidi (franco.egidi@gmail.it)'
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
+HOSTNAME = socket.gethostname()
 PWD = os.getcwd()
 
 # ==========
@@ -230,7 +232,10 @@ def bashrun(comando: str, env=None, vrb=0) -> str:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     else:
         process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    output = process.stdout.decode().rstrip()
+    try:
+        output = process.stdout.decode().rstrip()
+    except UnicodeDecodeError:
+        output = process.stdout.decode(encoding='UTF-8', errors='ignore').rstrip()
     if vrb >= 1: print(output)
     return output
 def check_extension(to_check: str, allowed_ext):

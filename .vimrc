@@ -12,10 +12,13 @@ set softtabstop=2 "affects the TAB character"
 set background=dark "set appropriate colors for a dark background"
 set ignorecase "ignore case during search"
 set smartcase "overrides ignorecase if searching with uppercase letters"
+set linebreak "I don't know what this does
+set nolist  " list disables linebreak
 set ruler "shows the line and column number in the lower-right corner"
 set hlsearch "highlights searched strings in a text"
 set nowrap "prevents linebreak for long lines when visualizing a file"
 set splitright "vertical split on the right instead of left"
+set textwidth=0 "vertical split on the right instead of left"
 if &diff 
   if expand('%.e') == "F"
     "diff mode ignore whitespace"
@@ -39,4 +42,5 @@ endif
 "Automatically execute commands for certain file types"
 autocmd FileType python setlocal shiftwidth=4 softtabstop=4
 autocmd BufEnter,BufNew *.f90 setlocal shiftwidth=3 softtabstop=3
+autocmd BufEnter,BufNew *.in  setlocal shiftwidth=2 softtabstop=2
 autocmd BufEnter,BufNew *.run set syntax=sh

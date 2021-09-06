@@ -122,7 +122,7 @@ def emailmsg( sbj='', msg='', fro='', to=None, cc=None, bcc=None, att=None ):
     try:
         with open(msg, 'r') as filobj:
             body = filobj.read()
-    except:
+    except Exception:
         body = msg
     if sbj != SIGNED:
         emsg.set_content(body + '\n' +  SIGNED)
@@ -164,17 +164,15 @@ def main(args=None):
     emsg = emailmsg(sbj=opts.sbj, msg=opts.msg,
                     fro=SMTP_DATA.get('MAIL'), to=opts.to, cc=opts.cc, bcc=opts.bcc,
                     att=opts.att)
-    if opts.vrb >= 1:
-        print(emsg)
-    if opts.dry:
-        return
+    if opts.vrb >= 1: print(emsg)
+    if opts.dry: return
     # SEND MESSAGE
     with smtplib.SMTP_SSL(SMTP_DATA.get('SERVER'), SMTP_DATA.get('PORT')) as server:
         server.login(SMTP_DATA.get('MAIL'), SMTP_DATA.get('PASSWD'))
         try:
             server.send_message(emsg)
             if opts.vrb >= 1: print('Message successfully sent')
-        except:
+        except Exception:
             errore('Failed to send message')
     sys.exit()
 

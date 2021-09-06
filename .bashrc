@@ -360,6 +360,15 @@
 #    subgau ${chk} -g /home/a.baiardi/Gaussian/gdv.i09/gdv ${coda} ${@}
 #    if [[ "${@}" = *"-v"* ]]; then echo "subgau ${chk} -g /home/a.baiardi/Gaussian/gdv.i09/gdv ${coda} ${@}"; fi
 #  }
+  rmall () {
+    local -a listrm=( 'TAPE13' '*ams.rkf' '*adf.rkf' 't21.*' '*ams.log' 'job.out' )
+    for targetrm in ${listrm[*]}; do
+      if [[ ! -f "${targetrm}" ]]; then continue; fi
+      if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi
+      rm -- "${targetrm}"
+    done
+    rmjunk
+  }
   rmjunk () {
 #    unset revert
 #    if [ `shopt -q extglob | echo $?` -eq 1 ]; then revert=1 ; fi

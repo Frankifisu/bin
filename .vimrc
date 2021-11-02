@@ -5,6 +5,7 @@ syntax on
 highlight Normal guibg=black guifg=white
 set autoindent "automatic smart indentation"
 "set nofoldenable to prevent annoying folding"
+nnoremap Q <nop> "Never accidentally enter stupid ex mode ever again"
 set wildignore+=*.exe,*.o,*.chk "ignore certain files when :vs or :sp"
 set expandtab "affects the TAB character"
 set shiftwidth=2 "affects automatic indentation"

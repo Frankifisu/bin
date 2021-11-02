@@ -361,7 +361,7 @@
 #    if [[ "${@}" = *"-v"* ]]; then echo "subgau ${chk} -g /home/a.baiardi/Gaussian/gdv.i09/gdv ${coda} ${@}"; fi
 #  }
   rmall () {
-    local -a listrm=( 'TAPE13' '*ams.rkf' '*adf.rkf' 't21.*' '*ams.log' 'job.out' )
+    local -a listrm=( 'TAPE13' '*ams.rkf' '*adf.rkf' 't21.*' '*ams.log' 'job.out' 'KidOutput_*' )
     for targetrm in ${listrm[*]}; do
       if [[ ! -f "${targetrm}" ]]; then continue; fi
       if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi

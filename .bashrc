@@ -181,7 +181,7 @@
     done
     local remote_user="${remote[${ruser}]}"
     local remote_host="${remote[${rhost}]}"
-    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "banana" ]]; then
+    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "banana" || "$( hostname )" == "Desktop11v2" ]]; then
 #     This function sends the IP into the .bashrc of a remote host
 #     before performing a ssh or scp operation.
 #     It expects the remote host .bashrc to have an office function

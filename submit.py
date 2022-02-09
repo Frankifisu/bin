@@ -121,7 +121,7 @@ def main():
     # Parse options
     opts, other = parseopt()
     if shutil.which('sbatch'):
-        sub = f'sbatch -v -N 1 --tasks-per-node={opts.ppn} -p {opts.queue} -o {opts.job}.out'
+        sub = f'sbatch -v -N 1 --tasks-per-node={opts.ppn} -p {opts.queue} -o {opts.job}.out -J {opts.job}'
     elif shutil.which('qsub'):
         sub = 'qsub -r n -V'
         subl = f'-l select=1:ncpus={opts.ppn}:mem={opts.mem}'
@@ -135,7 +135,7 @@ def main():
         # Submission of generic script
         for n, therest in enumerate(other):
             filnam, filext = os.path.splitext(therest)
-            if filext in {'.in', '.inp', '.ams', '.fcf'}:
+            if filext in {'.in', '.inp', '.ams', '.fcf', '.oldfcf'}:
                 raise AMS
             if filext in {'.com', '.gjf'}:
                 raise Gaussian

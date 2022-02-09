@@ -31,7 +31,7 @@ HOME = os.getenv('HOME')
 # ==========
 TEST_TMP = ('/scratch', '/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
 AMS_OUTFILS = { 'ams.log', 'ams.rkf', 'adf.rkf', 'output.xyz'}
-INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf' ))
+INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf' ))
 TESTAMS = 'test'
 AMSDEFAULT = '/home/egidi/usr/local/ams/ams2021.TADF'
 
@@ -131,6 +131,7 @@ def amsbuildcmd(env, inp, prog='ams', nproc=1, out='ams.out', ad='>'):
     cmdlist = []
     cmdlist.append('source ${AMSHOME}/amsbashrc.sh')
     cmdlist.append(f'export SCM_TMPDIR={env["SCM_TMPDIR"]}')
+    cmdlist.append(f'if [[ ! -f $SCMLICESE ]]; then export SCMLICENSE={SCMLICENSE} ; fi')
     cmdlist.append(f'export NSCM={nproc}')
     cmdlist.append('unset AMS_SWITCH_LOGFILE_AND_STDOUT')
     cmdlist.append(f'AMS_JOBNAME="{prog}.{inp_nam}" AMS_RESULTSDIR=. $AMSBIN/{prog} < "{inp}" {ad} {out}')
@@ -150,6 +151,9 @@ def amsrename(inp):
 def amsrun(opts):
     """Run AMS calculation with given options"""
     # DEFINE AMS ENVIRONMENT AND SUBMISSION COMMAND
+    if 'SCMLICENSE' in os.environ:
+        global SCMLICENSE
+        SCMLICENSE = os.environ['SCMLICENSE']
     os.environ = cleanenv(os.environ)
     os.environ = setamsenv(os.environ, opts.amshome, opts.vrb)
     # LOOP OVER INPUT FILES ONE BY ONE
@@ -159,6 +163,8 @@ def amsrun(opts):
         # Select program to run based on file extension
         if inp_ext == '.fcf':
             prog = 'fcf'
+        elif inp_ext == '.oldfcf':
+            prog = 'oldfcf'
         else:
             prog = 'ams'
         # Set output file

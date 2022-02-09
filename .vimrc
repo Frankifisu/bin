@@ -6,20 +6,22 @@ highlight Normal guibg=black guifg=white
 set autoindent "automatic smart indentation"
 "set nofoldenable to prevent annoying folding"
 nnoremap Q <nop> "Never accidentally enter stupid ex mode ever again"
-set wildignore+=*.exe,*.o,*.chk "ignore certain files when :vs or :sp"
+set wildignore+=*.exe,*.o,*.chk,*.rkf "ignore certain files when :vs or :sp"
 set expandtab "affects the TAB character"
 set shiftwidth=2 "affects automatic indentation"
 set softtabstop=2 "affects the TAB character"
 set background=dark "set appropriate colors for a dark background"
 set ignorecase "ignore case during search"
 set smartcase "overrides ignorecase if searching with uppercase letters"
-set linebreak "I don't know what this does
-set nolist  " list disables linebreak
+set nolist  "list disables linebreak
 set ruler "shows the line and column number in the lower-right corner"
 set hlsearch "highlights searched strings in a text"
-set nowrap "prevents linebreak for long lines when visualizing a file"
+"set nowrap prevents linebreak for long lines when visualizing a file"
 set splitright "vertical split on the right instead of left"
-set textwidth=0 "vertical split on the right instead of left"
+set textwidth=0 "prevent linebreak"
+set wrapmargin=0 "prevent linebreak"
+set wrap
+set linebreak
 if &diff 
   if expand('%.e') == "F"
     "diff mode ignore whitespace"

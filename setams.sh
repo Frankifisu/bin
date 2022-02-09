@@ -53,7 +53,7 @@ fi
       -t | --tags ) tags="tags"; usage ;;
       -p | --ppn  ) ppn='-p';;
       -v | --vrb  ) vrb='-v';;
-      -h          ) usage ;;
+      -h          ) usage ; exit 0 ;;
       *           ) ver="${1}";;
     esac
     shift

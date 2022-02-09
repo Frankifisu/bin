@@ -15,6 +15,7 @@ import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import tempfile #To create teporary files
 import socket #Just to get hostname
+import mail #My mail system
 from feutils import * #My generic functions
 
 # ==============
@@ -79,9 +80,12 @@ def amsparser(parser):
    # parser.add_argument('-t', '--tmp', metavar='SCM_TMPDIR',
    #     dest='tmp', action='store', default=None,
    #     help='Set scratch directory')
-   # parser.add_argument('-mail', '--verbose',
-   #     dest='mail', action='store_true', default=False,
-   #     help='Send the user an email at the end of the script')
+    parser.add_argument('-mail',
+        dest='mail', action='store_true', default=False,
+        help='Send the user an email at the end of the script')
+    parser.add_argument('-to', '--to', nargs=1,
+        dest='to', action='store', default=None,
+        help='Specify mail recepients')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,
         help='Set printing level')
@@ -175,7 +179,15 @@ def amsrun(opts):
         if not opts.dry:
             try:
                 amsjob = bashrun(amscmd, env=os.environ, vrb=opts.vrb)
-                print(amsjob)
+                # Email results
+                if opts.mail or opts.to:
+                    try:
+                        argmail = ['-s', f'{prog.upper()} calculation on {inp}', '-a', f'{amsout}']
+                        if opts.vrb: argmail.append('-v')
+                        if opts.to: argmail.extend(['-to', f'{opts.to}'])
+                        mail.main(argmail)
+                    except Exception:
+                        print(f'WARNING: Failed to send mail')
             except Exception:
                 print(f'WARNING: Calculation on {inp} failed')
             amsrename(inp)

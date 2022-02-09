@@ -32,6 +32,8 @@
         echo '  cd $AMSHOME; source $( find ${AMSHOME} -maxdepth 1 -name amsbashrc.sh )'
         echo '  Install/configure -b "myconfig -o GNU -p intelmpi -staticmkl"'
         echo '  $AMSBIN/foray -j 8'
+        echo 'TESTING'
+        echo '  submit.py $ADFHOME/Utils/run_test adf'
       ;;
       conda )
         echo '  conda activate myenv'

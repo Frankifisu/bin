@@ -123,6 +123,7 @@ def setamsenv(env, amshome: str, vrb: int=0) -> str:
     tmpdir = bashrun('source ${AMSHOME}/amsbashrc.sh; echo -n ${SCM_TMPDIR}', env=env)
     SCM_TMPDIR = os.path.join(tmpdir, USER, 'ams')
     env['SCM_TMPDIR'] = SCM_TMPDIR
+    #env['SCM_DEBUG'] = 'YES'
     # Possibly create scratch directory
     os.makedirs(SCM_TMPDIR, exist_ok=True)
     if vrb >= 1:
@@ -158,7 +159,7 @@ def amsrun(opts):
     if 'SCMLICENSE' in os.environ:
         global SCMLICENSE
         SCMLICENSE = os.environ['SCMLICENSE']
-    os.environ = cleanenv(os.environ)
+    #os.environ = cleanenv(os.environ)
     os.environ = setamsenv(os.environ, opts.amshome, opts.vrb)
     # LOOP OVER INPUT FILES ONE BY ONE
     ad = '>'
@@ -169,6 +170,8 @@ def amsrun(opts):
             prog = 'fcf'
         elif inp_ext == '.oldfcf':
             prog = 'oldfcf'
+        elif inp_ext == '.nmr':
+            prog = 'nmr'
         else:
             prog = 'ams'
         # Set output file

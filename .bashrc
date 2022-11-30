@@ -79,8 +79,17 @@
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
-  if   [[ -x $( command -v squeue ) ]]; then alias qme="squeue -u egidi";
-  elif [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
+  qme () {
+    if [[ -x $( command -v squeue ) ]]; then
+      squeue -u "${USER}"
+    elif [[ -x $( command -v qstat ) ]]; then
+      qstat -w -u ${USER} -n -1
+    else
+      top -b -u ${USER} -E g -n 1 -s -w | head -n $(($(nproc)+7)) | tail -n $(($(nproc)+1))
+    fi
+  }
+  #if   [[ -x $( command -v squeue ) ]]; then alias qme="squeue -u egidi";
+  #elif [[ -x $( command -v qstat ) ]]; then alias qme="qstat -w -u ${USER} -n -1"; fi
   alias mysubs="if [[ -e ${HOME}/.mysubs ]]; then vim '+normal G' ${HOME}/.mysubs; fi"
   if [[ -d "/bigdata/${USER}" ]]; then export BIGDATA="/bigdata/${USER}"; fi
 # functions
@@ -164,6 +173,30 @@
 #     -prune is true if the preceding is a directory and does not descend it 
 #     and P1 -o P2 is the logical or and does not evaluate P2 if P1 is true
   }
+#
+  trovams () {
+    if [[ -z ${AMSHOME} ]]; then echo "AMS environment undefined"; return 1; fi
+    
+    case ${#} in
+      0 ) echo "USAGE: trovams src fqqm"; return 0 ;;
+      1 ) sotto="src" ; cosa="${1}" ;; 
+      2 ) sotto="${1}" ; cosa="${2}";;
+      * ) echo "ERROR: too many arguments"; return 1;;
+    esac
+    
+    if [[ ! -d "$AMSHOME/${sotto}" ]]; then
+      echo "$AMSHOME/${sotto} is not a valid directory"; return 1
+    fi
+    
+    tmpfile="$( mktemp /tmp/trovams.XXXXXX )"
+    trova "$AMSHOME/${sotto}" "." > $tmpfile
+    for file in $( cat "${tmpfile}" ); do
+      grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
+    done
+    rm -- "${tmpfile}"
+
+    unset cosa; unset sotto; unset tmpfile; unset file
+ }
 #
 # -----
 # HOSTS

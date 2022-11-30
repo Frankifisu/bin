@@ -12,6 +12,7 @@ import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import numpy #Scientific computing
 import typing #Support for type hints
+from scipy import special
 
 # ==============
 #  PROGRAM DATA
@@ -55,6 +56,14 @@ def parseopt():
 # ================
 #  WORK FUNCTIONS
 # ================
+def pawa():
+    for N in range(1,100):
+        pawa = 0.
+        for k in range(N):
+            pawa = pawa + special.binom(N,k+1)/N**k
+        new = (1. + 1./N)**N
+        print(f' N = {N:3} P = {pawa:8.3f} P/N = {pawa/N:6.3f} new = {new}')
+    return None
 def filparse(input_file):
     with open(input_file, 'r') as file_obj:
         for line in file_obj :
@@ -65,6 +74,7 @@ def filparse(input_file):
 # ==============
 def main():
     # PARSE OPTIONS
+    pawa()
     opts = parseopt()
     sys.exit()
 

@@ -361,7 +361,7 @@
 #    if [[ "${@}" = *"-v"* ]]; then echo "subgau ${chk} -g /home/a.baiardi/Gaussian/gdv.i09/gdv ${coda} ${@}"; fi
 #  }
   rmall () {
-    local -a listrm=( 'TAPE13' '*ams.rkf' '*adf.rkf' 't21.*' '*ams.log' 'job.out' 'KidOutput_*' )
+    local -a listrm=( 'TAPE13' '*ams.rkf' '*adf.rkf' 't21.*' '*ams.log' )
     for targetrm in ${listrm[*]}; do
       if [[ ! -f "${targetrm}" ]]; then continue; fi
       if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi
@@ -373,7 +373,7 @@
 #    unset revert
 #    if [ `shopt -q extglob | echo $?` -eq 1 ]; then revert=1 ; fi
 #    shopt -s extglob
-    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' 'fort.7' 't21.*.[A-Z]*' 'CreateAtoms.out' 'ams.kid[0-9]*.out' 'ams.log' )
+    local -a listrm=( '*.o+([0-9])' '*.e+([0-9])' 'Gau-+([0-9]).*' '*.tmp' 'fort.7' 't21.*.[A-Z]*' 'TAPE21' 'CreateAtoms.out' 'ams.kid[0-9]*.out' 'KidOutput_*' 'ams.log' )
     for targetrm in ${listrm[*]}; do
       if [[ ! -f "${targetrm}" ]]; then continue; fi
       if [[ "${1}" = '-z' ]] && [[ -s ${targetrm} ]]; then continue ; fi

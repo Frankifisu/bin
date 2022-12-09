@@ -191,6 +191,7 @@
     tmpfile="$( mktemp /tmp/trovams.XXXXXX )"
     trova "$AMSHOME/${sotto}" "." > $tmpfile
     for file in $( cat "${tmpfile}" ); do
+      if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done
     rm -- "${tmpfile}"

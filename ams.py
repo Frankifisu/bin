@@ -104,6 +104,7 @@ def parseopt(args=None):
     # Check options
     for fil in opts.inp:
         if fil != TESTAMS:
+            if not os.path.isfile(fil): errore(f'File {fil} not found')
             check_extension(fil, INPEXT)
    # if not os.path.isdir(opts.gauscr):
    #     errore(f'Invalid scratch directory {opts.gauscr}')

@@ -43,7 +43,7 @@ def main():
         # POSSIBLY IMPORT MODULE
         modulo = help_this.split('.')[0]
         importlib.import_module(modulo)
-    except:
+    except Exception:
         pass
     finally:
         help(help_this)

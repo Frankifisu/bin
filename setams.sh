@@ -45,7 +45,7 @@ fi
 # PARSE OPTIONS
 # -------------
   unset AMSHOME vrb tags prc
-  ver="301"
+  ver="trunk"
 # check for architecture type via hostname
   while [[ -n "${1}" ]]; do
     case "${1}" in
@@ -136,6 +136,7 @@ fi
   partone='cd "$AMSHOME" && "$AMSBIN"/foray'
   parttwo="-j ${ncpuavail} 2>&1 | tee mkams.out ; cd -"
   alias mkams="${partone} ${parttwo}"
+  alias runtest="${AMSHOME}/Utils/run_test"
   unset ncpuavail partone parttwo
   if [[ -f "${AMSHOME}/toskip.dat" ]]; then
     export FORAY_SKIP_TARGET_LIST="$( cat "${AMSHOME}/toskip.dat" )"

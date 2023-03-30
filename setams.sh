@@ -9,7 +9,7 @@ if [[ "$(basename -- "$0")" == "setams.sh" ]]; then
 fi
 #
   function usage {
-    echo "Usage: . setams.sh [version, e.g. 301]"
+    echo "Usage: . setams.sh [version, e.g. trunk]"
     echo '       -a ams : use AMS directory in path ams'
     echo '       -t     : generate ctags file $HOME/.tags (NYI)'
     echo '       -p PRC : use PRC processors'
@@ -45,7 +45,7 @@ fi
 # PARSE OPTIONS
 # -------------
   unset AMSHOME vrb tags prc
-  ver="trunk"
+  ver="None"
 # check for architecture type via hostname
   while [[ -n "${1}" ]]; do
     case "${1}" in
@@ -53,11 +53,12 @@ fi
       -t | --tags ) tags="tags"; usage ;;
       -p | --ppn  ) ppn='-p';;
       -v | --vrb  ) vrb='-v';;
-      -h          ) usage ; exit 0 ;;
+      -h          ) usage ; return 0 ;;
       *           ) ver="${1}";;
     esac
     shift
   done
+  if [[ "${ver}" == 'None' ]]; then usage ; return 0 ; fi
   unset -f usage
 #
 # --------------------

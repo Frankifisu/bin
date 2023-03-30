@@ -27,17 +27,18 @@ PROGNAME = os.path.basename(sys.argv[0])
 def standardqueue():
     """Return default queue"""
     if '.scm.com' in HOSTNAME:
-        return 'ivy'
+        return 'sky'
     if 'trantor'  in HOSTNAME:
         return 'q07diamond'
 DESCRIPTION=f"""
 This script allows one to easily submit any command through the queing system
 """
-EPILOG="""
+EPILOG=f"""
 Examples:
 
     Script submissions:
         {PROGNAME} -v -p 1 -m 16 myscript.sh
+
 """
 
 # =================
@@ -75,6 +76,9 @@ def queueparser(parser):
     parser.add_argument('-h', '--help',
         dest='hlp', action='store_true', default=False,
         help='Print help message and exit')
+    parser.add_argument('--dry',
+        dest='dry', action='store_true', default=False,
+        help=argparse.SUPPRESS)
     return parser
 def parseopt(args=None):
     """Parse options"""
@@ -170,7 +174,8 @@ def main():
         sub = ' '.join([sub] + other)
     try:
         if opts.vrb > 0: print(sub)
-        subrun = bashrun(sub, env=os.environ, vrb=opts.vrb)
+        if not opts.dry:
+            subrun = bashrun(sub, env=os.environ, vrb=opts.vrb)
     except Exception:
         errore(f'Submission failed')
     sys.exit()

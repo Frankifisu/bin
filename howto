@@ -88,7 +88,7 @@
 	echo "WORKFLOW:"
 	echo "  git log                  (shows the log of all commits up to the initial one)"
 	echo "  git status               (to see which files I have changed)"
-	echo "  git diff                 (to see exactly what I changed or differences between commits with arguments [head1]..[head2])"
+	echo "  git diff {old} {new}     (to see exactly what I changed or differences between commits with arguments [head1]..[head2])"
 	echo "  git {add,mv,rm}          (to add, move, remove files in this commit)"
 	echo "  git commit -am [message] (to commit changes)"
 	echo "    Note: -m allows to specify the message in command line rather than in the file itself, -a commits all modified files"

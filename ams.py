@@ -21,8 +21,8 @@ from feutils import * #My generic functions
 # ==============
 #  PROGRAM DATA
 # ==============
-AUTHOR = 'Franco Egidi (egidi@scm.com)'
-VERSION = '2020.08.29'
+AUTHOR = 'Franco Egidi <egidi@scm.com>'
+VERSION = '2023.03.29'
 PROGNAME = os.path.basename(sys.argv[0])
 USER = os.getenv('USER')
 HOME = os.getenv('HOME')
@@ -31,10 +31,11 @@ HOME = os.getenv('HOME')
 #  DEFAULTS
 # ==========
 TEST_TMP = ('/scratch', '/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
-AMS_OUTFILS = { 'ams.log', 'ams.rkf', 'adf.rkf', 'output.xyz'}
-INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf' ))
+AMS_OUTFILS = { 'ams.log', 'ams.rkf', 'adf.rkf', 'dftb.rkf', 'output.xyz', 'TAPE61'}
+AMS_TOREMOVE = { 'CreateAtoms.out' }
+INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf', '.run' ))
 TESTAMS = 'test'
-AMSDEFAULT = '/home/egidi/usr/local/ams/ams2021.TADF'
+AMSDEFAULT = '/home/egidi/usr/local/ams/ams2023.trunk'
 
 # =========
 #  CLASSES
@@ -104,6 +105,7 @@ def parseopt(args=None):
     # Check options
     for fil in opts.inp:
         if fil != TESTAMS:
+            if not os.path.isfile(fil): errore(f'File {fil} not found')
             check_extension(fil, INPEXT)
    # if not os.path.isdir(opts.gauscr):
    #     errore(f'Invalid scratch directory {opts.gauscr}')
@@ -139,19 +141,29 @@ def amsbuildcmd(env, inp, prog='ams', nproc=1, out='ams.out', ad='>'):
     cmdlist.append(f'if [[ ! -f $SCMLICESE ]]; then export SCMLICENSE={SCMLICENSE} ; fi')
     cmdlist.append(f'export NSCM={nproc}')
     cmdlist.append('unset AMS_SWITCH_LOGFILE_AND_STDOUT')
-    cmdlist.append(f'AMS_JOBNAME="{prog}.{inp_nam}" AMS_RESULTSDIR=. $AMSBIN/{prog} < "{inp}" {ad} {out}')
+    if prog is None:
+        if os.access(f'{inp}', os.X_OK):
+            cmdlist.append(f'AMS_JOBNAME="ams.{inp_nam}" AMS_RESULTSDIR=. ./{inp} {ad} {out}')
+        else:
+            raise ValueError
+    else:
+        cmdlist.append(f'AMS_JOBNAME="{prog}.{inp_nam}" AMS_RESULTSDIR=. $AMSBIN/{prog} < "{inp}" {ad} {out}')
     return " ; ".join(cmdlist)
-def amsrename(inp):
-    """Rename calculation files to prevent future crashes"""
+def amsclean(inp):
+    """Rename or delete calculation files"""
     inp_nam, inp_ext = os.path.splitext(inp)
     for outfil in AMS_OUTFILS:
         if os.path.isfile(outfil):
             n = 1
+            if outfil == 'TAPE61': outfil = 't61'
             dest = f'{inp_nam}.{outfil}'
             while os.path.isfile(dest) and n < 100:
                 dest = f'{inp_nam}.{n:02d}.{outfil}'
                 n = n + 1
             os.rename(outfil, dest)
+    for outfil in AMS_TOREMOVE:
+        if os.path.isfile(outfil):
+            os.remove(outfil)
     return None
 def amsrun(opts):
     """Run AMS calculation with given options"""
@@ -172,6 +184,8 @@ def amsrun(opts):
             prog = 'oldfcf'
         elif inp_ext == '.nmr':
             prog = 'nmr'
+        elif inp_ext == '.run':
+            prog = None
         else:
             prog = 'ams'
         # Set output file
@@ -199,7 +213,7 @@ def amsrun(opts):
                         print(f'WARNING: Failed to send mail')
             except Exception:
                 print(f'WARNING: Calculation on {inp} failed')
-            amsrename(inp)
+            amsclean(inp)
     return None
 
 # ==============

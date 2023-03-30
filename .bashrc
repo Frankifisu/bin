@@ -270,30 +270,6 @@
       sconnect -IP "franco" "uz.sns.it" ${@}
     fi
   }
-# Connect to trantor
-  trantor () {
-    if [[ "$( hostname )" == "trantor"* ]]; then echo "ERROR: Already on trantor"; return 1; fi
-    sconnect -IP "fegidi" "trantor01.sns.it" ${@}
-  }
-# Connect to diamond
-  diamond () {
-    if [[ "$( hostname )" == "diamond"* ]]; then echo "ERROR: Already on diamond"; return 1; fi
-    sconnect -IP "f.egidi" "diamond01.sns.it" ${@}
-  }
-#
-# Connect to Galileo
-  cineca () {
-    sconnect -IP "fegidi00" "login.galileo.cineca.it" ${@}
-  }
-  alias galileo="cineca"
-#
-  natta () {
-    sconnect "f.egidi" "natta04.sns.it" ${@}
-  }
-#
-  artemis () {
-    sconnect "fegidi" "artemis.chem.washington.edu" ${@}
-  }
 #
 # ---
 # AMS
@@ -313,36 +289,6 @@
 # --------
   alias setgau=". setgaussian.sh"
   shopt -s extglob
-  convchk () {
-    if [[ ${#} -ne 3 ]]; then echo "USAGE: convchk a03 i04p file.chk"; fi
-    local uno="${1}"; local due="${2}"
-#    if [[ "${uno}" = "fq"  ]]; then uno="-g /home/f.egidi/.gdvfq"; fi
-#    if [[ "${due}" = "fq"  ]]; then due="-g /home/f.egidi/.gdvfq"; fi
-#    if [[ "${uno}" = "rel" ]]; then uno="-g /home/f.egidi/.gdvi04p"; fi
-#    if [[ "${due}" = "rel" ]]; then due="-g /home/f.egidi/.gdvi04p"; fi
-    setgau ${uno} || return
-    formchk "${3}" temp.fchk
-    setgau ${due} || return
-    unfchk temp.fchk "${3}"
-    rm -- temp.fchk
-  }
-  compile () {
-    if [[ ! -x $( command  -v qsub ) ]]; then echo "ERROR: No qsub command"; return 1; fi
-    local jobnam="interactive"
-    local queue="q07diamond"
-    local nodes=""
-    while [[ -n "${1}" ]]; do
-      case "${1}" in
-        -q     ) queue="${2}"; shift;;
-        -p     ) nodes="-l nodes=1:ppn=28"; shift;;
-        -v     ) vrb="-v";;
-        -N     ) jobnam="${2}";;
-        *      ) echo "ERROR: unrecognized option ${1}"; return 1;;
-      esac; shift
-    done
-    if [[ -z "${queue}" ]]; then queue="q02zewail"; fi
-    qsub -I -N "${jobnam}" -q ${queue} ${nodes}
-  }
 #  subfq () {
 #    unset chk ; unset coda ; unset working ; unset subarch
 #    if [[ "${#}" -eq 0 ]]; then echo "USAGE: subfq -q q02curie input.com"; return 1; fi
@@ -417,23 +363,6 @@
     unset targetrm
 #    if [ ${revert} -eq 1 ]; then shopt -u extglob; fi
   }
-# Clean working compilation
-  mkclean () {
-    local -a listrm=( '*.o' 'cubegen' '*/*.o' '*/*.exe' )
-    for targetrm in ${listrm[*]}; do
-      if [ ! -f "${targetrm}" ]; then continue; fi
-      rm -- "${targetrm}"
-    done
-    unset targetrm
-  }
-# Clean Gaussian Scratch
-  cleanscr () {
-    for scrdir in ${GAUSS_SCRDIR} ${SCM_TMPDIR}; do
-      if [[ -d "${scrdir}" ]]; then
-        for i in "${scrdir}"/* ; do if [[ "$( stat -c %U "${i}" )" = ${USER} ]]; then rm -- "${i}"; fi; done
-      fi
-    done
-  }
 ## Generate cube using cubegen
 #  cube () {
 #    usage () {
@@ -491,15 +420,6 @@
 #    fi
 ##    unset outcub; unset spin; unset dens; unset nproc; unset orbs; unset file; unset outcub; unset comando; unset npts
 #  }
-# GaussView
-  for trydir in '/opt' '/opt/gaussian' "${HOME}/usr/local"  "${HOME}/usr/local/gaussian"; do
-    if [[ -d ${trydir}/GaussView6 ]]; then
-      export GV_DIR="${trydir}/GaussView6"
-      break; fi
-  done; unset trydir
-  if [[ -x "${GV_DIR}/gview.sh" ]]; then
-    alias gview="${GV_DIR}/gview.sh &"
-  fi
 #
 # ---
 # xtb
@@ -571,10 +491,6 @@
       break
     fi
   done; unset trydir
-# --------
-# LSDALTON
-# --------
-  alias lsdalton="${HOME}/usr/local/lsdalton/build_pcm/lsdalton -nobackup"
 # ------
 # GAMESS
 # ------
@@ -602,4 +518,3 @@
 #    return 0
 #  }
 #
-  alias pygior='/home/g.mancini/pkg/python27/bin/python2.7'

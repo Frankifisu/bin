@@ -145,7 +145,7 @@ def amsbuildcmd(env, inp, prog='ams', nproc=1, out='ams.out', ad='>'):
         if os.access(f'{inp}', os.X_OK):
             cmdlist.append(f'AMS_JOBNAME="ams.{inp_nam}" AMS_RESULTSDIR=. ./{inp} {ad} {out}')
         else:
-            raise ValueError
+            raise ValueError(f'{inp} file is not executable')
     else:
         cmdlist.append(f'AMS_JOBNAME="{prog}.{inp_nam}" AMS_RESULTSDIR=. $AMSBIN/{prog} < "{inp}" {ad} {out}')
     return " ; ".join(cmdlist)
@@ -155,8 +155,10 @@ def amsclean(inp):
     for outfil in AMS_OUTFILS:
         if os.path.isfile(outfil):
             n = 1
-            if outfil == 'TAPE61': outfil = 't61'
-            dest = f'{inp_nam}.{outfil}'
+            if outfil == 'TAPE61':
+                dest = f'{inp_nam}.t61'
+            else:
+                dest = f'{inp_nam}.{outfil}'
             while os.path.isfile(dest) and n < 100:
                 dest = f'{inp_nam}.{n:02d}.{outfil}'
                 n = n + 1

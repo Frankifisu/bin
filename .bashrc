@@ -177,10 +177,12 @@
   trovams () {
     if [[ -z ${AMSHOME} ]]; then echo "AMS environment undefined"; return 1; fi
     
+    ext=''
     case ${#} in
-      0 ) echo "USAGE: trovams src fqqm"; return 0 ;;
+      0 ) echo "USAGE: trovams src fqqm .run"; return 0 ;;
       1 ) sotto="src" ; cosa="${1}" ;; 
       2 ) sotto="${1}" ; cosa="${2}";;
+      3 ) sotto="${1}" ; cosa="${2}"; ext="${3}";;
       * ) echo "ERROR: too many arguments"; return 1;;
     esac
     
@@ -192,6 +194,7 @@
     trova "$AMSHOME/${sotto}" "." > $tmpfile
     for file in $( cat "${tmpfile}" ); do
       if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
+      if [[ "${file}" != *${ext} ]] ; then continue ; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done
     rm -- "${tmpfile}"

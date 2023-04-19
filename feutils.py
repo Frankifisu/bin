@@ -242,7 +242,7 @@ def check_extension(to_check: str, allowed_ext):
     """Check file extension"""
     filnam, filext = os.path.splitext(to_check)
     if filext not in allowed_ext:
-        raise ValueError
+        raise ValueError('Invalid file extension')
 def loginshvar(var: str) -> str :
     """Get environment variable from the login shell"""
     comando = " ".join(['env -i', BASH, ' -l -c "printenv', var, '"'])

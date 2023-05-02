@@ -118,6 +118,18 @@
       howto | -h )
 	usage
       ;;
+      lammps )
+	echo "INSTALLAZIONE:"
+	echo "  mkdir ~/usr/local/lammps ; cd ~/usr/local/lammps"
+	echo "  wget -O - https://download.lammps.org/tars/lammps-stable.tar.gz"
+	echo "  tar -xzvf lammps-stable.tar.gz"
+	echo "  cd lammps-23Jun2022"
+	echo "  mkdir build; cd build"
+	echo "  cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort -DBUILD_LIB=yes -DBUILD_SHARED_LIBS=yes -DLAMMPS_EXCEPTIONS=yes -DBUILD_MPI=no -DBUILD_OMP=yes -DPKG_OPENMP=yes -DPKG_GPU=yes -DPKG_MOLECULE=yes -DPKG_EXTRA-MOLECULE=yes -DPKG_KSPACE=yes"
+	echo "  cmake --build ."
+	echo "  make install"
+	echo "  make install-python"
+      ;;
       ln )
 	echo "ln original link"
       ;;

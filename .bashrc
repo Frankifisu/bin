@@ -194,10 +194,11 @@
     trova "$AMSHOME/${sotto}" "." > $tmpfile
     for file in $( cat "${tmpfile}" ); do
       if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
-      if [[ "${file}" == *.rkf ]] ; then continue; fi
+      if [[ "${file}" == *kf ]] ; then continue; fi
+      if [[ "${file}" == *.t21 ]] ; then continue; fi
       if [[ "${file}" == *.ams ]] ; then continue; fi
       if [[ "${file}" == *.png ]] ; then continue; fi
-      if [[ "${file}" == *.out.gz ]] ; then continue; fi
+      if [[ "${file}" == *.gz ]] ; then continue; fi
       if [[ "${file}" != *${ext} ]] ; then continue ; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done

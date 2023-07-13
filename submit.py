@@ -13,6 +13,7 @@ import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Support for type hints
 from feutils import *
+import ams, gau
 
 # ==============
 #  PROGRAM DATA
@@ -139,9 +140,10 @@ def main():
         # Submission of generic script
         for n, therest in enumerate(other):
             filnam, filext = os.path.splitext(therest)
-            if filext in {'.in', '.inp', '.ams', '.fcf', '.oldfcf'}:
+            #if filext in {'.in', '.inp', '.ams', '.fcf', '.oldfcf', '.nmr', '.run'}:
+            if filext in ams.INPEXT:
                 raise AMS
-            if filext in {'.com', '.gjf'}:
+            if filext in gau.INPEXT:
                 raise Gaussian
             elif os.path.isfile(therest) and os.access(therest, os.X_OK):
                 other[n] = os.path.abspath(therest)

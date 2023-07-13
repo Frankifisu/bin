@@ -35,6 +35,26 @@ def errore(message=None):
         print(f'ERROR: {str(message)}')
     sys.exit(1)
 
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+    @property
+    def radius(self):
+        return self._radius
+
+   # @radius.setter
+   # def radius(self, value):
+   #     self._radius = float(value)
+
+    @property
+    def diameter(self):
+        return self.radius * 2
+
+    @diameter.setter
+    def diameter(self, value):
+        self.radius = value / 2
+
 # =================
 #  PARSING OPTIONS
 # =================
@@ -74,8 +94,12 @@ def filparse(input_file):
 # ==============
 def main():
     # PARSE OPTIONS
-    pawa()
-    opts = parseopt()
+    #pawa()
+    #opts = parseopt()
+    boh = Circle(3)
+    print(boh._radius)
+    print(boh.radius)
+    print(boh.diameter)
     sys.exit()
 
 # ===========

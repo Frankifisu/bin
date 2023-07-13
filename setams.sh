@@ -148,6 +148,7 @@ fi
   parttwo="-j ${ncpuavail} 2>&1 | tee mkams.out ; cd -"
   alias mkams="${partone} ${parttwo}"
   alias runtest="${AMSHOME}/Utils/run_test"
+  alias runwhere="${AMSHOME}/Utils/run_where"
   unset ncpuavail partone parttwo
   if [[ -f "${AMSHOME}/toskip.dat" ]]; then
     export FORAY_SKIP_TARGET_LIST="$( cat "${AMSHOME}/toskip.dat" )"

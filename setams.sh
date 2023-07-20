@@ -58,7 +58,7 @@ fi
     esac
     shift
   done
-  if [[ "${ver}" == 'None' ]]; then usage ; return 0 ; fi
+  if [[ "${ver}" == 'None' && -z "${AMSHOME}" ]] ; then usage ; return 0 ; fi
   unset -f usage
 #
 # --------------------

@@ -121,7 +121,7 @@
       lammps )
 	echo "INSTALLAZIONE:"
 	echo "  mkdir ~/usr/local/lammps ; cd ~/usr/local/lammps"
-	echo "  wget -O - https://download.lammps.org/tars/lammps-stable.tar.gz"
+	echo "  wget https://download.lammps.org/tars/lammps-stable.tar.gz"
 	echo "  tar -xzvf lammps-stable.tar.gz"
 	echo "  cd lammps-23Jun2022"
 	echo "  mkdir build; cd build"

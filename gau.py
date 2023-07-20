@@ -15,7 +15,7 @@ import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import tempfile #To create teporary files
 import socket #Just to get hostname
-from feutils import bashrun, cd, errore, int_or_str, wide_help #My generic functions
+from feutils import bashrun, cd, check_extension, errore, int_or_str, wide_help #My generic functions
 
 # ==============
 #  PROGRAM DATA

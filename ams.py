@@ -16,7 +16,7 @@ import typing #Explicit typing of arguments
 import tempfile #To create teporary files
 import socket #Just to get hostname
 import mail #My mail system
-from feutils import bashrun, cd, errore, wide_help #My generic functions
+from feutils import bashrun, cd, check_extension, errore, wide_help #My generic functions
 
 # ==============
 #  PROGRAM DATA

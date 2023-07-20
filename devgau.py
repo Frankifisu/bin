@@ -166,7 +166,7 @@ def errore(message=None):
     if message is not None:
         print(f'ERROR: {str(message)}')
     sys.exit(1)
-def intorstr(string):
+def int_or_str(string):
     if string is None:
         return None
     try:
@@ -241,7 +241,7 @@ def parseopt(args=None):
         dest='add', action='append', type=str, default=[],
         help='Add keyword string to input file(s)')
     parser.add_argument('-m', '--mem', metavar='GAUSS_MDEF',
-        dest='mem', action='store', default=None, type=intorstr,
+        dest='mem', action='store', default=None, type=int_or_str,
         help='Set memory in Words or Bytes')
     parser.add_argument('-p', '--nproc', metavar='GAUSS_PDEF',
         dest='nproc', default=None,

@@ -15,7 +15,7 @@ import typing #Support for type hints
 import smtplib #To send emails
 import email #To send emails
 import mimetypes #Handle file types over Internet
-from feutils import * #My generic functions
+from feutils import errore, USER #My generic functions
 
 # ==============
 #  PROGRAM DATA

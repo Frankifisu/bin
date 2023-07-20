@@ -59,7 +59,7 @@ def queueparser(parser):
         dest='job', action='store', default='job', type=str,
         help='Set job name')
     parser.add_argument('-m', '--mem', metavar='MEM',
-        dest='mem', action='store', default=64, type=intorstr,
+        dest='mem', action='store', default=64, type=int_or_str,
         help='Set RAM')
     parser.add_argument('-p', '--nproc', metavar='PROC',
         dest='ppn', default=28,

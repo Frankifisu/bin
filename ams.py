@@ -16,7 +16,7 @@ import typing #Explicit typing of arguments
 import tempfile #To create teporary files
 import socket #Just to get hostname
 import mail #My mail system
-from feutils import * #My generic functions
+from feutils import bashrun, cd, errore, wide_help #My generic functions
 
 # ==============
 #  PROGRAM DATA
@@ -143,7 +143,7 @@ def amsbuildcmd(env, inp, prog='ams', nproc=1, out='ams.out', ad='>'):
     cmdlist.append('unset AMS_SWITCH_LOGFILE_AND_STDOUT')
     if prog is None:
         if os.access(f'{inp}', os.X_OK):
-            cmdlist.append(f'AMS_JOBNAME="ams.{inp_nam}" AMS_RESULTSDIR=. ./{inp} {ad} {out}')
+            cmdlist.append(f'AMS_JOBNAME="ams.{inp_nam}" ./{inp} {ad} {out}')
         else:
             raise ValueError(f'{inp} file is not executable')
     else:

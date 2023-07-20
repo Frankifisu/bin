@@ -44,7 +44,7 @@ def cubeparse():
         dest='cub',
         help='Set cube file name')
     parser.add_argument('-p', '--npts',
-        dest='npts', default=0, metavar='NPTS', type=intorstr,
+        dest='npts', default=0, metavar='NPTS', type=int_or_str,
         help='Set number of points')
     parser.add_argument('-v', '--verbose',
         dest='vrb', action='count', default=0,

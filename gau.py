@@ -15,7 +15,7 @@ import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Explicit typing of arguments
 import tempfile #To create teporary files
 import socket #Just to get hostname
-from feutils import * #My generic functions
+from feutils import bashrun, cd, errore, int_or_str, wide_help #My generic functions
 
 # ==============
 #  PROGRAM DATA
@@ -237,7 +237,7 @@ def gauparser(parser):
         dest='add', action='append', type=str, default=[],
         help='Add keyword string to input file(s)')
     parser.add_argument('-m', '--mem', metavar='GAUSS_MDEF',
-        dest='mem', action='store', default=None, type=intorstr,
+        dest='mem', action='store', default=None, type=int_or_str,
         help='Set memory in Words or Bytes')
     parser.add_argument('-p', '--nproc', metavar='GAUSS_PDEF',
         dest='nproc', default=None,

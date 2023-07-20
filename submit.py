@@ -12,7 +12,7 @@ import argparse # commandline argument parsers
 import math #C library float functions
 import subprocess #Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 import typing #Support for type hints
-from feutils import *
+from feutils import bashrun, errore, HOSTNAME, int_or_str, wide_help
 
 # ==============
 #  PROGRAM DATA
@@ -62,7 +62,7 @@ def queueparser(parser):
         dest='job', action='store', default='job', type=str,
         help='Set job name')
     parser.add_argument('-m', '--mem', metavar='MEM',
-        dest='mem', action='store', default=64, type=intorstr,
+        dest='mem', action='store', default=64, type=int_or_str,
         help='Set RAM')
     parser.add_argument('-p', '--nproc', metavar='PROC',
         dest='ppn', default=8, type=int,

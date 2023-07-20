@@ -216,7 +216,7 @@ def errore(message=None):
     if message is not None:
         print(f'ERROR: {str(message)}', file=sys.stderr)
     sys.exit(1)
-def intorstr(string):
+def int_or_str(string):
     """Check if string could be integer"""
     if string is None:
         return None

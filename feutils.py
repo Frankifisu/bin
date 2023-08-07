@@ -228,10 +228,14 @@ def int_or_str(string):
 def bashrun(comando: str, env=None, vrb=0) -> str:
     """Run bash subprocess with sensible defaults
     and return output"""
-    if env is None:
-        process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    else:
-        process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    try:
+        if env is None:
+            process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        else:
+            process = subprocess.run(comando, shell=True, check=True, executable=BASH, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    except subprocess.CalledProcessError as excpt :
+        print(excpt)
+        process = excpt
     try:
         output = process.stdout.decode().rstrip()
     except UnicodeDecodeError:

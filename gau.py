@@ -182,7 +182,7 @@ class gauinput:
             try:
                 atnumber = int(words[0])
                 element = Z2SYMB[atnumber]
-            except:
+            except Exception:
                 elabel = re.match(REGAUINP['atom'], words[0], flags=re.ASCII)
                 element = elabel.group('El')
                 if elabel.group('Type'):
@@ -191,7 +191,7 @@ class gauinput:
                     fragsrc = re.search(REGAUINP['frag'], elabel.group('Flags'), flags= re.ASCII | re.IGNORECASE)
                     if fragsrc.group('frag'):
                         atomprops['frag'] = fragsrc.group('frag')
-                except:
+                except Exception:
                     pass
             # Extract coordinates
             idcoord = 1

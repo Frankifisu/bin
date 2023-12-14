@@ -223,7 +223,7 @@ def int_or_str(string):
     try:
         toint = int(string)
         return toint
-    except:
+    except Exception:
         return string
 def bashrun(comando: str, env=None, vrb=0) -> str:
     """Run bash subprocess with sensible defaults

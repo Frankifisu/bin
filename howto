@@ -265,8 +265,9 @@
         echo "svn ls svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/"
         echo "svn checkout svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch ams2020.new"
         echo "svn copy -r NUMBER svn+ssh://dev@svn.scm.com/home/svn/src/trunk svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch -m MESSAGE"
-        echo "svn switch svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch"
         echo "svn merge svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/MyBranch@rXXXX ."
+        echo "svn move svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/Branch1 svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/Branch2"
+        echo "svn switch svn+ssh://dev@svn.scm.com/home/svn/src/branches/FrancoEgidi/Branch2"
         echo "svn add/delete file"
         echo "svn commit -m \"My message\""
       ;;

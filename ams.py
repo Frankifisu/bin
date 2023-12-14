@@ -33,7 +33,7 @@ HOME = os.getenv('HOME')
 TEST_TMP = ('/scratch', '/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
 AMS_OUTFILS = { 'ams.log', 'ams.rkf', 'adf.rkf', 'dftb.rkf', 'output.xyz', 'TAPE61'}
 AMS_TOREMOVE = { 'CreateAtoms.out' }
-INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf', '.run' ))
+INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf', '.run', '.py', '.amspy' ))
 TESTAMS = 'test'
 AMSDEFAULT = '/home/egidi/usr/local/ams/ams2023.trunk'
 
@@ -146,6 +146,8 @@ def amsbuildcmd(env, inp, prog='ams', nproc=1, out='ams.out', ad='>'):
             cmdlist.append(f'AMS_JOBNAME="ams.{inp_nam}" ./{inp} {ad} {out}')
         else:
             raise ValueError(f'{inp} file is not executable')
+    elif prog == 'python':
+        cmdlist.append(f'amspython {inp}')
     else:
         cmdlist.append(f'AMS_JOBNAME="{prog}.{inp_nam}" AMS_RESULTSDIR=. $AMSBIN/{prog} < "{inp}" {ad} {out}')
     return " ; ".join(cmdlist)
@@ -186,6 +188,8 @@ def amsrun(opts):
             prog = 'oldfcf'
         elif inp_ext == '.nmr':
             prog = 'nmr'
+        elif inp_ext in {'.py', '.amspy'} :
+            prog = 'python'
         elif inp_ext == '.run':
             prog = None
         else:

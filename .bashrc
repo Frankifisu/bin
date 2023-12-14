@@ -79,6 +79,22 @@
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
+  apri () {
+    if [[ ${#} -eq 0 ]]; then
+       xdg-open .
+    elif [[ ${#} -eq 1 ]]; then
+      if [[ -d "${1}" ]]; then
+        xdg-open ${1}
+      else
+        echo "ERROR: ${1} not a directory"
+      fi
+    else
+       echo "ERROR: Only up to 1 argument"
+    fi
+  }
+  svndiff () {
+    svn diff ${@} | colordiff
+  }
   qme () {
     if [[ -x $( command -v squeue ) ]]; then
       squeue -u "${USER}"
@@ -197,6 +213,7 @@
       if [[ "${file}" == *kf ]] ; then continue; fi
       if [[ "${file}" == *.t21 ]] ; then continue; fi
       if [[ "${file}" == *.ams ]] ; then continue; fi
+      if [[ "${file}" == *.pyc ]] ; then continue; fi
       if [[ "${file}" == *.png ]] ; then continue; fi
       if [[ "${file}" == *.gz ]] ; then continue; fi
       if [[ "${file}" != *${ext} ]] ; then continue ; fi

@@ -34,7 +34,29 @@ TEST_TMP = ('/scratch', '/tmp', '/var/tmp', '/usr/tmp', HOME+'/tmp', HOME)
 AMS_OUTFILS = { 'ams.log', 'ams.rkf', 'adf.rkf', 'dftb.rkf', 'output.xyz', 'TAPE61'}
 AMS_TOREMOVE = { 'CreateAtoms.out' }
 INPEXT = frozenset(('.in', '.inp', '.ams', '.fcf', '.oldfcf', '.run', '.py', '.amspy' ))
-TESTAMS = 'test'
+TESTAMS = 'test.in'
+DEFAULTADF = f"""Task SinglePoint
+
+System
+  Atoms
+    C    0.000000    0.000000    0.000000
+    O    0.000000    0.000000    1.227154
+    H    0.925547    0.000000   -0.603461
+    H   -0.925547    0.000000   -0.603461
+  End
+End
+
+Engine ADF
+  Title Test
+  Basis
+    Core None
+    Type DZP
+  End
+  XC
+    GGA PBE
+  End
+EndEngine
+"""
 AMSDEFAULT = '/home/egidi/usr/local/ams/ams2023.trunk'
 
 # =========
@@ -68,7 +90,7 @@ def amsparser(parser):
     """Create parsers for AMS command"""
     # Add options
     parser.add_argument(dest='inp', nargs='+', metavar="INPUT",
-        help='Input file(s) with .in or .inp extension')
+        help='Input file(s)')
     parser.add_argument('-o', '--output', metavar='OUTPUT',
         dest='out', action='store',
         help='Set output file name')
@@ -105,8 +127,14 @@ def parseopt(args=None):
     # Check options
     for fil in opts.inp:
         if fil != TESTAMS:
+            # Check file extensions
             if not os.path.isfile(fil): errore(f'File {fil} not found')
             check_extension(fil, INPEXT)
+        elif not os.path.isfile(TESTAMS):
+            # Create a new default input in case of simple testing
+            with open(TESTAMS, mode='x') as newfile:
+                newfile.write(DEFAULTADF)
+                opts.inp.append(TESTAMS)
    # if not os.path.isdir(opts.gauscr):
    #     errore(f'Invalid scratch directory {opts.gauscr}')
    # if opts.gauroot in GAUDIR.keys():

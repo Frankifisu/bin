@@ -82,14 +82,14 @@
   apri () {
     if [[ ${#} -eq 0 ]]; then
        xdg-open .
-    elif [[ ${#} -eq 1 ]]; then
-      if [[ -d "${1}" ]]; then
-        xdg-open ${1}
-      else
-        echo "ERROR: ${1} not a directory"
-      fi
     else
-       echo "ERROR: Only up to 1 argument"
+      for fil in ${@}; do
+        if [[ -r "${fil}" ]]; then
+          xdg-open "${fil}"
+        else
+          echo "ERROR: ${1} not readable"
+        fi
+      done; unset fil
     fi
   }
   svndiff () {
@@ -190,32 +190,29 @@
 #     and P1 -o P2 is the logical or and does not evaluate P2 if P1 is true
   }
 #
-  trovams () {
-    if [[ -z ${AMSHOME} ]]; then echo "AMS environment undefined"; return 1; fi
-    
+  esplora () {
     ext=''
     case ${#} in
-      0 ) echo "USAGE: trovams src fqqm .run"; return 0 ;;
-      1 ) sotto="src" ; cosa="${1}" ;; 
+      0 ) echo "USAGE: esplora . fqqm .run"; return 0 ;;
       2 ) sotto="${1}" ; cosa="${2}";;
       3 ) sotto="${1}" ; cosa="${2}"; ext="${3}";;
-      * ) echo "ERROR: too many arguments"; return 1;;
+      * ) echo "ERROR: wrong number of arguments"; return 1;;
     esac
     
-    if [[ ! -d "$AMSHOME/${sotto}" ]]; then
-      echo "$AMSHOME/${sotto} is not a valid directory"; return 1
-    fi
-    
     tmpfile="$( mktemp /tmp/trovams.XXXXXX )"
-    trova "$AMSHOME/${sotto}" "." > $tmpfile
+    trova "${sotto}" "." > $tmpfile
     for file in $( cat "${tmpfile}" ); do
       if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
       if [[ "${file}" == *kf ]] ; then continue; fi
       if [[ "${file}" == *.t21 ]] ; then continue; fi
       if [[ "${file}" == *.ams ]] ; then continue; fi
       if [[ "${file}" == *.pyc ]] ; then continue; fi
+      if [[ "${file}" == *.svg ]] ; then continue; fi
       if [[ "${file}" == *.png ]] ; then continue; fi
-      if [[ "${file}" == *.gz ]] ; then continue; fi
+      if [[ "${file}" == *.gz  ]] ; then continue; fi
+      if [[ "${file}" == *.js  ]] ; then continue; fi
+      if [[ "${file}" == *.ipynb  ]] ; then continue; fi
+      if [[ "${file}" == *.drawio ]] ; then continue; fi
       if [[ "${file}" != *${ext} ]] ; then continue ; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done
@@ -223,6 +220,60 @@
 
     unset cosa; unset sotto; unset tmpfile; unset file
  }
+#
+  trovams () {
+    if [[ -z ${AMSHOME} ]]; then echo "AMS environment undefined"; return 1; fi
+
+    ext=''
+    case ${#} in
+      0   ) echo "USAGE: trovams src fqqm .run"; return 0 ;;
+      1   ) sotto="${AMSHOME}/src" ; cosa="${1}" ;; 
+      2|3 ) sotto="${AMSHOME}/${1}" ; shift ;;
+      * ) echo "ERROR: wrong number of arguments"; return 1;;
+    esac
+
+    esplora "${sotto}" ${@}
+
+    unset sotto
+ }
+#
+#  trovams () {
+#    if [[ -z ${AMSHOME} ]]; then echo "AMS environment undefined"; return 1; fi
+#    
+#    ext=''
+#    case ${#} in
+#      0 ) echo "USAGE: trovams src fqqm .run"; return 0 ;;
+#      1 ) sotto="src" ; cosa="${1}" ;; 
+#      2 ) sotto="${1}" ; cosa="${2}";;
+#      3 ) sotto="${1}" ; cosa="${2}"; ext="${3}";;
+#      * ) echo "ERROR: too many arguments"; return 1;;
+#    esac
+#    
+#    if [[ ! -d "$AMSHOME/${sotto}" ]]; then
+#      echo "$AMSHOME/${sotto} is not a valid directory"; return 1
+#    fi
+#    
+#    tmpfile="$( mktemp /tmp/trovams.XXXXXX )"
+#    trova "$AMSHOME/${sotto}" "." > $tmpfile
+#    for file in $( cat "${tmpfile}" ); do
+#      if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
+#      if [[ "${file}" == *kf ]] ; then continue; fi
+#      if [[ "${file}" == *.t21 ]] ; then continue; fi
+#      if [[ "${file}" == *.ams ]] ; then continue; fi
+#      if [[ "${file}" == *.pyc ]] ; then continue; fi
+#      if [[ "${file}" == *.svg ]] ; then continue; fi
+#      if [[ "${file}" == *.png ]] ; then continue; fi
+#      if [[ "${file}" == *.gz  ]] ; then continue; fi
+#      if [[ "${file}" == *.js  ]] ; then continue; fi
+#      if [[ "${file}" == *.ipynb  ]] ; then continue; fi
+#      if [[ "${file}" == *.drawio ]] ; then continue; fi
+#      if [[ "${file}" != *${ext} ]] ; then continue ; fi
+#      grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
+#    done
+#    rm -- "${tmpfile}"
+#
+#    unset cosa; unset sotto; unset tmpfile; unset file
+# }
 #
 # -----
 # HOSTS

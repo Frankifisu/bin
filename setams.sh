@@ -69,7 +69,7 @@ fi
     if [[ "$( uname )" = "Linux" ]]; then
       AMSHOME="$( readlink ${vrb} -e "${AMSHOME}" )"
     fi
-    if [[ ! -d ${AMSHOME} ]]; then echo "ERROR: ${AMSHOME} directory not found"; return 1; fi
+    if [[ ! -d ${AMSHOME} ]]; then echo "ERROR: AMSHOME directory not found"; return 1; fi
     found="${AMSHOME}"
   else
 #   crawl through the system searching for the desired AMS directory

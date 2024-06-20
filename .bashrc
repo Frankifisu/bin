@@ -202,18 +202,31 @@
     tmpfile="$( mktemp /tmp/trovams.XXXXXX )"
     trova "${sotto}" "." > $tmpfile
     for file in $( cat "${tmpfile}" ); do
-      if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
-      if [[ "${file}" == *kf ]] ; then continue; fi
-      if [[ "${file}" == *.t21 ]] ; then continue; fi
-      if [[ "${file}" == *.ams ]] ; then continue; fi
-      if [[ "${file}" == *.pyc ]] ; then continue; fi
-      if [[ "${file}" == *.svg ]] ; then continue; fi
-      if [[ "${file}" == *.png ]] ; then continue; fi
-      if [[ "${file}" == *.gz  ]] ; then continue; fi
-      if [[ "${file}" == *.js  ]] ; then continue; fi
-      if [[ "${file}" == *.ipynb  ]] ; then continue; fi
-      if [[ "${file}" == *.drawio ]] ; then continue; fi
+      case "${file}" in
+        *kf      ) continue ;;
+        *.t21    ) continue ;;
+        *.ams    ) continue ;;
+        *.pyc    ) continue ;;
+        *.svg    ) continue ;;
+        *.png    ) continue ;;
+        *.gz     ) continue ;;
+        *.js     ) continue ;;
+        *.ipynb  ) continue ;;
+        *.drawio ) continue ;;
+      esac
       if [[ "${file}" != *${ext} ]] ; then continue ; fi
+      if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
+      #if [[ "${file}" == *kf ]] ; then continue; fi
+      #if [[ "${file}" == *.t21 ]] ; then continue; fi
+      #if [[ "${file}" == *.ams ]] ; then continue; fi
+      #if [[ "${file}" == *.pyc ]] ; then continue; fi
+      #if [[ "${file}" == *.svg ]] ; then continue; fi
+      #if [[ "${file}" == *.png ]] ; then continue; fi
+      #if [[ "${file}" == *.gz  ]] ; then continue; fi
+      #if [[ "${file}" == *.js  ]] ; then continue; fi
+      #if [[ "${file}" == *.ipynb  ]] ; then continue; fi
+      #if [[ "${file}" == *.drawio ]] ; then continue; fi
+      #if [[ "${file}" != *${ext} ]] ; then continue ; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done
     rm -- "${tmpfile}"
@@ -232,7 +245,13 @@
       * ) echo "ERROR: wrong number of arguments"; return 1;;
     esac
 
-    esplora "${sotto}" ${@}
+    if [[ ${#} == 1 ]]; then
+      esplora "${sotto}" "${1}"
+    elif [[ ${#} == 2 ]]; then
+      esplora "${sotto}" "${1}" "${2}"
+    else
+      echo "ERROR: Wrong number of arguments"
+    fi
 
     unset sotto
  }

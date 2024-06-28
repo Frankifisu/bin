@@ -215,6 +215,17 @@
         echo '    import package.module       # access it as package.module.function()'
         echo '    from package import module  # access it as module.function()'
       ;;
+      qc2 )
+        echo "DOWNLOAD:"
+        echo "  git clone git@github.com:qc2nl/qc2.git"
+        echo "INSTALL:"
+        echo "  conda create -n qc2 python=3.11"
+        echo "  conda activate qc2"
+        echo "  cd qc2 ; python3 -m pip install -e ."
+        echo "  python3 -m pip install -e .[pennylane]"
+        echo "TEST:"
+        echo "  pytest -v"
+      ;;
       regex )
         echo ".    = Any single character"
         echo "a|b  = matches either a or b"

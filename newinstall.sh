@@ -7,8 +7,15 @@ mkdir -v tmp
 cd usr/bin || exit 1
 sudo apt -y install git
 git config --global user.name "Franco Egidi"
-git config --global user.email "franco.egidi@gmail.com"
+#git config --global user.email "franco.egidi@gmail.com"
 git remote set-url origin git@github.com:Frankifisu/bin.git
+git config --global alias.graph  "log --graph --decorate --pretty=oneline --abbrev-commit --branches --remotes --tags"
+git config --global alias.pgraph "log --graph --decorate --pretty=oneline --abbrev-commit"
+git config --global alias.revnum 'log -n 1 --format=format:%ad --date=format:"%y%m%d"'
+git config --global merge.conflictstyle diff3
+git config --global push.autoSetupRemote true
+git config --global fetch.prune true
+git config --global pack.windowMemory 1g
 git config --list
 sudo apt install openssh-server
 # ssh-keygen -t rsa

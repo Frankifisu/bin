@@ -79,6 +79,14 @@
   if [[ -x $( command -v python3 ) ]]; then alias python="python3"; fi
   if [[ -x $( command -v helpy.py ) ]]; then alias helpy="helpy.py"; fi
   if [[ -x $( command -v rename.ul ) ]]; then alias rename="rename.ul"; fi
+  checkpy () {
+    if [[ "${#}" -eq 0 ]]; then echo "Usage: checkpy file1.py file2.py"; return 1 ; fi
+    for arg in ${@}; do
+      if [[ ! -f "${arg}" ]]; then echo "ERROR: File ${arg} not present or readable"; continue ; fi
+      echo "Black:" ; black -t py38 -l 120 "${arg}"
+      echo "Flake:" ; flake8 --max-line-length 120 --count "${arg}"
+    done
+  }
   apri () {
     if [[ ${#} -eq 0 ]]; then
        xdg-open .
@@ -209,6 +217,7 @@
         *.pyc    ) continue ;;
         *.svg    ) continue ;;
         *.png    ) continue ;;
+        *.pkl    ) continue ;;
         *.gz     ) continue ;;
         *.js     ) continue ;;
         *.ipynb  ) continue ;;
@@ -216,17 +225,18 @@
       esac
       if [[ "${file}" != *${ext} ]] ; then continue ; fi
       if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
-      #if [[ "${file}" == *kf ]] ; then continue; fi
-      #if [[ "${file}" == *.t21 ]] ; then continue; fi
-      #if [[ "${file}" == *.ams ]] ; then continue; fi
-      #if [[ "${file}" == *.pyc ]] ; then continue; fi
-      #if [[ "${file}" == *.svg ]] ; then continue; fi
-      #if [[ "${file}" == *.png ]] ; then continue; fi
-      #if [[ "${file}" == *.gz  ]] ; then continue; fi
-      #if [[ "${file}" == *.js  ]] ; then continue; fi
-      #if [[ "${file}" == *.ipynb  ]] ; then continue; fi
-      #if [[ "${file}" == *.drawio ]] ; then continue; fi
-      #if [[ "${file}" != *${ext} ]] ; then continue ; fi
+      if [[ "${file}" == *kf ]] ; then continue; fi
+      if [[ "${file}" == *.t21 ]] ; then continue; fi
+      if [[ "${file}" == *.ams ]] ; then continue; fi
+      if [[ "${file}" == *.pyc ]] ; then continue; fi
+      if [[ "${file}" == *.svg ]] ; then continue; fi
+      if [[ "${file}" == *.png ]] ; then continue; fi
+      if [[ "${file}" == *.gz  ]] ; then continue; fi
+      if [[ "${file}" == *.js  ]] ; then continue; fi
+      if [[ "${file}" == *.ipynb  ]] ; then continue; fi
+      if [[ "${file}" == *.yaml   ]] ; then continue; fi
+      if [[ "${file}" == *.drawio ]] ; then continue; fi
+      if [[ "${file}" != *${ext} ]] ; then continue ; fi
       grepi "${cosa}" "${file}" && echo -e '>>>' "${file}" "\n"
     done
     rm -- "${tmpfile}"

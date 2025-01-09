@@ -32,8 +32,12 @@
         echo '  cd $AMSHOME; source $( find ${AMSHOME} -maxdepth 1 -name amsbashrc.sh )'
         echo '  Install/configure -b "myconfig -o GNU -p intelmpi -staticmkl"'
         echo '  $AMSBIN/foray -j 8'
-        echo 'TESTING'
+        echo '  ./Utils/git_post_clone_setup.sh'
+        echo 'RUNNING'
         echo '  submit.py $ADFHOME/Utils/run_test adf'
+        echo 'GIT'
+        echo '  git clone --filter=blob:limit=128k ssh://git@git.scm.com/SCM/amshome.git'
+        echo '  git pull --rebase'
       ;;
       conda )
         echo '  conda activate myenv'
@@ -107,6 +111,9 @@
         echo "  git push origin (push my changes to the repository)"
 	echo "WEB:"
 	echo "  git push -u origin master"
+	echo "SCM:"
+	echo "  git add . ; git commit ; git pull --rebase ; git push"
+	echo "  git switch --create mybranch trunk"
 	echo "NOTES:"
 	echo "  Maintain a stable master commit and create a new branch before developing new features"
 	echo "  Always commit any changes before changing branch with git checkout"

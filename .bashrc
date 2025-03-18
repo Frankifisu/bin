@@ -5,6 +5,9 @@
 # ==================================
 # This file should be sourced from ~/.bashrc which can be kept
 # almost as the default found in /etc/skel/.bashrc
+ cfr () {
+   vimcmp /home/egidi/usr/local/ams/ams2024.qmfq24/src/${1} /home/egidi/usr/local/ams/ams2024.dev/src/${1}
+ }
 #
 # -----------
 # SHELL PATHS
@@ -17,10 +20,12 @@
       export PATH="${addpath}:${PATH}"; export PYTHONPATH="${addpath}:${PYTHONPATH}"; fi
   done; unset addpath
 # LD_LIBRARY_PATH
-  for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64" "/usr/lib/x86_64-linux-gnu"; do
-    if [[ -d "${addpath}" || -L "${addpath}" ]]; then
-      export LD_LIBRARY_PATH="${addpath}:${LD_LIBRARY_PATH}"; fi
-  done; unset addpath
+  librarypath () {
+    for addpath in "/lib" "/lib64" "/usr/lib" "/usr/lib64" "/usr/lib/x86_64-linux-gnu"; do
+      if [[ -d "${addpath}" || -L "${addpath}" ]]; then
+        export LD_LIBRARY_PATH="${addpath}:${LD_LIBRARY_PATH}"; fi
+    done; unset addpath
+  }
 #
 # -------
 # HISTORY
@@ -230,6 +235,7 @@
       if [[ "${file}" == *.ams ]] ; then continue; fi
       if [[ "${file}" == *.pyc ]] ; then continue; fi
       if [[ "${file}" == *.svg ]] ; then continue; fi
+      if [[ "${file}" == *.swp ]] ; then continue; fi
       if [[ "${file}" == *.png ]] ; then continue; fi
       if [[ "${file}" == *.gz  ]] ; then continue; fi
       if [[ "${file}" == *.js  ]] ; then continue; fi

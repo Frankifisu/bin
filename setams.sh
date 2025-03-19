@@ -105,12 +105,12 @@ fi
 # check whether the AMS executable is there
   if [[ ! -x "${AMSBIN}/ams" ]]; then echo "WARNING: ams executable not found!"; fi
   if [ "${vrb}" = '-v' ]; then echo "Using AMS tree in ${AMSHOME}"; fi
-  AMSPYTHONVER='python3.8'
-  if [[ -d ${AMSHOME}/bin/${AMSPYTHONVER} ]]; then
-    export SCM_PYTHONPATH="${AMSHOME}/bin/python3.8/"
-  else
-    echo "WARNING: ${AMSPYTHONVER} not found in ${AMSHOME}/bin"
-  fi
+  #AMSPYTHONVER='python3.8'
+  #if [[ -d ${AMSHOME}/bin/${AMSPYTHONVER} ]]; then
+  #  export SCM_PYTHONPATH="${AMSHOME}/bin/python3.8/"
+  #else
+  #  echo "WARNING: ${AMSPYTHONVER} not found in ${AMSHOME}/bin"
+  #fi
   if [[ -d ${HOME}/.local/lib/python3.9/site-packages/lammps ]]; then
     #export SCM_PYTHONPATH="${HOME}/.local/lib/python3.9/site-packages/lammps"
     export SCM_PYTHONPATH=${SCM_PYTHONPATH}:"${HOME}/.local/lib/python3.9/site-packages/lammps/":"${HOME}/.local/lib/python3.9/":"${HOME}/usr/local/lammps/lammps-23Jun2022/python/"
@@ -118,7 +118,7 @@ fi
   else
     echo "WARNING: LAMMPS not found"
   fi
-  export PYTHONPATH="${AMSHOME}/scripting":"${SCM_PYTHONPATH}":"${AMSHOME}/bin/${AMSPYTHONVER}":${PYTHONPATH}
+  #export PYTHONPATH="${AMSHOME}/scripting":"${SCM_PYTHONPATH}":"${AMSHOME}/bin/${AMSPYTHONVER}":${PYTHONPATH}
 #
 # ------------------------
 # DEFINE SCRATCH DIRECTORY

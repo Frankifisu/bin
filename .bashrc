@@ -369,9 +369,9 @@
     sconnect "${remote_user}" "${officeip}" ${@}
   }
 # Connect to office
-  erik () {
+  ufficio () {
     if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on master"; return 1; fi
-    sconnect -IP "egidi" "erik.scm.com" ${@}
+    sconnect -IP "egidi" "erik.scm.com" -p 20022 ${@}
   }
 # Connect to master
   master () {

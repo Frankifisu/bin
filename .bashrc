@@ -371,7 +371,7 @@
 # Connect to office
   ufficio () {
     if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on master"; return 1; fi
-    sconnect -IP "egidi" "erik.scm.com" -p 20022 ${@}
+    sconnect -IP "egidi" "franco.scm.com" -p 20022 ${@}
   }
 # Connect to master
   master () {

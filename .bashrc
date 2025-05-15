@@ -320,31 +320,32 @@
     local -a remote ; local port=22
     while [[ -n "${1}" ]]; do
       case "${1}" in
-        -IP ) IPcopy="true";;
-        -p  ) port="${1}" ; shift ;;
+#        -IP ) IPcopy="true";;
+        -p  ) port="${2}" ; shift ;;
         *   ) remote=( "${remote[@]}" "${1}" );;
       esac; shift
     done
     local remote_user="${remote[${ruser}]}"
     local remote_host="${remote[${rhost}]}"
-    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "banana" || "$( hostname )" == "Desktop11v2" ]]; then
-#     This function sends the IP into the .bashrc of a remote host
-#     before performing a ssh or scp operation.
-#     It expects the remote host .bashrc to have an office function
-      myIP="$( myip )"
-      local dest_fil=""
-      for test_dir in "usr/bin" "bin"; do
-        test_fil="${test_dir}/.bashrc"
-        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
-        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then echo si; else echo no; fi
-      done
-      if [[ -n "${dest_fil}" ]]; then
-        ipwrite="$( echo ssh -p ${port} ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
-        #)" #to fix mistake in coloring
-        eval ${ipwrite}
-      fi
-    fi
+#    if [[ "${IPcopy}" == "true" ]] && [[ "$( hostname )" == "banana" || "$( hostname )" == "Desktop11v2" ]]; then
+##     This function sends the IP into the .bashrc of a remote host
+##     before performing a ssh or scp operation.
+##     It expects the remote host .bashrc to have an office function
+#      myIP="$( myip )"
+#      local dest_fil=""
+#      for test_dir in "usr/bin" "bin"; do
+#        test_fil="${test_dir}/.bashrc"
+#        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
+#        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then echo si; else echo no; fi
+#      done
+#      if [[ -n "${dest_fil}" ]]; then
+#        ipwrite="$( echo ssh -p ${port} ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
+#        #)" #to fix mistake in coloring
+#        eval ${ipwrite}
+#      fi
+#    fi
     if [[ ${#remote[@]} -eq 2 ]]; then
+      echo ssh -p ${port} ${remote_user}@${remote_host}
       ssh -p ${port} ${remote_user}@${remote_host}
     else
       if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi

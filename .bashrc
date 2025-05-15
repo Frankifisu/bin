@@ -317,10 +317,11 @@
   sconnect () {
     if [[ ${#} -lt 2 ]]; then echo "ERROR: Remote user and host required in sconnect"; return 1; fi
     local -i ruser=0 ; local -i rhost=1
-    local -a remote
+    local -a remote ; local port=22
     while [[ -n "${1}" ]]; do
       case "${1}" in
         -IP ) IPcopy="true";;
+        -p  ) port="${1}" ; shift ;;
         *   ) remote=( "${remote[@]}" "${1}" );;
       esac; shift
     done
@@ -334,20 +335,20 @@
       local dest_fil=""
       for test_dir in "usr/bin" "bin"; do
         test_fil="${test_dir}/.bashrc"
-        if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
-        if ssh ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then echo si; else echo no; fi
+        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then dest_fil="${test_fil}"; break; fi
+        if ssh -p ${port} ${remote_user}@${remote_host} "[ -f ${test_fil} ]"; then echo si; else echo no; fi
       done
       if [[ -n "${dest_fil}" ]]; then
-        ipwrite="$( echo ssh ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
+        ipwrite="$( echo ssh -p ${port} ${remote_user}@${remote_host} \\"sed -i \'/^\\\s*export\ officeip=*/c\\\ \\\ \\\ \\\ export\ officeip=${myIP}\' \${dest_fil}" )"
         #)" #to fix mistake in coloring
         eval ${ipwrite}
       fi
     fi
     if [[ ${#remote[@]} -eq 2 ]]; then
-      ssh ${remote_user}@${remote_host}
+      ssh -p ${port} ${remote_user}@${remote_host}
     else
       if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
-      scp -p -r "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
+      scp -p -r -P ${port} "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }
 # Connect to banana
@@ -370,13 +371,13 @@
   }
 # Connect to office
   ufficio () {
-    if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on master"; return 1; fi
-    sconnect -IP "egidi" "franco.scm.com" -p 20022 ${@}
+    if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on there"; return 1; fi
+    sconnect "egidi" "franco.scm.com" -p 20022 ${@}
   }
 # Connect to master
   master () {
     if [[ "$( hostname )" == "master.scm.com" ]]; then echo "ERROR: Already on master"; return 1; fi
-    sconnect -IP "egidi" "master.scm.com" ${@}
+    sconnect "egidi" "master.scm.com" ${@}
   }
 # Connect to uz
   unizone () {

@@ -353,7 +353,7 @@
 # Connect to banana
   office () {
     if [[ "$( hostname )" == "banana" ]]; then echo "ERROR: Already on banana"; return 1; fi
-    export officeip=192.168.26.177
+    export officeip=192.168.132.52
     if [[ "${1}" == "-u" ]]; then
       remote_user="${2}"; shift; shift
     else

@@ -16,6 +16,7 @@ import argparse  # commandline argument parsers
 # import subprocess  # Spawn process: subprocess.run('ls', stdout=subprocess.PIPE)
 # import typing  # Support for type hints
 from feutils import bashrun, errore, HOSTNAME, int_or_str, wide_help
+from collections import namedtuple
 import ams
 import gau
 
@@ -30,12 +31,23 @@ PROGNAME = os.path.basename(sys.argv[0])
 # ==========
 #  DEFAULTS
 # ==========
+try:
+    Queue = namedtuple("queue", ["name", "ncpu", "mem", "info"], defaults = ["", 1, 1, ""])
+except TypeError:
+    Queue = namedtuple("queue", ["name", "ncpu", "mem", "info"])
+
+if ".scm.com" in HOSTNAME:
+    sky = Queue("sky", 32, 192, "Skylake SP nodes: per node 32 cores (Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz)")
+    bm  = Queue("bm", 24, 128, "Broadwell-E nodes: per node 24 cores (Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz)")
+    zen = Queue("zen3", 64, 256, "Zen3 Epyc node: 64 cores (2x AMD EPYC 7513 @ 2.6GHz)")
+
 def standardqueue():
     """Return default queue"""
     if ".scm.com" in HOSTNAME:
-        return "sky"
-    if "trantor" in HOSTNAME:
-        return "q07diamond"
+        return sky.name
+    else:
+        print("ERROR: No default queue found, please specify queue name, memory, and cores")
+        raise Exception
 
 
 DESCRIPTION = """
@@ -81,10 +93,10 @@ def queueparser(parser):
         "-j", "--job", metavar="JOB", dest="job", action="store", default="job", type=str, help="Set job name"
     )
     parser.add_argument(
-        "-m", "--mem", metavar="MEM", dest="mem", action="store", default=64, type=int_or_str, help="Set RAM"
+        "-m", "--mem", metavar="MEM", dest="mem", action="store", type=int_or_str, help="Set RAM"
     )
     parser.add_argument(
-        "-p", "--nproc", metavar="PROC", dest="ppn", default=8, type=int, help="Set number of processors"
+        "-p", "--nproc", metavar="PROC", dest="ppn", type=int, help="Set number of processors"
     )
     # parser.add_argument('-mpi',
     #    dest='mpi', default=False, action='store_true',
@@ -127,10 +139,22 @@ def parseopt(args=None):
     if not other or opts.hlp:
         helparser.print_help()
         sys.exit()
+    if ".scm.com" in HOSTNAME:
+        # Default queues on Master
+        if opts.queue == "sky":
+            if opts.ppn is None: opts.ppn = sky.ncpu
+            if opts.mem is None: opts.mem = sky.mem
+        if opts.queue == "bm":
+            if opts.ppn is None: opts.ppn = bm.ncpu
+            if opts.mem is None: opts.mem = bm.mem
+        if opts.queue in "zen3":
+            opts.queue = zen.name
+            if opts.ppn is None: opts.ppn = zen.ncpu
+            if opts.mem is None: opts.mem = zen.mem
     if opts.mem:
         # If memory is given as an integer, try to guess if it's MB or GB
         if isinstance(opts.mem, int):
-            if opts.mem <= 128:
+            if opts.mem <= 256:
                 opts.mem = f"{opts.mem}G"
             else:
                 opts.mem = f"{opts.mem}M"

@@ -345,10 +345,9 @@
 #      fi
 #    fi
     if [[ ${#remote[@]} -eq 2 ]]; then
-      echo ssh -p ${port} ${remote_user}@${remote_host}
       ssh -p ${port} ${remote_user}@${remote_host}
     else
-      if ssh ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
+      if ssh -p ${port} ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
       scp -p -r -P ${port} "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }

@@ -59,7 +59,7 @@ Engine ADF
   End
 EndEngine
 """
-AMSDEFAULT = "/home/egidi/usr/local/ams/ams2023.trunk"
+AMSDEFAULT = "/home/egidi/usr/local/ams/ams.trunk"
 
 # =========
 #  CLASSES

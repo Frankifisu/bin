@@ -153,6 +153,21 @@
         echo "Loading PGI (as root, password L1Gr0up or L1Gr0up123)"
         echo 'cd ${PGIDIR}/bin ; ./lmgrd'
       ;;
+      plams )
+        echo 'cd $AMSHOME/scripting/scm/plams'
+        echo "Create new branch:"
+        echo "  git switch -c FrancoEgidi/newbranch"
+        echo "Do your work and then:"
+        echo "  black -t py38 -l 120 [FILE.py]"
+        echo '  flake8 --color never --count --config $AMSHOME/scripting/scm/plams/.flake8 [FILE.py]'
+        echo 'git commit and push'
+        echo 'Go to https://github.com/SCM-NV/PLAMS and open Pull Request'
+        echo 'After it is approved, merge and delete the branch on GitHub'
+        echo 'Then:'
+        echo '  cd $AMSHOME && git pull --rebase'
+        echo '  cd $AMSHOME/scripting/scm/plams && git checkout trunk && git pull'
+        echo '  cd $AMSHOME && git add scripting/scm/plams && git commit -m "SO--: message" && git push'
+      ;;
       python )
 	echo 'PRINTING'
 	echo '  format = "Hello %s you have %.2f dollars"'

@@ -38,7 +38,7 @@ fi
       PATH="$( echo "${PATH}" | sed s${op}:${AMSBIN}${op}${op}g )"
       LD_LIBRARY_PATH="$( echo "${LD_LIBRARY_PATH}" | sed "s${op}${AMSBIN}:${op}${op}" )"
     fi
-    unset op; unset AMSHOME ; unset AMSBIN ; unset AMSVER ; unset AMSRESOURCES ; unset SCMLICENSE ; unset SCM_TMPDIR ; unset AMSVER ; unset AMSBIN ; unset AMSHOME
+    unset op; unset AMSHOME ; unset AMSBIN ; unset AMSVER ; unset AMSRESOURCES ; unset SCM_TMPDIR ; unset AMSVER ; unset AMSBIN ; unset AMSHOME
   fi
 #
 # -------------

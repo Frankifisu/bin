@@ -381,7 +381,7 @@
 # Connect to office
   ufficio () {
     if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on there"; return 1; fi
-    sconnect -J tunnel@3c04.scm.com "egidi" "desktopfranco"
+    sconnect -J tunnel@3c04.scm.com "egidi" "desktopfranco" ${@}
   }
 # Connect to master
   master () {

@@ -1,0 +1,6 @@
+# Local secrets
+*.secret
+.env
+
+# App config directory, if you store secrets there inside the repo
+.config/

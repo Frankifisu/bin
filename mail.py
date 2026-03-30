@@ -7,31 +7,74 @@
 # =========
 #  MODULES
 # =========
+# Basic modules
 import os  # OS interface: os.getcwd(), os.chdir('dir'), os.system('mkdir dir')
 import platform  # Computer info
-import sys  # System-specific functions: sys.argv(), sys.exit(), sys.stderr.write()
+import sys  # System-specific functions: sys.argv(), sys.stderr.write()
 import argparse  # commandline argument parsers
 
-# import typing  # Support for type hints
+# To send the email
 import smtplib  # To send emails
 import email  # To send emails
+from email.message import EmailMessage
 import mimetypes  # Handle file types over Internet
-from feutils import errore, USER  # My generic functions
+
+# encryption
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from pathlib import Path
+import base64
+import getpass
+import json
 
 # ==============
 #  PROGRAM DATA
 # ==============
-AUTHOR = "Franco Egidi (franco.egidi@gmail.it)"
-VERSION = "2020.09.20"
+AUTHOR = "Franco Egidi"
+VERSION = "2026.30.03"
 PROGNAME = os.path.basename(sys.argv[0])
 HOSTNAME = platform.node()
+USER = os.getenv("USER", "unknown")
+
+# ============
+#  ENCRYPTION
+# ============
+SCRIPT_DIR = Path(__file__).resolve().parent
+SECRET_FILE = SCRIPT_DIR / ".config" / "mail" / "passkey.json"
+
+
+def derive_fernet_key(password: str, salt: bytes) -> bytes:
+    kdf = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1)
+    key = kdf.derive(password.encode("utf-8"))
+    return base64.urlsafe_b64encode(key)
+
+
+def load_passkey(secret_file: Path = SECRET_FILE) -> str:
+    if not secret_file.exists():
+        raise FileNotFoundError(f"Secret file not found: {secret_file}")
+
+    data = json.loads(secret_file.read_text(encoding="utf-8"))
+
+    try:
+        salt = base64.b64decode(data["salt"])
+        token = data["token"].encode("ascii")
+    except KeyError as exc:
+        raise ValueError(f"Missing field in secret file: {exc}") from exc
+
+    unlock_password = getpass.getpass("Unlock password: ")
+    fernet_key = derive_fernet_key(unlock_password, salt)
+
+    try:
+        return Fernet(fernet_key).decrypt(token).decode("utf-8")
+    except InvalidToken as exc:
+        raise RuntimeError("Wrong password or corrupted secret file.") from exc
+
 
 # ==========
 #  DEFAULTS
 # ==========
 SMTP_DATA = {
     "MAIL": "franco.egidi@gmail.com",
-    "PASSWD": "pvxk dgia dpwc gvox",
     "SERVER": "smtp.gmail.com",
     "PORT": 465,
 }
@@ -48,91 +91,80 @@ FOOTER = f"""\
   """
 
 # =================
-#  BASIC FUNCTIONS
-# =================
-
-
-# =================
 #  PARSING OPTIONS
 # =================
 def parseopt(args=None):
-    """Parse options"""
-    # Create parser
-    parser = argparse.ArgumentParser(prog=PROGNAME, description="Command-line option parser")
-    # Optional arguments
-    parser.add_argument("-to", "--to", nargs="*", dest="to", action="store", default=list(), help="Specify recepients")
-    parser.add_argument("-cc", nargs="*", dest="cc", action="store", default=list(), help="Carbon Copy addresses")
+    """Parse options for email message"""
+    parser = argparse.ArgumentParser(prog=PROGNAME, description="Send email from the command line via Gmail SMTP.")
+
+    parser.add_argument("-to", "--to", nargs="*", default=[], help="Recipient addresses")
+    parser.add_argument("-cc", nargs="*", default=[], help="CC addresses")
+    parser.add_argument("-bcc", nargs="*", default=[], help="BCC addresses")
+    parser.add_argument("-s", "--subject", dest="sbj", default="", help="Mail subject")
     parser.add_argument(
-        "-bcc", nargs="*", dest="bcc", action="store", default=list(), help="Blind Carbon Copy addresses"
+        "-m", "--msg", dest="msg", default="", help="Email body as text, or path to a text file",
     )
-    parser.add_argument("-s", "--subject", type=str, dest="sbj", action="store", default="", help="Mail subject")
-    parser.add_argument(
-        "-m", "--msg", type=str, dest="msg", action="store", default="", help="Email body as string or text file"
-    )
-    parser.add_argument("-a", "--att", nargs="+", dest="att", action="store", default=list(), help="Attachments")
+    parser.add_argument("-a", "--att", nargs="+", default=[], help="Attachments")
     parser.add_argument("-v", "--verbose", dest="vrb", action="count", default=0, help="Verbose mode")
-    parser.add_argument("--dry", dest="dry", action="store_true", default=False, help=argparse.SUPPRESS)
+    parser.add_argument("--dry", action="store_true", default=False, help="Build message but do not send")
+
     opts = parser.parse_args(args)
     # Check options
-    for attfil in opts.att:
-        if not os.path.isfile(attfil):
-            errore(f"File {attfil} not found")
     alladdr = opts.to + opts.cc + opts.bcc
-    if not alladdr and not opts.msg and not opts.att and not opts.sbj:
+    if not alladdr and not opts.msg and not opts.att and not opts.sbj and not opts.dry:
         parser.print_help()
-        errore()
+        raise Exception("Must include at least one option")
     if not opts.sbj:
         opts.sbj = SIGNED
     if not alladdr:
-        opts.to.append(SMTP_DATA.get("MAIL"))
-    elif SMTP_DATA.get("MAIL") not in alladdr:
-        opts.bcc.append(SMTP_DATA.get("MAIL"))
+        opts.to.append(SMTP_DATA["MAIL"])
+    elif SMTP_DATA["MAIL"] not in alladdr:
+        opts.bcc.append(SMTP_DATA["MAIL"])
+
     return opts
 
 
 # ================
 #  WORK FUNCTIONS
 # ================
-def emailmsg(sbj="", msg="", fro="", to=None, cc=None, bcc=None, att=None):
+def resolve_body(msg: str) -> str:
+    if not msg:
+        return ""
+
+    msg_path = Path(msg).expanduser()
+    if msg_path.is_file():
+        return msg_path.read_text(encoding="utf-8")
+
+    return msg
+
+def build_message(sbj="", msg="", fro="", to=None, cc=None, att=None):
     """Create email message object"""
     # Restore defaults to mutable empty lists
     if to is None:
         to = []
     if cc is None:
         cc = []
-    if bcc is None:
-        bcc = []
     if att is None:
         att = []
     # Create message object
-    emsg = email.message.EmailMessage()
+    emsg = EmailMessage()
     # Assign fields
     emsg["Subject"] = sbj
     emsg["To"] = ", ".join(to)
     emsg["From"] = fro
-    emsg["Cc"] = ", ".join(cc)
-    emsg["Bcc"] = ", ".join(bcc)
+    if cc: emsg["Cc"] = ", ".join(cc)
     # Body
-    try:
-        with open(msg, "r") as filobj:
-            body = filobj.read()
-    except Exception:
-        body = msg
+    body = resolve_body(msg)
+    # Subject
     if sbj != SIGNED:
-        emsg.set_content(body + "\n" + SIGNED)
+        emsg.set_content(f"{body}\n{SIGNED}" if body else SIGNED)
     else:
         emsg.set_content(body)
     # Attachments
     for attfil in att:
-        if not os.path.isfile(attfil):
+        path = Path(attfil).expanduser()
+        if not path.is_file():
             continue
-        filnam, filext = os.path.splitext(attfil)
-        if filext == ".com":
-            import shutil
-
-            renamed = f"{filnam}.gjf"
-            shutil.copy(attfil, renamed)
-            attfil = renamed
         # Guess the content type based on the file's extension.  Encoding
         # will be ignored, although we should check for simple things like
         # gzip'd or compressed files.
@@ -141,40 +173,57 @@ def emailmsg(sbj="", msg="", fro="", to=None, cc=None, bcc=None, att=None):
             # No guess could be made, or the file is encoded (compressed), so
             # use a generic bag-of-bits type.
             ctype = "application/octet-stream"
+
         maintype, subtype = ctype.split("/", 1)
-        with open(attfil, "rb") as fp:
-            emsg.add_attachment(fp.read(), maintype=maintype, subtype=subtype, filename=attfil)
+
+        with path.open("rb") as fp:
+            emsg.add_attachment(fp.read(), maintype=maintype, subtype=subtype, filename=path.name)
+
     return emsg
+
+
+def send_message(emsg: EmailMessage, recipients, passkey: str, verbose: int = 0) -> None:
+    with smtplib.SMTP_SSL(SMTP_DATA["SERVER"], SMTP_DATA["PORT"]) as server:
+        server.login(SMTP_DATA["MAIL"], passkey)
+        server.send_message(emsg, to_addrs=recipients)
+
+    if verbose >= 1:
+        print("Message successfully sent")
 
 
 # ==============
 #  MAIN PROGRAM
 # ==============
-def main(args=None):
+def main(args=None) -> int:
     # PARSE ARGUMENTS
     opts = parseopt(args)
     # CREATE MESSAGE
-    emsg = emailmsg(
-        sbj=opts.sbj, msg=opts.msg, fro=SMTP_DATA.get("MAIL"), to=opts.to, cc=opts.cc, bcc=opts.bcc, att=opts.att
+    emsg = build_message(
+        sbj=opts.sbj, msg=opts.msg, fro=SMTP_DATA["MAIL"], to=opts.to, cc=opts.cc, att=opts.att
     )
     if opts.vrb >= 1:
         print(emsg)
     if opts.dry:
-        return
+        return 0
+    # RETRIEVE PASSWORD
+    try:
+        passkey = load_passkey()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
     # SEND MESSAGE
-    with smtplib.SMTP_SSL(SMTP_DATA.get("SERVER"), SMTP_DATA.get("PORT")) as server:
-        server.login(SMTP_DATA.get("MAIL"), SMTP_DATA.get("PASSWD"))
-        try:
-            server.send_message(emsg)
-            if opts.vrb >= 1:
-                print("Message successfully sent")
-        except Exception:
-            errore("Failed to send message")
-    sys.exit()
+    recipients = opts.to + opts.cc + opts.bcc
+    try:
+        send_message(emsg, recipients=recipients, passkey=passkey, verbose=opts.vrb)
+    except Exception as exc:
+        print(f"Error sending message: {exc}", file=sys.stderr)
+        return 1
+
+    return 0
 
 
 # ===========
 #  MAIN CALL
 # ===========
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

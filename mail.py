@@ -133,7 +133,7 @@ def resolve_body(msg: str) -> str:
     if msg_path.is_file():
         return msg_path.read_text(encoding="utf-8")
 
-    msg
+    return msg
 
 def build_message(sbj="", msg="", fro="", to=None, cc=None, att=None):
     """Create email message object"""
@@ -193,10 +193,10 @@ def send_message(emsg: EmailMessage, fro: str, recipients, passkey: str, verbose
 #  MAIN PROGRAM
 # ==============
 def main(args=None) -> int:
-    email_addr = load_email()
-    print(email_addr)
     # PARSE ARGUMENTS
     opts = parseopt(args)
+    # LOAD MAIL AND INCLUDE IT IN ADDRESSES
+    email_addr = load_email()
     alladdr = opts.to + opts.cc + opts.bcc
     if not alladdr:
         opts.to.append(email_addr)

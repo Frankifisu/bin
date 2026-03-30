@@ -15,7 +15,6 @@ import argparse  # commandline argument parsers
 
 # To send the email
 import smtplib  # To send emails
-import email  # To send emails
 from email.message import EmailMessage
 import mimetypes  # Handle file types over Internet
 
@@ -48,6 +47,18 @@ def derive_fernet_key(password: str, salt: bytes) -> bytes:
     key = kdf.derive(password.encode("utf-8"))
     return base64.urlsafe_b64encode(key)
 
+def load_email(secret_file: Path = SECRET_FILE) -> str:
+    if not secret_file.exists():
+        raise FileNotFoundError(f"Secret file not found: {secret_file}")
+
+    data = json.loads(secret_file.read_text(encoding="utf-8"))
+
+    try:
+        email = data["email"]
+    except KeyError as exc:
+        raise ValueError(f"Missing email field in secret file: {exc}") from exc
+
+    return email
 
 def load_passkey(secret_file: Path = SECRET_FILE) -> str:
     if not secret_file.exists():
@@ -65,30 +76,21 @@ def load_passkey(secret_file: Path = SECRET_FILE) -> str:
     fernet_key = derive_fernet_key(unlock_password, salt)
 
     try:
-        return Fernet(fernet_key).decrypt(token).decode("utf-8")
+        passkey = Fernet(fernet_key).decrypt(token).decode("utf-8")
     except InvalidToken as exc:
         raise RuntimeError("Wrong password or corrupted secret file.") from exc
+
+    return passkey
 
 
 # ==========
 #  DEFAULTS
 # ==========
 SMTP_DATA = {
-    "MAIL": "franco.egidi@gmail.com",
     "SERVER": "smtp.gmail.com",
     "PORT": 465,
 }
 SIGNED = f"Message from {USER}@{HOSTNAME}"
-FOOTER = f"""\
-<!DOCTYPE html>
-  <html>
-    <head></head>
-    <body><TT>
-      <p>{"-"*len(SIGNED)}</p>
-      <p>{SIGNED}</p>
-    </TT></body>
-  </html>
-  """
 
 # =================
 #  PARSING OPTIONS
@@ -116,10 +118,6 @@ def parseopt(args=None):
         raise Exception("Must include at least one option")
     if not opts.sbj:
         opts.sbj = SIGNED
-    if not alladdr:
-        opts.to.append(SMTP_DATA["MAIL"])
-    elif SMTP_DATA["MAIL"] not in alladdr:
-        opts.bcc.append(SMTP_DATA["MAIL"])
 
     return opts
 
@@ -135,7 +133,7 @@ def resolve_body(msg: str) -> str:
     if msg_path.is_file():
         return msg_path.read_text(encoding="utf-8")
 
-    return msg
+    msg
 
 def build_message(sbj="", msg="", fro="", to=None, cc=None, att=None):
     """Create email message object"""
@@ -182,9 +180,9 @@ def build_message(sbj="", msg="", fro="", to=None, cc=None, att=None):
     return emsg
 
 
-def send_message(emsg: EmailMessage, recipients, passkey: str, verbose: int = 0) -> None:
+def send_message(emsg: EmailMessage, fro: str, recipients, passkey: str, verbose: int = 0) -> None:
     with smtplib.SMTP_SSL(SMTP_DATA["SERVER"], SMTP_DATA["PORT"]) as server:
-        server.login(SMTP_DATA["MAIL"], passkey)
+        server.login(fro, passkey)
         server.send_message(emsg, to_addrs=recipients)
 
     if verbose >= 1:
@@ -195,26 +193,33 @@ def send_message(emsg: EmailMessage, recipients, passkey: str, verbose: int = 0)
 #  MAIN PROGRAM
 # ==============
 def main(args=None) -> int:
+    email_addr = load_email()
+    print(email_addr)
     # PARSE ARGUMENTS
     opts = parseopt(args)
+    alladdr = opts.to + opts.cc + opts.bcc
+    if not alladdr:
+        opts.to.append(email_addr)
+    elif email_addr not in alladdr:
+        opts.bcc.append(email_addr)
     # CREATE MESSAGE
     emsg = build_message(
-        sbj=opts.sbj, msg=opts.msg, fro=SMTP_DATA["MAIL"], to=opts.to, cc=opts.cc, att=opts.att
+        sbj=opts.sbj, msg=opts.msg, fro=email_addr, to=opts.to, cc=opts.cc, att=opts.att
     )
     if opts.vrb >= 1:
         print(emsg)
     if opts.dry:
         return 0
+    # SEND MESSAGE
+    recipients = opts.to + opts.cc + opts.bcc
     # RETRIEVE PASSWORD
     try:
         passkey = load_passkey()
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-    # SEND MESSAGE
-    recipients = opts.to + opts.cc + opts.bcc
     try:
-        send_message(emsg, recipients=recipients, passkey=passkey, verbose=opts.vrb)
+        send_message(emsg, fro=email_addr, recipients=recipients, passkey=passkey, verbose=opts.vrb)
     except Exception as exc:
         print(f"Error sending message: {exc}", file=sys.stderr)
         return 1

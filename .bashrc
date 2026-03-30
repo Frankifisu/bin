@@ -14,6 +14,9 @@
 # -----------
 # My Run Commands directory
   myrc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  vimnew () {
+    vimcmp ~/usr/local/ams/ams.trunk/${1} ~/usr/local/ams/ams.dev/${1}
+  }
 # PATH
   for addpath in "${HOME}/bin" "${HOME}/usr/bin"; do
     if [[ -d "${addpath}" ]]; then
@@ -226,7 +229,12 @@
         *.gz     ) continue ;;
         *.js     ) continue ;;
         *.ipynb  ) continue ;;
+        *.woff   ) continue ;;
+        *.woff2  ) continue ;;
+        *.gif    ) continue ;;
+        *.mp4    ) continue ;;
         *.drawio ) continue ;;
+        *.html   ) continue ;;
       esac
       if [[ "${file}" != *${ext} ]] ; then continue ; fi
       if [[ "$( file -b "${file}" )" == *"directory"* ]] ; then continue; fi
@@ -317,11 +325,12 @@
   sconnect () {
     if [[ ${#} -lt 2 ]]; then echo "ERROR: Remote user and host required in sconnect"; return 1; fi
     local -i ruser=0 ; local -i rhost=1
-    local -a remote ; local port=22
+    local -a remote ; local port=22 ; local add=""
     while [[ -n "${1}" ]]; do
       case "${1}" in
 #        -IP ) IPcopy="true";;
         -p  ) port="${2}" ; shift ;;
+        -J  ) add="${add} -J ${2}" ; shift ;;
         *   ) remote=( "${remote[@]}" "${1}" );;
       esac; shift
     done
@@ -345,10 +354,10 @@
 #      fi
 #    fi
     if [[ ${#remote[@]} -eq 2 ]]; then
-      ssh -p ${port} ${remote_user}@${remote_host}
+      ssh ${add} -p ${port} ${remote_user}@${remote_host}
     else
-      if ssh -p ${port} ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
-      scp -p -r -P ${port} "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
+      if ssh ${add} -p ${port} ${remote_user}@${remote_host} '[ -d ~/tmp ]'; then dest_dir="~/tmp"; else dest_dir="~"; fi
+      scp ${add} -p -r -P ${port} "${remote[@]:2}" ${remote_user}@${remote_host}:"${dest_dir}"
     fi
   }
 # Connect to banana
@@ -372,7 +381,7 @@
 # Connect to office
   ufficio () {
     if [[ "$( hostname )" == "egidi@Desktop11v2" ]]; then echo "ERROR: Already on there"; return 1; fi
-    sconnect "egidi" "franco.scm.com" -p 20022 ${@}
+    sconnect -J tunnel@3c04.scm.com "egidi" "desktopfranco"
   }
 # Connect to master
   master () {

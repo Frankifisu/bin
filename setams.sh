@@ -158,6 +158,11 @@ fi
     if [ "${vrb}" = '-v' ]; then echo "Will use ${NSCM} processors"; fi
   fi
 #
+# -------------------------------
+# VERSION CONTROL QUALITY OF LIFE
+# -------------------------------
+  ssh-add
+#
 # ---------------
 # SETUP TAGS FILE
 # ---------------
